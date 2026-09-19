@@ -1,0 +1,8 @@
+{
+  "name": "asjbcm-portal",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "z-ai-web-dev-sdk": "latest"
+  }
+}
