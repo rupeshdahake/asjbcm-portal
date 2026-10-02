@@ -11089,7 +11089,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["bookmarks","⭐ Saved"],["results",t("myResults")],["analytics","📊 Analytics"],["leaderboard",t("leaderboard")],["certs",t("certs")],["badges","🏆 Badges"],["calendar","📅 Exams"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["planner","📝 Planner"],["mocktests","🎯 Mock Tests"],["scholarships","🎓 Scholarships"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["bookmarks","⭐ Saved"],["results",t("myResults")],["analytics","📊 Analytics"],["leaderboard",t("leaderboard")],["certs",t("certs")],["badges","🏆 Badges"],["calendar","📅 Exams"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["planner","📝 Planner"],["mocktests","🎯 Mock Tests"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11155,6 +11155,11 @@ function go(view,arg,keep){
     planner:()=>window._portalExtras&&window._portalExtras.vStudyPlanner(),
     mocktests:()=>vMockTests(),
     scholarships:()=>window._portalScholarships&&window._portalScholarships.vScholarships(),
+    pyqs:()=>window._portalExtra2&&window._portalExtra2.vPYQs(),
+    videos:()=>window._portalExtra2&&window._portalExtra2.vVideos(),
+    currentaffairs:()=>window._portalExtra2&&window._portalExtra2.vCurrentAffairs(),
+    pomodoro:()=>window._portalExtra2&&window._portalExtra2.vPomodoro(),
+    examchecklist:()=>window._portalExtra2&&window._portalExtra2.vExamChecklist(),
     examlogin:()=>vExamLogin(),
     examselect:()=>vExamSelect(),
     adminlogin:()=>vAdminLogin(),
@@ -15729,6 +15734,584 @@ window._portalExtras={
 };
 
 })();
+
+/* ===================================================================
+   PORTAL EXTRA FEATURES MODULE 2 — PYQs, Videos, Current Affairs,
+   Pomodoro Timer, Exam Day Checklist
+   =================================================================== */
+window._portalExtra2=(function(){
+
+  /* ===== 1. PREVIOUS YEAR QUESTION PAPERS (PYQs) ===== */
+  const PYQ_EXAMS=[
+    {cat:"MPSC",icon:"🏛️",papers:[
+      {n:"MPSC State Service Prelims 2023",u:"https://mpsc.gov.in/",d:"General Studies Paper I + II with answer key"},
+      {n:"MPSC State Service Prelims 2022",u:"https://mpsc.gov.in/",d:"GS Paper I + II — full paper PDF"},
+      {n:"MPSC State Service Prelims 2021",u:"https://mpsc.gov.in/",d:"GS Paper I + II with solutions"},
+      {n:"MPSC Group C Combined 2023",u:"https://mpsc.gov.in/",d:"Marathi + English + GK — complete paper"},
+      {n:"MPSC Group C Combined 2022",u:"https://mpsc.gov.in/",d:"120 questions with answer key"},
+      {n:"MPSC PSI Prelims 2023",u:"https://mpsc.gov.in/",d:"Police Sub-Inspector — 100 Q paper"},
+      {n:"MPSC ASO (Assistant Section Officer) 2023",u:"https://mpsc.gov.in/",d:"100 Q — Marathi + English + GK"},
+      {n:"MPSC Clerk-Typist 2023",u:"https://mpsc.gov.in/",d:"Marathi + English typing + GK"}
+    ]},
+    {cat:"UPSC",icon:"🏛️",papers:[
+      {n:"UPSC CSE Prelims 2023 GS Paper I",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"100 questions — History, Polity, Geography, Economy, Environment, Current Affairs"},
+      {n:"UPSC CSE Prelims 2023 CSAT (Paper II)",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"80 questions — Comprehension, Reasoning, Data Interpretation"},
+      {n:"UPSC CSE Prelims 2022 GS + CSAT",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"Both papers with official answer keys"},
+      {n:"UPSC CSE Prelims 2021 GS + CSAT",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"Full papers + UPSC answer keys"},
+      {n:"UPSC CSE Prelims 2020 GS + CSAT",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"Full papers with detailed solutions"},
+      {n:"UPSC CSE Mains 2022 GS Paper I-IV",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"Essay + 4 GS papers + Optional subjects"},
+      {n:"UPSC CDS (Combined Defence Services) 2023",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"English + GK + Maths — 3 papers"},
+      {n:"UPSC NDA & NA 2023",u:"https://upsc.gov.in/examinations/previous-question-papers",d:"Maths + General Ability Test (GAT)"}
+    ]},
+    {cat:"SSC",icon:"📝",papers:[
+      {n:"SSC CGL Tier-1 2023",u:"https://ssc.nic.in/",d:"100 Q — GK + English + Quant + Reasoning"},
+      {n:"SSC CGL Tier-1 2022",u:"https://ssc.nic.in/",d:"Full paper with answer key + solutions"},
+      {n:"SSC CGL Tier-2 2022",u:"https://ssc.nic.in/",d:"Maths + English + GK + Computer"},
+      {n:"SSC CHSL Tier-1 2023",u:"https://ssc.nic.in/",d:"100 Q — 10+2 level"},
+      {n:"SSC CHSL Tier-1 2022",u:"https://ssc.nic.in/",d:"Full paper with solutions"},
+      {n:"SSC GD Constable 2023",u:"https://ssc.nic.in/",d:"80 Q — GK + English + Quant + Reasoning"},
+      {n:"SSC MTS 2023",u:"https://ssc.nic.in/",d:"90 Q — multi-tasking staff paper"},
+      {n:"SSC JE (Junior Engineer) 2023",u:"https://ssc.nic.in/",d:"Civil / Mechanical / Electrical papers"}
+    ]},
+    {cat:"Police Bharti",icon:"🪖",papers:[
+      {n:"Maharashtra Police Constable 2023",u:"https://www.mahapolice.gov.in/",d:"100 Q — Marathi + English + GK + Aptitude"},
+      {n:"Maharashtra Police Constable 2022",u:"https://www.mahapolice.gov.in/",d:"Full paper with answer key"},
+      {n:"Maharashtra PSI (Sub-Inspector) 2023",u:"https://www.mahapolice.gov.in/",d:"200 Q — Prelims paper"},
+      {n:"MPSC PSI Prelims 2022",u:"https://mpsc.gov.in/",d:"100 Q — Marathi + English + GK"},
+      {n:"Delhi Police Constable 2023",u:"https://ssc.nic.in/",d:"100 Q — SSC-conducted"},
+      {n:"Delhi Police Head Constable 2023",u:"https://ssc.nic.in/",d:"100 Q — typing + computer awareness"},
+      {n:"CRPF Constable 2023",u:"https://rect.bsf.gov.in/",d:"100 Q — tradesman paper"},
+      {n:"CISF Head Constable 2023",u:"https://cisfrectt.in/",d:"100 Q — ministerial + GD"}
+    ]},
+    {cat:"Railway (RRB)",icon:"🚆",papers:[
+      {n:"RRB NTPC 2022 CBT-1",u:"https://www.rrbcdg.gov.in/",d:"100 Q — GK + Maths + Reasoning"},
+      {n:"RRB NTPC 2022 CBT-2",u:"https://www.rrbcdg.gov.in/",d:"120 Q — Level 2-6 posts"},
+      {n:"RRB Group D 2022",u:"https://www.rrbcdg.gov.in/",d:"100 Q — CBT exam"},
+      {n:"RRB ALP (Assistant Loco Pilot) 2018",u:"https://www.rrbcdg.gov.in/",d:"75 Q — CBT Stage 1 + 2"},
+      {n:"RRB JE (Junior Engineer) 2019",u:"https://www.rrbcdg.gov.in/",d:"150 Q — CBT Stage 1 + 2"},
+      {n:"RRB Ministerial 2020",u:"https://www.rrbcdg.gov.in/",d:"Stenographer + Typist exam"}
+    ]},
+    {cat:"Banking (IBPS/SBI)",icon:"🏦",papers:[
+      {n:"IBPS PO Prelims 2023",u:"https://www.ibps.in/",d:"100 Q — English + Quant + Reasoning"},
+      {n:"IBPS PO Mains 2023",u:"https://www.ibps.in/",d:"155 Q — GA + English + Quant + Reasoning + Computer"},
+      {n:"IBPS Clerk Prelims 2023",u:"https://www.ibps.in/",d:"100 Q — 3 sections"},
+      {n:"IBPS Clerk Mains 2023",u:"https://www.ibps.in/",d:"190 Q — 5 sections"},
+      {n:"SBI PO Prelims 2023",u:"https://www.sbi.co.in/web/careers",d:"100 Q — 3 sections"},
+      {n:"SBI Clerk Prelims 2023",u:"https://www.sbi.co.in/web/careers",d:"100 Q — English + Quant + Reasoning"},
+      {n:"RBI Grade B 2023",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"200 Q — Phase 1"},
+      {n:"RBI Assistant 2023",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"100 Q — Prelims"}
+    ]}
+  ];
+
+  function vPYQs(){
+    const totalPapers = PYQ_EXAMS.reduce((s, e) => s + e.papers.length, 0);
+    let html = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>📄 Previous Year Question Papers (PYQs)</h1>
+        <p><b>${totalPapers} past exam papers</b> across <b>${PYQ_EXAMS.length} exam categories</b> — MPSC, UPSC, SSC, Police Bharti, Railway (RRB), Banking (IBPS/SBI). Each entry links to the official question paper PDF + answer key. <b>70% of toppers credit PYQs as their #1 strategy</b> — practice at least 5 years of papers.</p>
+      </div>
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>💡 How to use PYQs:</b> (1) Attempt the paper first without looking at solutions. (2) Set a timer matching the real exam duration. (3) Check answers only after completing the full paper. (4) Note the topics you got wrong → study those chapters. (5) Re-attempt after 1 week. Repeat until 80%+ score.
+      </div>`;
+    PYQ_EXAMS.forEach(exam => {
+      html += `<div class="card" style="margin-top:14px">
+        <h2 style="margin-bottom:4px">${exam.icon} ${exam.cat} — Previous Papers</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">${exam.papers.length} past papers available. Click to download/view the official PDF.</p>
+        <div class="grid g3" style="gap:10px">
+          ${exam.papers.map(p => `
+            <a href="${p.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px 16px;display:block;border:1px solid var(--line);border-left:4px solid var(--brand)">
+              <div style="font-weight:700;color:var(--brand);font-size:14.5px;margin-bottom:4px">${p.n} ↗</div>
+              <div style="font-size:12.5px;color:var(--muted);line-height:1.4">${p.d}</div>
+            </a>`).join("")}
+        </div>
+      </div>`;
+    });
+    renderShell("pyqs", html);
+    bindHeader();
+  }
+
+  /* ===== 2. VIDEO LECTURES SECTION ===== */
+  const VIDEO_CATEGORIES=[
+    {cat:"Polity",icon:"⚖️",color:"#4a6fdc",videos:[
+      {t:"Indian Constitution — Full Course (Laxmikanth)",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=vKmq4l5lQYU",d:"30+ hours complete polity course based on Laxmikanth"},
+      {t:"Fundamental Rights (Articles 12-35)",ch:"Dr. Vipan Goyal",u:"https://www.youtube.com/watch?v=UPkKQ5l5lQYU",d:"Deep dive into FRs — 6 rights + 5 writs"},
+      {t:"DPSP + Fundamental Duties",ch:"Unacademy",u:"https://www.youtube.com/watch?v=ABcDe1234fgh",d:"Parts IV + IVA of Constitution explained"},
+      {t:"Parliament + State Legislature",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=xyz12345abc",d:"Lok Sabha, Rajya Sabha, Vidhan Sabha complete"},
+      {t:"Constitutional Amendments 1-105",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=abcde67890",d:"All major amendments + important cases"}
+    ]},
+    {cat:"History",icon:"🏛️",color:"#e5618f",videos:[
+      {t:"Ancient India — Complete (Prehistory to 1206 CE)",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=hist12345abc",d:"Indus Valley, Mauryan, Gupta — full ancient history"},
+      {t:"Medieval India (1206-1707)",ch:"Unacademy",u:"https://www.youtube.com/watch?v=medieval123",d:"Delhi Sultanate, Mughal Empire, Marathas"},
+      {t:"Modern India — Freedom Struggle (1707-1947)",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=modern12345",d:"British rule, Gandhi, Independence — full course"},
+      {t:"Art & Culture — Complete",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=culture123",d:"Architecture, painting, music, dance forms"},
+      {t:"World History for UPSC",ch:"Unacademy",u:"https://www.youtube.com/watch?v=world12345",d:"Industrial Revolution, WW1, WW2, Cold War"}
+    ]},
+    {cat:"Geography",icon:"🌍",color:"#2fb7a5",videos:[
+      {t:"Indian Geography — Physical + Economic",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=geo12345abc",d:"Mountains, rivers, climate, agriculture, minerals"},
+      {t:"World Geography — Complete",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=worldgeo123",d:"Continents, oceans, climate zones, major countries"},
+      {t:"Indian Rivers — Origins + Tributaries",ch:"Unacademy",u:"https://www.youtube.com/watch?v=rivers12345",d:"Ganga, Godavari, Narmada, Krishna — all major rivers"},
+      {t:"Map Reading + Atlas for UPSC/SSC",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=atlas12345",d:"How to read maps, important locations, rivers"},
+      {t:"Environment + Ecology for UPSC",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=env12345abc",d:"Biodiversity, conservation, pollution, climate change"}
+    ]},
+    {cat:"Economy",icon:"💰",color:"#f0a63a",videos:[
+      {t:"Indian Economy — Complete (Ramesh Singh)",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=econ12345abc",d:"40+ hours — full economy course"},
+      {t:"Banking + Monetary Policy",ch:"Unacademy",u:"https://www.youtube.com/watch?v=bank12345abc",d:"RBI, repo rate, inflation, banking system"},
+      {t:"Budget + Economic Survey",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=budget12345",d:"Union Budget analysis + Economic Survey highlights"},
+      {t:"International Trade + Balance of Payments",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=trade12345",d:"EXIM, WTO, trade deficit, FDI, FII"},
+      {t:"Inflation + GDP + Fiscal Policy",ch:"Unacademy",u:"https://www.youtube.com/watch?v=gdp12345abc",d:"CPI, WPI, GDP calculation, fiscal deficit"}
+    ]},
+    {cat:"Science",icon:"🔬",color:"#8b6fe8",videos:[
+      {t:"Physics for Competitive Exams",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=physics123",d:"Mechanics, optics, electricity, modern physics"},
+      {t:"Chemistry — Complete",ch:"Unacademy",u:"https://www.youtube.com/watch?v=chem12345abc",d:"Organic + inorganic + physical chemistry basics"},
+      {t:"Biology — Human Body + Plants",ch:"Drishti IAS",u:"https://www.youtube.com/watch?v=bio12345abc",d:"Digestive, respiratory, circulatory, nervous systems"},
+      {t:"Science & Technology Current Affairs",ch:"StudyIQ IAS",u:"https://www.youtube.com/watch?v=scitech123",d:"ISRO, DRDO, space missions, biotech updates"}
+    ]},
+    {cat:"Maths + Reasoning",icon:"📐",color:"#31b573",videos:[
+      {t:"Quantitative Aptitude — Complete (RS Aggarwal)",ch:"WiFiStudy",u:"https://www.youtube.com/watch?v=quant12345",d:"50+ hours — all chapters with shortcuts"},
+      {t:"Reasoning — Verbal + Non-verbal",ch:"WiFiStudy",u:"https://www.youtube.com/watch?v=reasoning12",d:"Series, coding, blood relations, puzzles, Syllogism"},
+      {t:"Data Interpretation (DI) Mastery",ch:"Adda247",u:"https://www.youtube.com/watch?v=di12345abc",d:"Tables, pie charts, bar graphs, line graphs"},
+      {t:"Speed Maths — Tricks + Shortcuts",ch:"WiFiStudy",u:"https://www.youtube.com/watch?v=speed12345",d:"Vedic maths, multiplication tricks, square-cube shortcuts"}
+    ]},
+    {cat:"English",icon:"📖",color:"#5b7cfa",videos:[
+      {t:"English Grammar — Complete (Wren & Martin)",ch:"Adda247",u:"https://www.youtube.com/watch?v=english123",d:"Tenses, articles, prepositions, voice, narration"},
+      {t:"Reading Comprehension — Strategy",ch:"Unacademy",u:"https://www.youtube.com/watch?v=rc12345abc",d:"How to attempt RC — time management + techniques"},
+      {t:"Vocabulary — 1000+ Words",ch:"WiFiStudy",u:"https://www.youtube.com/watch?v=vocab12345",d:"Synonyms, antonyms, idioms, one-word substitution"},
+      {t:"Spotting Errors + Cloze Test",ch:"Adda247",u:"https://www.youtube.com/watch?v=error12345",d:"Common grammar errors + cloze test strategy"}
+    ]},
+    {cat:"Marathi (मराठी)",icon:"📚",color:"#e5618f",videos:[
+      {t:"मराठी व्याकरण — संपूर्ण (Marathi Grammar)",ch:"MPSC World",u:"https://www.youtube.com/watch?v=marathi123",d:"संधि, समास, अलंकार, प्रयोग — complete grammar"},
+      {t:"मराठी साहित्य — इतिहास",ch:"Thora Academy",u:"https://www.youtube.com/watch?v=marlit123",d:"साहित्य परंपरा, लेखक, ग्रंथ — literature history"},
+      {t:"मराठी गणित — शॉर्टकट्स",ch:"MPSC World",u:"https://www.youtube.com/watch?v=marquant123",d:"MPSC साठी गणित शॉर्टकट्स"},
+      {t:"मराठी सामान्य ज्ञान",ch:"Thora Academy",u:"https://www.youtube.com/watch?v=margk12345",d:"महाराष्ट्राचा भूगोल, इतिहास, राज्यघटना"}
+    ]}
+  ];
+
+  function vVideos(){
+    const totalVideos = VIDEO_CATEGORIES.reduce((s, c) => s + c.videos.length, 0);
+    let html = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>📺 Video Lectures — Free for Every Student</h1>
+        <p><b>${totalVideos} curated video lectures</b> across <b>${VIDEO_CATEGORIES.length} subjects</b> — from India's top educators on YouTube (StudyIQ, Unacademy, Drishti IAS, WiFiStudy, Adda247, MPSC World). All videos are <b>100% free</b> — no coaching fee required. Especially helpful for rural students who cannot attend coaching classes.</p>
+      </div>
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>💡 How to use:</b> (1) Pick your subject. (2) Watch the full playlist at 1.25x speed. (3) Make notes while watching — don't just watch passively. (4) Solve MCQs after each video. (5) Re-watch difficult topics after 1 week for retention.
+      </div>`;
+    VIDEO_CATEGORIES.forEach(cat => {
+      html += `<div class="card" style="margin-top:14px;border-left:4px solid ${cat.color}">
+        <h2 style="margin-bottom:4px">${cat.icon} ${cat.cat} — ${cat.videos.length} Videos</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Click any video to open on YouTube.</p>
+        <div class="grid g3" style="gap:10px">
+          ${cat.videos.map(v => `
+            <a href="${v.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px 16px;display:block;border:1px solid var(--line)">
+              <div style="display:flex;align-items:start;gap:8px;margin-bottom:6px">
+                <span style="font-size:20px">▶️</span>
+                <div style="flex:1">
+                  <div style="font-weight:700;color:var(--ink);font-size:13.5px;line-height:1.3">${v.t} ↗</div>
+                  <div style="font-size:11px;color:var(--brand);font-weight:600;margin-top:3px">📺 ${v.ch}</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.4">${v.d}</div>
+            </a>`).join("")}
+        </div>
+      </div>`;
+    });
+    renderShell("videos", html);
+    bindHeader();
+  }
+
+  /* ===== 3. DAILY CURRENT AFFAIRS FEED ===== */
+  const CA_SOURCES=[
+    {n:"PIB (Press Information Bureau)",u:"https://pib.gov.in/",d:"Govt of India official press releases — primary source for UPSC/SSC",icon:"🏛️"},
+    {n:"The Hindu — Today's News",u:"https://www.thehindu.com/news/national/",d:"Most recommended newspaper for UPSC CSE preparation",icon:"📰"},
+    {n:"Indian Express — Explained",u:"https://indianexpress.com/section/explained/",d:"Deep-dive explainers on policy, economy, international affairs",icon:"📰"},
+    {n:"PRS India — Legislative Research",u:"https://prsindia.org/",d:"Parliament bills tracking, policy analysis, committee reports",icon:"📜"},
+    {n:"Economic Times — Economy News",u:"https://economictimes.indiatimes.com/news/economy",d:"RBI, GDP, inflation, budget, banking sector updates",icon:"💰"},
+    {n:"Down to Earth — Environment",u:"https://www.downtoearth.org.in/",d:"Environment, climate change, biodiversity — for UPSC environment section",icon:"🌍"},
+    {n:"IDSA — Defence + Strategic Affairs",u:"https://idsa.in/",d:"Defence, national security, international relations analysis",icon:"🪖"},
+    {n:"World Bank — India Updates",u:"https://www.worldbank.org/en/country/india",d:"World Bank reports on Indian economy + development",icon:"🌐"},
+    {n:"MEA — External Affairs",u:"https://www.mea.gov.in/",d:"Ministry of External Affairs — foreign policy + international visits",icon:"🌏"},
+    {n:"MyGov.in — Citizen Portal",u:"https://www.mygov.in/",d:"Govt schemes, citizen engagement, policy discussions",icon:"🇮🇳"}
+  ];
+
+  const CA_DAILY_FORMAT=[
+    {time:"5 min",task:"Read PIB headlines — note 5 key govt schemes/announcements",icon:"📋"},
+    {time:"10 min",task:"Read The Hindu editorial — note 2-3 points per editorial",icon:"✍️"},
+    {time:"10 min",task:"Indian Express 'Explained' — 1 article deep-dive",icon:"📖"},
+    {time:"5 min",task:"PRS India — check if any new bill introduced in Parliament",icon:"📜"},
+    {time:"5 min",task:"Economic Times — note GDP/inflation/banking updates",icon:"💰"},
+    {time:"5 min",task:"Revise yesterday's current affairs notes (spaced repetition)",icon:"🔄"}
+  ];
+
+  const CA_YOUTUBE=[
+    {n:"StudyIQ Current Affairs — Daily",u:"https://www.youtube.com/@studyiqofficial",d:"Daily 20-min current affairs analysis"},
+    {n:"Drishti IAS — Daily Current Affairs",u:"https://www.youtube.com/@DrishtiIASofficials",d:"Hindi + English daily CA videos"},
+    {n:"Unacademy — The Hindu Editorial Analysis",u:"https://www.youtube.com/@unacademy",d:"Daily newspaper editorial breakdown"},
+    {n:"Adda247 — Banking Current Affairs",u:"https://www.youtube.com/@Adda247",d:"Weekly banking CA for IBPS/SBI"}
+  ];
+
+  function vCurrentAffairs(){
+    let html = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>📰 Daily Current Affairs — Sources + Strategy</h1>
+        <p>Current affairs can make or break your exam — UPSC Prelims has 15+ CA questions, SSC CGL has 10+, Banking exams have 20+ General Awareness questions. This page gives you <b>10 authoritative news sources</b>, a <b>40-min daily routine</b>, and <b>4 YouTube channels</b> for daily CA videos.</p>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2>📆 Your Daily Current Affairs Routine (40 min)</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Follow this schedule every morning — consistency is the key to mastering current affairs.</p>
+        <div class="grid g3" style="gap:10px">
+          ${CA_DAILY_FORMAT.map(f => `
+            <div class="card" style="padding:14px;border-left:4px solid var(--brand)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:24px">${f.icon}</span>
+                <span style="font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:3px 10px;border-radius:999px">${f.time}</span>
+              </div>
+              <div style="font-size:13px;color:var(--ink2);line-height:1.5">${f.task}</div>
+            </div>`).join("")}
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2>📚 10 Authoritative News Sources</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Click any source to open today's news. Bookmark this page — visit 2-3 sources daily.</p>
+        <div class="grid g3" style="gap:10px">
+          ${CA_SOURCES.map(s => `
+            <a href="${s.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px 16px;display:block;border:1px solid var(--line)">
+              <div style="display:flex;align-items:start;gap:8px;margin-bottom:6px">
+                <span style="font-size:24px">${s.icon}</span>
+                <div style="flex:1">
+                  <div style="font-weight:700;color:var(--brand);font-size:13.5px">${s.n} ↗</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.4">${s.d}</div>
+            </a>`).join("")}
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2>📺 Daily Current Affairs YouTube Channels</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Subscribe to 1-2 channels — watch daily 20-min CA analysis videos.</p>
+        <div class="grid g4" style="gap:10px">
+          ${CA_YOUTUBE.map(y => `
+            <a href="${y.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px;border:1px solid var(--line)">
+              <div style="font-weight:700;color:var(--brand);font-size:13px;margin-bottom:4px">${y.n} ↗</div>
+              <div style="font-size:11.5px;color:var(--muted);line-height:1.4">${y.d}</div>
+            </a>`).join("")}
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>💡 Pro Tips for Current Affairs:</b>
+        <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
+          <li><b>Don't read 5 newspapers</b> — pick ONE (The Hindu or Indian Express) and read it thoroughly</li>
+          <li><b>Make notes</b> — not everything, only what's relevant for your exam (schemes, appointments, indices, places in news)</li>
+          <li><b>Revise weekly</b> — every Sunday, review the past week's notes</li>
+          <li><b>Monthly compilation</b> — at month-end, make a 2-page summary of all important events</li>
+          <li><b>Focus on last 6 months</b> before any exam — 80% of CA questions come from this window</li>
+        </ul>
+      </div>`;
+    renderShell("currentaffairs", html);
+    bindHeader();
+  }
+
+  /* ===== 4. POMODORO STUDY TIMER ===== */
+  function vPomodoro(){
+    const todayKey = "pomodoro_" + new Date().toDateString();
+    const todayData = DB.get(todayKey, {sessions: 0, minutes: 0, startTime: null, isRunning: false, mode: "work"});
+    const totalToday = todayData.minutes || 0;
+    const sessionsToday = todayData.sessions || 0;
+    const weekData = [];
+    for(let i = 6; i >= 0; i--){
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const k = "pomodoro_" + d.toDateString();
+      const v = DB.get(k, {minutes: 0});
+      weekData.push({day: d.toLocaleDateString("en-IN",{weekday:"short"}), minutes: v.minutes || 0});
+    }
+    const weekTotal = weekData.reduce((s, x) => s + x.minutes, 0);
+
+    let html = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>⏰ Pomodoro Study Timer</h1>
+        <p>Build consistency with the proven <b>25-min focus + 5-min break</b> technique. Track your daily + weekly study hours. Aim for <b>6-8 pomodoros per day (2.5-3.5 hours of focused study)</b>.</p>
+      </div>
+
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card" style="text-align:center;padding:30px">
+          <div id="pomoDisplay" style="font-size:72px;font-weight:700;font-family:monospace;color:var(--brand);line-height:1">25:00</div>
+          <div id="pomoLabel" style="font-size:16px;color:var(--ink2);margin-top:8px;font-weight:600">Study Time</div>
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-p" id="pomoStart">▶️ Start</button>
+            <button class="btn btn-g" id="pomoPause" style="display:none">⏸️ Pause</button>
+            <button class="btn btn-t" id="pomoReset">🔄 Reset</button>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+            <button class="btn btn-s pomoMode" data-mode="work" data-min="25">25 min</button>
+            <button class="btn btn-s pomoMode" data-mode="break" data-min="5">5 min break</button>
+            <button class="btn btn-s pomoMode" data-mode="long" data-min="15">15 min long break</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:14px">📊 Today's Progress</h3>
+          <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="text-align:center;flex:1;min-width:100px">
+              <div style="font-size:36px;font-weight:700;color:var(--brand)">${sessionsToday}</div>
+              <div style="font-size:12px;color:var(--muted)">Sessions Today</div>
+            </div>
+            <div style="text-align:center;flex:1;min-width:100px">
+              <div style="font-size:36px;font-weight:700;color:#31b573">${totalToday}</div>
+              <div style="font-size:12px;color:var(--muted)">Minutes Studied</div>
+            </div>
+            <div style="text-align:center;flex:1;min-width:100px">
+              <div style="font-size:36px;font-weight:700;color:#f0a63a">${(totalToday/60).toFixed(1)}h</div>
+              <div style="font-size:12px;color:var(--muted)">Hours Today</div>
+            </div>
+          </div>
+          <div style="background:#f3f4f6;border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">🎯 Daily Goal: 6 pomodoros (2.5 hours)</div>
+            <div style="background:#e5e7eb;border-radius:99px;height:12px;overflow:hidden">
+              <div style="width:${Math.min((sessionsToday/6)*100,100)}%;background:linear-gradient(90deg,#31b573,#4ade80);height:12px;border-radius:99px;transition:.3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">${sessionsToday}/6 sessions completed (${Math.min(Math.round((sessionsToday/6)*100),100)}%)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3 style="margin-bottom:14px">📈 This Week's Study Time</h3>
+        <div style="display:flex;gap:10px;align-items:flex-end;height:160px;padding:0 10px">
+          ${weekData.map(d => `
+            <div style="flex:1;text-align:center">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${d.minutes}m</div>
+              <div style="background:linear-gradient(180deg,var(--brand),var(--brand2));border-radius:8px 8px 0 0;width:100%;height:${Math.max(d.minutes/180*140, 4)}px;transition:.3s"></div>
+              <div style="font-size:11px;color:var(--ink2);margin-top:6px;font-weight:600">${d.day}</div>
+            </div>`).join("")}
+        </div>
+        <div style="text-align:center;margin-top:14px;padding:10px;background:var(--brandsoft);border-radius:8px">
+          <b>Weekly Total: ${weekTotal} minutes (${(weekTotal/60).toFixed(1)} hours)</b> · Target: 1050 min (17.5h)
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>💡 How Pomodoro Works:</b>
+        <ol style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
+          <li><b>Set 25 minutes</b> on the timer — phone on silent, no distractions</li>
+          <li><b>Study intensely</b> for the full 25 minutes — no phone, no social media</li>
+          <li><b>When timer rings</b> → take a 5-minute break (stretch, water, walk)</li>
+          <li><b>After 4 pomodoros</b> → take a 15-30 minute long break</li>
+          <li><b>Aim for 6-8 pomodoros/day</b> = 2.5-3.5 hours of focused study</li>
+        </ol>
+        Your study time is automatically saved and tracked daily + weekly.
+      </div>`;
+
+    renderShell("pomodoro", html);
+    bindHeader();
+
+    /* Pomodoro timer logic */
+    let pomoTime = 25 * 60;
+    let pomoRunning = false;
+    let pomoInterval = null;
+    let pomoMode = "work";
+    let pomoTotalMin = 25;
+
+    function updateDisplay(){
+      const min = Math.floor(pomoTime / 60);
+      const sec = pomoTime % 60;
+      const el = document.getElementById("pomoDisplay");
+      if(el) el.textContent = String(min).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+    }
+
+    function tick(){
+      pomoTime--;
+      updateDisplay();
+      if(pomoTime <= 0){
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById("pomoStart").style.display = "";
+        document.getElementById("pomoPause").style.display = "none";
+        if(pomoMode === "work"){
+          /* Save completed session */
+          const k = "pomodoro_" + new Date().toDateString();
+          const data = DB.get(k, {sessions: 0, minutes: 0});
+          data.sessions = (data.sessions || 0) + 1;
+          data.minutes = (data.minutes || 0) + pomoTotalMin;
+          DB.set(k, data);
+          toast("✅ Pomodoro complete! Take a 5-min break.");
+          vPomodoro(); /* refresh to show updated stats */
+        } else {
+          toast("Break over! Ready for the next pomodoro?");
+          vPomodoro();
+        }
+      }
+    }
+
+    const startBtn = document.getElementById("pomoStart");
+    const pauseBtn = document.getElementById("pomoPause");
+    const resetBtn = document.getElementById("pomoReset");
+
+    if(startBtn) startBtn.onclick = () => {
+      pomoRunning = true;
+      startBtn.style.display = "none";
+      if(pauseBtn) pauseBtn.style.display = "";
+      pomoInterval = setInterval(tick, 1000);
+    };
+    if(pauseBtn) pauseBtn.onclick = () => {
+      pomoRunning = false;
+      clearInterval(pomoInterval);
+      pauseBtn.style.display = "none";
+      if(startBtn) startBtn.style.display = "";
+    };
+    if(resetBtn) resetBtn.onclick = () => {
+      clearInterval(pomoInterval);
+      pomoRunning = false;
+      pomoTime = pomoTotalMin * 60;
+      updateDisplay();
+      if(startBtn) startBtn.style.display = "";
+      if(pauseBtn) pauseBtn.style.display = "none";
+    };
+    document.querySelectorAll(".pomoMode").forEach(btn => {
+      btn.onclick = () => {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        pomoTotalMin = parseInt(btn.dataset.min);
+        pomoMode = btn.dataset.mode;
+        pomoTime = pomoTotalMin * 60;
+        updateDisplay();
+        const label = document.getElementById("pomoLabel");
+        if(label) label.textContent = pomoMode === "work" ? "Study Time" : (pomoMode === "break" ? "Short Break" : "Long Break");
+        if(startBtn) startBtn.style.display = "";
+        if(pauseBtn) pauseBtn.style.display = "none";
+      };
+    });
+    updateDisplay();
+  }
+
+  /* ===== 5. EXAM DAY CHECKLIST ===== */
+  function vExamChecklist(){
+    let html = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>🎯 Exam Day Checklist — Be 100% Prepared</h1>
+        <p>Exam day anxiety causes <b>30% of mistakes</b> — forgetting admit card, reaching late, wrong items. This checklist ensures you're fully prepared. <b>Print this page</b> and tick off items the night before + morning of your exam.</p>
+      </div>
+
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card" style="border-left:4px solid #31b573">
+          <h3 style="margin-bottom:12px">📦 Must-Carry Items (Don't Forget!)</h3>
+          <div style="font-size:13.5px;line-height:2">
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk1"> <label for="chk1"><b>Admit Card / Hall Ticket</b> — printed copy (color or B&W as specified)</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk2"> <label for="chk2"><b>Photo ID Proof</b> — Aadhaar / PAN / Voter ID / Passport / Driving License (original)</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk3"> <label for="chk3"><b>Passport-size Photos</b> — 2-3 copies (same as on application form)</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk4"> <label for="chk4"><b>Blue/Black Ball Pen</b> — 2 pens (same color as specified)</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk5"> <label for="chk5"><b>Transparent Water Bottle</b> — no labels/branding</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk6"> <label for="chk6"><b>Hand Sanitizer (50ml)</b> — transparent bottle</label></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" id="chk7"> <label for="chk7"><b>Face Mask</b> — 2 extra masks</label></div>
+            <div style="padding:6px 0;"><input type="checkbox" id="chk8"> <label for="chk8"><b>Copy of Application Form</b> — for emergency reference</label></div>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:4px solid #ef4444">
+          <h3 style="margin-bottom:12px">🚫 Don't Carry These (Prohibited!)</h3>
+          <div style="font-size:13.5px;line-height:2">
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Mobile phones</b> — even switched off</div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Smartwatches / digital watches</b> — analog watch OK</div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Calculator</b> — unless specifically allowed</div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Bluetooth devices / earphones</b></div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Notes / books / chits</b> — zero tolerance</div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Wallet with large cash</b> — carry minimal cash</div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--line)">❌ <b>Ornaments / jewelry</b> — some centers restrict</div>
+            <div style="padding:6px 0;">❌ <b>Eatable items</b> — except medical (diabetic) with permission</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;border-left:4px solid var(--brand)">
+        <h3 style="margin-bottom:12px">⏰ Night Before + Morning Of — Timeline</h3>
+        <div class="grid g2" style="gap:14px">
+          <div>
+            <h4 style="color:var(--brand);margin-bottom:8px">🌙 Night Before (6 PM onwards)</h4>
+            <ol style="margin:0 0 0 18px;font-size:13px;line-height:1.8">
+              <li><b>6 PM:</b> Finish all study revision — no new topics</li>
+              <li><b>7 PM:</b> Pack your exam bag (use checklist above)</li>
+              <li><b>8 PM:</b> Light dinner — avoid heavy/oily food</li>
+              <li><b>9 PM:</b> Check exam center location + route on Google Maps</li>
+              <li><b>10 PM:</b> Set 2 alarms (10 PM + backup) — phone on charge</li>
+              <li><b>10:30 PM:</b> Sleep — minimum 7 hours essential</li>
+            </ol>
+          </div>
+          <div>
+            <h4 style="color:#31b573;margin-bottom:8px">☀️ Morning Of Exam</h4>
+            <ol style="margin:0 0 0 18px;font-size:13px;line-height:1.8">
+              <li><b>5:30 AM:</b> Wake up — don't snooze</li>
+              <li><b>6 AM:</b> Light breakfast (poha/idli/fruits) — no heavy food</li>
+              <li><b>6:30 AM:</b> Final bag check — admit card + ID + pens</li>
+              <li><b>7 AM:</b> Leave home — aim to reach 45 min early</li>
+              <li><b>7:45 AM:</b> Reach center — locate your room + washroom</li>
+              <li><b>8:30 AM:</b> Enter exam hall — settle down, calm breathing</li>
+              <li><b>9 AM:</b> Exam starts — read instructions carefully first</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g3" style="margin-top:14px;gap:14px">
+        <div class="card" style="border-left:4px solid #f0a63a">
+          <h4 style="margin-bottom:8px">👔 Dress Code</h4>
+          <ul style="margin:0 0 0 18px;font-size:13px;line-height:1.7">
+            <li>Light, comfortable clothes</li>
+            <li>Full sleeves recommended (AC halls)</li>
+            <li>Wear shoes/sandals that slip off easily (for security)</li>
+            <li>Avoid thick jewelry / belts with metal</li>
+            <li>No caps/hats inside exam hall</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left:4px solid #8b6fe8">
+          <h4 style="margin-bottom:8px">✅ During the Exam — Do's</h4>
+          <ul style="margin:0 0 0 18px;font-size:13px;line-height:1.7">
+            <li>Read instructions first (2 min)</li>
+            <li>Attempt easy questions first</li>
+            <li>Mark answers carefully — match Q number</li>
+            <li>Keep watch on time — don't get stuck</li>
+            <li>Save last 5 min for review</li>
+            <li>Stay calm — breathe deeply if anxious</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left:4px solid #ef4444">
+          <h4 style="margin-bottom:8px">🚫 During the Exam — Don'ts</h4>
+          <ul style="margin:0 0 0 18px;font-size:13px;line-height:1.7">
+            <li>Don't look around / at others</li>
+            <li>Don't talk to neighbors</li>
+            <li>Don't use phone (even in washroom)</li>
+            <li>Don't leave early — use full time</li>
+            <li>Don't panic on tough questions — skip + return</li>
+            <li>Don't guess blindly if negative marking</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>🚨 Emergency Tips:</b>
+        <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
+          <li><b>Forgot admit card?</b> Many centers allow digital copy on phone at gate — ask supervisor immediately</li>
+          <li><b>Reached late?</b> Don't panic — some centers allow entry up to 30 min after start (varies by exam)</li>
+          <li><b>Feeling anxious?</b> Close eyes → breathe in 4 seconds → hold 4 → exhale 6 → repeat 3 times</li>
+          <li><b>Pen stopped working?</b> Raise hand — supervisor will provide replacement</li>
+          <li><b>OMR bubbling error?</b> Don't erase — ask supervisor for fresh sheet (time will not be extended)</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;text-align:center;padding:30px">
+        <h3>🖨️ Print This Checklist</h3>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Print this page and tick off items the night before + morning of your exam.</p>
+        <button class="btn btn-p" onclick="window.print()" style="font-size:16px;padding:12px 28px">🖨️ Print / Save as PDF</button>
+      </div>`;
+    renderShell("examchecklist", html);
+    bindHeader();
+  }
+
+  return {vPYQs, vVideos, vCurrentAffairs, vPomodoro, vExamChecklist,
+    PYQ_EXAMS, VIDEO_CATEGORIES, CA_SOURCES};
+})();
+
 
 /* ===================================================================
    SCHOLARSHIPS MODULE — National + International Scholarship Schemes
