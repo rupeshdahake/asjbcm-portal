@@ -11089,7 +11089,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["bookmarks","⭐ Saved"],["results",t("myResults")],["analytics","📊 Analytics"],["leaderboard",t("leaderboard")],["certs",t("certs")],["badges","🏆 Badges"],["calendar","📅 Exams"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["planner","📝 Planner"],["mocktests","🎯 Mock Tests"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["bookmarks","⭐ Saved"],["results",t("myResults")],["analytics","📊 Analytics"],["leaderboard",t("leaderboard")],["certs",t("certs")],["badges","🏆 Badges"],["calendar","📅 Exams"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["planner","📝 Planner"],["mocktests","🎯 Mock Tests"],["scholarships","🎓 Scholarships"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11154,6 +11154,7 @@ function go(view,arg,keep){
     flashcards:()=>window._portalExtras&&window._portalExtras.vFlashcards(),
     planner:()=>window._portalExtras&&window._portalExtras.vStudyPlanner(),
     mocktests:()=>vMockTests(),
+    scholarships:()=>window._portalScholarships&&window._portalScholarships.vScholarships(),
     examlogin:()=>vExamLogin(),
     examselect:()=>vExamSelect(),
     adminlogin:()=>vAdminLogin(),
@@ -13539,14 +13540,14 @@ function vResult(){
 /* ================= ADMIN PANEL (part 1) ================= */
 function vAdmin(){
   if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher"))){toast(t("needAdmin"));go("dashboard");return}
-  const tabs=[["overview","📈 "+t("overview")],["students","👥 "+t("students")],["chapters","📚 "+t("chaptersTab")],["questions","❓ "+t("questionsTab")],["results","🏆 "+t("resultsTab")],["custom","🧪 Custom Papers"],["scheduled","📅 Scheduled"],["logs","📜 "+t("logsTab")],["settings","⚙️ "+t("settingsTab")],["deploy","🚀 "+t("deployTab")]];
+  const tabs=[["overview","📈 "+t("overview")],["students","👥 "+t("students")],["chapters","📚 "+t("chaptersTab")],["questions","❓ "+t("questionsTab")],["results","🏆 "+t("resultsTab")],["scheduled","📅 Scheduled"],["logs","📜 "+t("logsTab")],["settings","⚙️ "+t("settingsTab")],["deploy","🚀 "+t("deployTab")]];
   renderShell("admin",`
     <div class="sect-h"><h2>🛠️ ${esc(t("adminPanel"))}</h2>
       <span class="badge b-info">${esc(state.user.name)} · ${esc(state.user.role)}</span></div>
     <div class="admin-nav">${tabs.map(([id,lb])=>`<button class="tab ${state.adminTab===id?"on":""}" data-atab="${id}">${lb}</button>`).join("")}</div>
     <div id="adminBody"></div>`);
   document.querySelectorAll("[data-atab]").forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.atab;vAdmin()});
-  const B={overview:admOverview,students:admStudents,chapters:admChapters,questions:admQuestions,results:admResults,custom:vCustomPapersAdmin,scheduled:vScheduledExamsAdmin,logs:admLogs,settings:admSettings,deploy:admDeploy};
+  const B={overview:admOverview,students:admStudents,chapters:admChapters,questions:admQuestions,results:admResults,scheduled:vScheduledExamsAdmin,logs:admLogs,settings:admSettings,deploy:admDeploy};
   (B[state.adminTab]||admOverview)();
 }
 
@@ -14118,474 +14119,6 @@ window.ScheduledExams = {
   }
 };
 
-/* ===================================================================
-   CUSTOM PAPERS MODULE — Teachers create their own question papers
-   - Pick questions by subject, chapter, or hand-select question IDs
-   - Set custom duration, negative marking, total marks, instructions
-   - Save to localStorage, then schedule for students via ScheduledExams
-   =================================================================== */
-window.CustomPapers = {
-  list: function(){
-    return DB.get("customPapers", []);
-  },
-  add: function(paper){
-    const list = this.list();
-    paper.id = paper.id || ("cp_"+Date.now());
-    paper.createdAt = Date.now();
-    paper.createdBy = state.user ? state.user.id : "unknown";
-    paper.createdByName = state.user ? state.user.name : "Unknown";
-    list.push(paper);
-    DB.set("customPapers", list);
-    log("CREATE_CUSTOM_PAPER", paper.title+" — "+paper.questionIds.length+" Q");
-    return paper;
-  },
-  update: function(id, updates){
-    const list = this.list();
-    const idx = list.findIndex(p=>p.id===id);
-    if(idx >= 0){
-      list[idx] = {...list[idx], ...updates, updatedAt: Date.now()};
-      DB.set("customPapers", list);
-      log("UPDATE_CUSTOM_PAPER", id);
-      return list[idx];
-    }
-    return null;
-  },
-  remove: function(id){
-    const list = this.list().filter(p=>p.id!==id);
-    DB.set("customPapers", list);
-    log("DELETE_CUSTOM_PAPER", id);
-  },
-  get: function(id){
-    return this.list().find(p=>p.id===id);
-  },
-  /* Get the actual question objects for a custom paper */
-  getQuestions: function(paperId){
-    const paper = this.get(paperId);
-    if(!paper) return [];
-    /* If paper has explicit questionIds, use them; otherwise build from subjectDistribution */
-    if(paper.questionIds && paper.questionIds.length > 0){
-      return paper.questionIds
-        .map(qid => QB.find(q => q.id === qid))
-        .filter(q => q && q.status !== "needs_review");
-    }
-    /* Fallback: build from subjectDistribution [{subject, count}] */
-    if(paper.subjectDistribution && paper.subjectDistribution.length > 0){
-      let qs = [];
-      paper.subjectDistribution.forEach(sec=>{
-        let pool = QB.filter(q => q.s === sec.subject || (q.c||"").startsWith(sec.subject));
-        pool = pool.filter(q => q.status !== "needs_review");
-        const selected = shuffle(pool).slice(0, sec.count);
-        qs = qs.concat(selected);
-      });
-      return shuffle(qs);
-    }
-    return [];
-  }
-};
-
-/* ===== Admin view: list all custom papers ===== */
-function vCustomPapersAdmin(){
-  if(!(state.user && (state.user.role === "admin" || state.user.role === "teacher"))){
-    toast(t("needAdmin")); go("dashboard"); return;
-  }
-  const papers = CustomPapers.list();
-  let html = `<div class="sect-h"><h2>🧪 Custom Papers</h2>
-    <button class="btn btn-p btn-s" onclick="vCustomPaperForm()">+ Create Custom Paper</button></div>
-    <div class="alert alert-info" style="margin-bottom:14px">
-      <b>📌 What is a Custom Paper?</b> A question paper you design yourself — pick questions by subject or chapter, set your own timer, negative marking, and instructions. Then schedule it for students from the <b>📅 Scheduled</b> tab.
-    </div>`;
-
-  if(papers.length === 0){
-    html += `<div class="card" style="text-align:center;padding:40px;color:var(--muted)">
-      <div style="font-size:48px;margin-bottom:12px">🧪</div>
-      <p>No custom papers yet. Click <b>"Create Custom Paper"</b> to design your first paper.</p>
-    </div>`;
-  } else {
-    html += '<div class="grid g2">';
-    papers.forEach(p => {
-      const subjCount = (p.subjectDistribution || []).reduce((s, x) => s + (x.count || 0), 0);
-      const qCount = (p.questionIds && p.questionIds.length) || subjCount || 0;
-      html += `<div class="card" style="border-left:4px solid var(--brand)">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
-          <h3 style="margin:0;font-size:16px">${esc(p.title)}</h3>
-          <span class="badge b-info">${qCount} Q</span>
-        </div>
-        ${p.description ? `<div style="font-size:13px;color:var(--ink2);margin-bottom:8px">${esc(p.description)}</div>` : ""}
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">
-          <div>⏱️ Duration: <b>${p.duration} min</b> · 📝 Marks: <b>${p.totalMarks || qCount}</b> · ⚠️ Neg: <b>${p.neg || 0}</b></div>
-          ${p.subjectDistribution && p.subjectDistribution.length ? `<div style="margin-top:4px">📚 Subjects: ${p.subjectDistribution.map(s => s.subject.toUpperCase()+"("+s.count+")").join(", ")}</div>` : ""}
-          ${p.questionIds && p.questionIds.length ? `<div style="margin-top:4px">🎯 Hand-picked: ${p.questionIds.length} questions</div>` : ""}
-          <div style="margin-top:4px">👨‍🏫 By: ${esc(p.createdByName || "Unknown")} · ${new Date(p.createdAt).toLocaleDateString()}</div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-p btn-s" onclick="scheduleCustomPaper('${p.id}')">📅 Schedule</button>
-          <button class="btn btn-t btn-s" onclick="previewCustomPaper('${p.id}')">👁️ Preview</button>
-          <button class="btn btn-g btn-s" onclick="editCustomPaper('${p.id}')">✏️ Edit</button>
-          <button class="btn btn-d btn-s" onclick="deleteCustomPaper('${p.id}')">🗑️ Delete</button>
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-  }
-
-  renderShell("admin", html);
-  bindHeader();
-}
-
-/* ===== Form: create or edit a custom paper ===== */
-function vCustomPaperForm(existingId){
-  if(!(state.user && (state.user.role === "admin" || state.user.role === "teacher"))) return;
-
-  const editing = existingId ? CustomPapers.get(existingId) : null;
-  const subjects = SUBJECTS;
-  const chapters = (window.CHP || []);
-
-  let html = `<div class="sect-h"><h2>${editing ? "✏️ Edit Custom Paper" : "➕ Create Custom Paper"}</h2>
-    <button class="btn btn-g btn-s" onclick="vCustomPapersAdmin()">← Back</button></div>
-    <div class="card">
-      <h3 style="margin-bottom:14px">📋 Paper Details</h3>
-      <div class="field"><label>Paper Title *</label>
-        <input class="inp" id="cpTitle" placeholder="e.g. MPSC Prelims — History Special Mock" value="${editing ? esc(editing.title) : ""}">
-      </div>
-      <div class="field"><label>Description (optional)</label>
-        <input class="inp" id="cpDesc" placeholder="Short description for students" value="${editing ? esc(editing.description || "") : ""}">
-      </div>
-      <div class="form-row">
-        <div class="field"><label>Duration (minutes) *</label>
-          <input class="inp" id="cpDuration" type="number" value="${editing ? editing.duration : 60}" min="5" max="300">
-        </div>
-        <div class="field"><label>Total Marks *</label>
-          <input class="inp" id="cpMarks" type="number" value="${editing ? (editing.totalMarks || 50) : 50}" min="1" max="500">
-        </div>
-        <div class="field"><label>Negative Marking (per wrong Q)</label>
-          <input class="inp" id="cpNeg" type="number" step="0.25" value="${editing ? (editing.neg || 0) : 0}" min="0" max="5">
-        </div>
-      </div>
-      <div class="field"><label>Instructions for Students</label>
-        <textarea class="inp" id="cpInstructions" placeholder="Special instructions shown before exam starts..." style="min-height:60px">${editing ? esc(editing.instructions || "") : ""}</textarea>
-      </div>
-
-      <h3 style="margin:20px 0 12px">🎯 Question Selection Method</h3>
-      <div class="field">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">
-          <input type="radio" name="cpMode" value="subject" ${(!editing || editing.mode === "subject") ? "checked" : ""} onchange="toggleCpMode('subject')">
-          <div><b>📚 By Subject</b> — Auto-pick random questions from selected subjects</div>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">
-          <input type="radio" name="cpMode" value="chapter" ${(editing && editing.mode === "chapter") ? "checked" : ""} onchange="toggleCpMode('chapter')">
-          <div><b>📖 By Chapter</b> — Auto-pick random questions from specific chapters</div>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--line);border-radius:8px">
-          <input type="radio" name="cpMode" value="manual" ${(editing && editing.mode === "manual") ? "checked" : ""} onchange="toggleCpMode('manual')">
-          <div><b>✋ Hand-pick Questions</b> — Browse question bank and select specific questions one by one</div>
-        </label>
-      </div>
-
-      <div id="cpModeSubject" style="margin-top:14px">
-        <h4 style="margin-bottom:8px">📚 Select Subjects & Question Counts</h4>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
-          ${subjects.map(s => {
-            const existing = editing && editing.subjectDistribution ? editing.subjectDistribution.find(x => x.subject === s.id) : null;
-            return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:8px">
-              <input type="checkbox" class="cpSubjectChk" value="${s.id}" ${existing ? "checked" : ""}>
-              <span style="font-size:22px">${s.icon}</span>
-              <div style="flex:1">
-                <div style="font-weight:600">${esc(s.name)}</div>
-                <div style="font-size:11px;color:var(--muted)">${QB.filter(q=>q.s===s.id).length} Q available</div>
-              </div>
-              <input type="number" class="cpSubjectCount" data-subj="${s.id}" value="${existing ? existing.count : 5}" min="0" max="100" style="width:60px" placeholder="Count">
-            </div>`;
-          }).join("")}
-        </div>
-        <div style="margin-top:10px;padding:10px;background:var(--brandsoft);border-radius:8px;font-size:13px">
-          <b>Total questions:</b> <span id="cpSubjectTotal">0</span> ·
-          <button class="btn btn-s" onclick="recalcSubjectTotal()">🔄 Recalculate</button>
-        </div>
-      </div>
-
-      <div id="cpModeChapter" style="margin-top:14px;display:none">
-        <h4 style="margin-bottom:8px">📖 Select Chapters & Question Counts</h4>
-        <div style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px">
-          ${subjects.map(s => {
-            const chs = chapters.filter(c => c.s === s.id);
-            if(chs.length === 0) return "";
-            return `<div style="margin-bottom:12px">
-              <div style="font-weight:700;color:var(--brand);margin-bottom:4px">${s.icon} ${esc(s.name)}</div>
-              ${chs.map(c => {
-                const qCount = QB.filter(q => (q.c || "") === c.id).length;
-                if(qCount === 0) return "";
-                const existing = editing && editing.chapterDistribution ? editing.chapterDistribution.find(x => x.chapter === c.id) : null;
-                return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line)">
-                  <input type="checkbox" class="cpChapterChk" value="${c.id}" ${existing ? "checked" : ""}>
-                  <span>${c.icon || "📘"}</span>
-                  <div style="flex:1;font-size:13px">${esc(c.t)}</div>
-                  <span style="font-size:11px;color:var(--muted)">${qCount} Q</span>
-                  <input type="number" class="cpChapterCount" data-chap="${c.id}" value="${existing ? existing.count : 3}" min="0" max="50" style="width:50px" placeholder="N">
-                </div>`;
-              }).join("")}
-            </div>`;
-          }).join("")}
-        </div>
-        <div style="margin-top:10px;padding:10px;background:var(--brandsoft);border-radius:8px;font-size:13px">
-          <b>Total questions:</b> <span id="cpChapterTotal">0</span> ·
-          <button class="btn btn-s" onclick="recalcChapterTotal()">🔄 Recalculate</button>
-        </div>
-      </div>
-
-      <div id="cpModeManual" style="margin-top:14px;display:none">
-        <h4 style="margin-bottom:8px">✋ Hand-pick Questions</h4>
-        <div class="field">
-          <label>Filter by Subject</label>
-          <select class="inp" id="cpManualFilter" onchange="renderManualQuestionList()">
-            <option value="">All Subjects</option>
-            ${subjects.map(s => `<option value="${s.id}">${s.icon} ${esc(s.name)}</option>`).join("")}
-          </select>
-        </div>
-        <div style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px" id="cpManualList">
-          <!-- Question list rendered here -->
-        </div>
-        <div style="margin-top:10px;padding:10px;background:var(--brandsoft);border-radius:8px;font-size:13px">
-          <b>Selected:</b> <span id="cpManualTotal">0</span> questions
-        </div>
-      </div>
-
-      <button class="btn btn-p btn-block" style="margin-top:20px" onclick="saveCustomPaper(${editing ? "'" + editing.id + "'" : "null"})">
-        ${editing ? "💾 Update Paper" : "💾 Save Custom Paper"}
-      </button>
-    </div>`;
-
-  renderShell("admin", html);
-  bindHeader();
-
-  /* Initialize mode */
-  const initialMode = editing ? (editing.mode || "subject") : "subject";
-  toggleCpMode(initialMode);
-
-  /* If editing manual paper, pre-populate selected IDs */
-  if(editing && editing.mode === "manual" && editing.questionIds){
-    window._cpSelectedIds = [...editing.questionIds];
-    renderManualQuestionList();
-  } else {
-    window._cpSelectedIds = [];
-  }
-
-  /* Recalc totals */
-  recalcSubjectTotal();
-  recalcChapterTotal();
-
-  /* Wire up recalc on input change */
-  document.querySelectorAll(".cpSubjectCount").forEach(inp => inp.addEventListener("input", recalcSubjectTotal));
-  document.querySelectorAll(".cpChapterCount").forEach(inp => inp.addEventListener("input", recalcChapterTotal));
-  document.querySelectorAll(".cpChapterChk").forEach(chk => chk.addEventListener("change", recalcChapterTotal));
-  document.querySelectorAll(".cpSubjectChk").forEach(chk => chk.addEventListener("change", recalcSubjectTotal));
-}
-
-function toggleCpMode(mode){
-  ["subject", "chapter", "manual"].forEach(m => {
-    const el = document.getElementById("cpMode" + m.charAt(0).toUpperCase() + m.slice(1));
-    if(el) el.style.display = (m === mode) ? "block" : "none";
-  });
-  if(mode === "manual") renderManualQuestionList();
-  if(mode === "subject") recalcSubjectTotal();
-  if(mode === "chapter") recalcChapterTotal();
-}
-
-function recalcSubjectTotal(){
-  let total = 0;
-  document.querySelectorAll(".cpSubjectCount").forEach(inp => {
-    const subj = inp.dataset.subj;
-    const chk = document.querySelector('.cpSubjectChk[value="' + subj + '"]');
-    if(chk && chk.checked){
-      total += parseInt(inp.value) || 0;
-    }
-  });
-  const el = document.getElementById("cpSubjectTotal");
-  if(el) el.textContent = total;
-}
-
-function recalcChapterTotal(){
-  let total = 0;
-  document.querySelectorAll(".cpChapterCount").forEach(inp => {
-    const chap = inp.dataset.chap;
-    const chk = document.querySelector('.cpChapterChk[value="' + chap + '"]');
-    if(chk && chk.checked){
-      total += parseInt(inp.value) || 0;
-    }
-  });
-  const el = document.getElementById("cpChapterTotal");
-  if(el) el.textContent = total;
-}
-
-function renderManualQuestionList(){
-  const filter = document.getElementById("cpManualFilter").value;
-  let pool = QB.filter(q => q.status !== "needs_review");
-  if(filter) pool = pool.filter(q => q.s === filter);
-  /* Limit to first 200 for performance */
-  pool = pool.slice(0, 200);
-  const listEl = document.getElementById("cpManualList");
-  if(!listEl) return;
-  if(pool.length === 0){
-    listEl.innerHTML = "<p style='color:var(--muted);padding:12px'>No questions found.</p>";
-    return;
-  }
-  listEl.innerHTML = pool.map(q => {
-    const isSelected = window._cpSelectedIds && window._cpSelectedIds.includes(q.id);
-    return `<div style="padding:8px;border-bottom:1px solid var(--line);cursor:pointer;background:${isSelected ? "var(--brandsoft)" : "transparent"}" onclick="toggleManualQuestion('${q.id}')">
-      <div style="display:flex;align-items:start;gap:8px">
-        <input type="checkbox" ${isSelected ? "checked" : ""} readonly style="margin-top:3px">
-        <div style="flex:1">
-          <div style="font-size:13px">${esc((q.q || "").substring(0, 100))}${(q.q||"").length > 100 ? "..." : ""}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">
-            ${q.s ? q.s.toUpperCase() : ""} · ${q.c || "—"} · ${q.o ? q.o.length + " options" : ""}
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-function toggleManualQuestion(qid){
-  if(!window._cpSelectedIds) window._cpSelectedIds = [];
-  const idx = window._cpSelectedIds.indexOf(qid);
-  if(idx >= 0){
-    window._cpSelectedIds.splice(idx, 1);
-  } else {
-    window._cpSelectedIds.push(qid);
-  }
-  const totalEl = document.getElementById("cpManualTotal");
-  if(totalEl) totalEl.textContent = window._cpSelectedIds.length;
-  renderManualQuestionList();
-}
-
-function saveCustomPaper(existingId){
-  const title = document.getElementById("cpTitle").value.trim();
-  const description = document.getElementById("cpDesc").value.trim();
-  const duration = parseInt(document.getElementById("cpDuration").value) || 60;
-  const totalMarks = parseInt(document.getElementById("cpMarks").value) || 50;
-  const neg = parseFloat(document.getElementById("cpNeg").value) || 0;
-  const instructions = document.getElementById("cpInstructions").value.trim();
-  const mode = document.querySelector('input[name="cpMode"]:checked').value;
-
-  if(!title){ toast("Please enter a paper title"); return; }
-  if(duration < 5){ toast("Duration must be at least 5 minutes"); return; }
-
-  let paper = {
-    title, description, duration, totalMarks, neg, instructions, mode,
-    questionIds: [],
-    subjectDistribution: [],
-    chapterDistribution: []
-  };
-
-  if(mode === "subject"){
-    const dist = [];
-    document.querySelectorAll(".cpSubjectChk:checked").forEach(chk => {
-      const subj = chk.value;
-      const count = parseInt(document.querySelector('.cpSubjectCount[data-subj="' + subj + '"]').value) || 0;
-      if(count > 0){
-        const available = QB.filter(q => q.s === subj && q.status !== "needs_review").length;
-        if(count > available){
-          toast("Subject " + subj.toUpperCase() + " has only " + available + " questions. Reduce count.");
-          return;
-        }
-        dist.push({ subject: subj, count: count });
-      }
-    });
-    if(dist.length === 0){ toast("Select at least one subject with question count > 0"); return; }
-    paper.subjectDistribution = dist;
-    paper.questionIds = []; /* will be populated at runtime */
-  } else if(mode === "chapter"){
-    const dist = [];
-    document.querySelectorAll(".cpChapterChk:checked").forEach(chk => {
-      const chap = chk.value;
-      const count = parseInt(document.querySelector('.cpChapterCount[data-chap="' + chap + '"]').value) || 0;
-      if(count > 0){
-        const available = QB.filter(q => (q.c || "") === chap && q.status !== "needs_review").length;
-        if(count > available){
-          toast("Chapter " + chap + " has only " + available + " questions. Reduce count.");
-          return;
-        }
-        dist.push({ chapter: chap, count: count });
-      }
-    });
-    if(dist.length === 0){ toast("Select at least one chapter with question count > 0"); return; }
-    paper.chapterDistribution = dist;
-    paper.questionIds = [];
-  } else if(mode === "manual"){
-    if(!window._cpSelectedIds || window._cpSelectedIds.length < 5){
-      toast("Select at least 5 questions for a manual paper");
-      return;
-    }
-    paper.questionIds = [...window._cpSelectedIds];
-  }
-
-  if(existingId){
-    CustomPapers.update(existingId, paper);
-    toast("✅ Custom paper updated");
-  } else {
-    CustomPapers.add(paper);
-    toast("✅ Custom paper created — " + (paper.questionIds.length || paper.subjectDistribution.reduce((s,x)=>s+x.count,0) + paper.chapterDistribution.reduce((s,x)=>s+x.count,0)) + " questions");
-  }
-  vCustomPapersAdmin();
-}
-
-function editCustomPaper(id){
-  vCustomPaperForm(id);
-}
-
-function deleteCustomPaper(id){
-  const p = CustomPapers.get(id);
-  if(!p) return;
-  if(!confirm("Delete custom paper '" + p.title + "'? This cannot be undone.")) return;
-  CustomPapers.remove(id);
-  toast("Custom paper deleted");
-  vCustomPapersAdmin();
-}
-
-function previewCustomPaper(id){
-  const p = CustomPapers.get(id);
-  if(!p){ toast("Paper not found"); return; }
-  const qs = CustomPapers.getQuestions(id);
-  if(qs.length === 0){ toast("No questions in this paper"); return; }
-
-  let html = `<div class="sect-h"><h2>👁️ Preview: ${esc(p.title)}</h2>
-    <button class="btn btn-g btn-s" onclick="vCustomPapersAdmin()">← Back</button></div>
-    <div class="card">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px;padding:12px;background:var(--brandsoft);border-radius:8px">
-        <div><b>Duration:</b> ${p.duration} min</div>
-        <div><b>Marks:</b> ${p.totalMarks}</div>
-        <div><b>Negative:</b> ${p.neg || 0}</div>
-        <div><b>Questions:</b> ${qs.length}</div>
-        <div><b>Mode:</b> ${p.mode}</div>
-      </div>
-      ${p.instructions ? `<div class="alert alert-info" style="margin-bottom:14px">📌 ${esc(p.instructions)}</div>` : ""}
-      <div style="max-height:500px;overflow-y:auto">
-        ${qs.slice(0, 30).map((q, i) => `
-          <div style="padding:12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">
-            <div style="font-weight:600;margin-bottom:6px">Q${i+1}. ${esc((q.q || "").substring(0, 200))}</div>
-            <div style="font-size:13px;color:var(--muted)">
-              ${q.o ? q.o.map((o, oi) => `<div>${String.fromCharCode(65+oi)}. ${esc(o.substring(0, 60))}</div>`).join("") : ""}
-            </div>
-            <div style="margin-top:6px;font-size:12px;color:${q.a !== undefined ? '#31b573' : 'var(--muted)'}">
-              ${q.a !== undefined ? "✓ Correct: " + String.fromCharCode(65+q.a) : "No answer set"}
-            </div>
-          </div>
-        `).join("")}
-        ${qs.length > 30 ? `<div style="text-align:center;padding:12px;color:var(--muted)">... and ${qs.length - 30} more questions</div>` : ""}
-      </div>
-    </div>`;
-  renderShell("admin", html);
-  bindHeader();
-}
-
-function scheduleCustomPaper(paperId){
-  /* Jump to schedule form, pre-selected with this custom paper */
-  state._preselectCustomPaperId = paperId;
-  state.adminTab = "scheduled";
-  vScheduledExamsAdmin();
-  /* After admin renders, open the schedule form */
-  setTimeout(() => vScheduleExamForm(), 100);
-}
-
 /* Scheduled Exams admin view */
 function vScheduledExamsAdmin(){
   if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher"))){
@@ -14607,18 +14140,9 @@ function vScheduledExamsAdmin(){
       const status = ScheduledExams.status(e);
       const statusColor = status==="active"?"#31b573":(status==="upcoming"?"#f0a63a":"#e35d5d");
       const statusText = status==="active"?"🟢 Active":(status==="upcoming"?"🟡 Upcoming":"🔴 Ended");
-      /* Handle custom paper exams */
-      let examName = "Unknown", paperTitle = "";
-      if(e.customPaperId || e.examId === "custom"){
-        const cpId = e.customPaperId || e.paperId;
-        const cp = CustomPapers.get(cpId);
-        examName = "🧪 Custom Paper";
-        paperTitle = cp ? cp.title : "(deleted paper)";
-      } else {
-        const ep = EXAM_PAPERS.find(x=>x.id===e.examId);
-        examName = ep ? ep.exam : "Unknown";
-        paperTitle = ep ? ep.papers.find(p=>p.id===e.paperId)?.title : "";
-      }
+      const ep = EXAM_PAPERS.find(x=>x.id===e.examId);
+      const examName = ep ? ep.exam : "Unknown";
+      const paperTitle = ep ? ep.papers.find(p=>p.id===e.paperId)?.title : "";
       
       html += `<div class="card" style="border-left:4px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
@@ -14648,46 +14172,21 @@ function vScheduleExamForm(){
   if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher")))return;
   
   const students = users().filter(u=>u.role==="student");
-  const customPapers = CustomPapers.list();
-  const preselectCustomId = state._preselectCustomPaperId;
-  if(preselectCustomId){ delete state._preselectCustomPaperId; }
   
   let html = `<div class="sect-h"><h2>➕ Schedule New Exam</h2>
     <button class="btn btn-g btn-s" onclick="vScheduledExamsAdmin()">← Back</button></div>
     <div class="card">
       <div class="field"><label>Exam Title *</label><input class="inp" id="seTitle" placeholder="e.g. MPSC Prelims Mock Test - Batch A"></div>
       
-      <div class="field"><label>Paper Source *</label>
-        <select class="inp" id="seSource" onchange="togglePaperSource()">
-          <option value="predefined" ${!preselectCustomId ? "selected" : ""}>📋 Pre-defined Exam Papers (UPSC, SSC, IBPS, etc.)</option>
-          <option value="custom" ${preselectCustomId ? "selected" : ""}>🧪 Custom Paper (created by you)</option>
+      <div class="field"><label>Select Exam Type *</label>
+        <select class="inp" id="seExamId" onchange="updatePaperOptions()">
+          <option value="">-- Select Exam --</option>
+          ${EXAM_PAPERS.map(e=>`<option value="${e.id}">${esc(e.exam)} (${e.papers.length} papers)</option>`).join("")}
         </select>
       </div>
       
-      <div id="sePredefinedBlock">
-        <div class="field"><label>Select Exam Type *</label>
-          <select class="inp" id="seExamId" onchange="updatePaperOptions()">
-            <option value="">-- Select Exam --</option>
-            ${EXAM_PAPERS.map(e=>`<option value="${e.id}">${esc(e.exam)} (${e.papers.length} papers)</option>`).join("")}
-          </select>
-        </div>
-        <div class="field"><label>Select Paper Set *</label>
-          <select class="inp" id="sePaperId"><option value="">-- Select Exam First --</option></select>
-        </div>
-      </div>
-      
-      <div id="seCustomBlock" style="display:none">
-        <div class="field"><label>Select Custom Paper *</label>
-          <select class="inp" id="seCustomPaperId" onchange="updateCustomPaperInfo()">
-            <option value="">-- Select Custom Paper --</option>
-            ${customPapers.map(p=>{
-              const qCount = (p.questionIds && p.questionIds.length) || (p.subjectDistribution||[]).reduce((s,x)=>s+(x.count||0),0) + (p.chapterDistribution||[]).reduce((s,x)=>s+(x.count||0),0);
-              return `<option value="${p.id}" ${preselectCustomId === p.id ? "selected" : ""}>${esc(p.title)} (${qCount} Q, ${p.duration} min)</option>`;
-            }).join("")}
-          </select>
-        </div>
-        ${customPapers.length === 0 ? `<div class="alert alert-info" style="margin-top:8px">No custom papers yet. <a href="#" onclick="vCustomPaperForm();return false" style="color:var(--brand);font-weight:700">Create one first →</a></div>` : ""}
-        <div id="seCustomInfo" style="display:none;padding:12px;background:var(--brandsoft);border-radius:8px;margin-top:8px;font-size:13px"></div>
+      <div class="field"><label>Select Paper Set *</label>
+        <select class="inp" id="sePaperId"><option value="">-- Select Exam First --</option></select>
       </div>
       
       <div class="form-row">
@@ -14725,48 +14224,6 @@ function vScheduleExamForm(){
   const fmt = (d)=>d.toISOString().slice(0,16);
   $("#seStart").value = fmt(start);
   $("#seEnd").value = fmt(end);
-  
-  /* If preselecting a custom paper, show custom block + populate info */
-  if(preselectCustomId){
-    togglePaperSource();
-    updateCustomPaperInfo();
-  }
-}
-
-function togglePaperSource(){
-  const src = document.getElementById("seSource").value;
-  const preBlock = document.getElementById("sePredefinedBlock");
-  const customBlock = document.getElementById("seCustomBlock");
-  if(preBlock) preBlock.style.display = (src === "predefined") ? "block" : "none";
-  if(customBlock) customBlock.style.display = (src === "custom") ? "block" : "none";
-}
-
-function updateCustomPaperInfo(){
-  const paperId = document.getElementById("seCustomPaperId").value;
-  const infoBox = document.getElementById("seCustomInfo");
-  if(!paperId){
-    if(infoBox) infoBox.style.display = "none";
-    return;
-  }
-  const p = CustomPapers.get(paperId);
-  if(!p) return;
-  const qCount = (p.questionIds && p.questionIds.length) || (p.subjectDistribution||[]).reduce((s,x)=>s+(x.count||0),0) + (p.chapterDistribution||[]).reduce((s,x)=>s+(x.count||0),0);
-  if(infoBox){
-    infoBox.style.display = "block";
-    infoBox.innerHTML = `
-      <div><b>📋 ${esc(p.title)}</b></div>
-      ${p.description ? `<div style="margin-top:4px;color:var(--ink2)">${esc(p.description)}</div>` : ""}
-      <div style="margin-top:6px">
-        <b>⏱️ Duration:</b> ${p.duration} min · 
-        <b>📝 Marks:</b> ${p.totalMarks} · 
-        <b>⚠️ Neg:</b> ${p.neg || 0} · 
-        <b>📝 Questions:</b> ${qCount}
-      </div>
-      ${p.instructions ? `<div style="margin-top:6px;padding:6px 8px;background:#fff;border-radius:6px;font-size:12px">📌 ${esc(p.instructions)}</div>` : ""}
-    `;
-    /* Auto-set duration to paper's default */
-    $("#seDuration").value = p.duration;
-  }
 }
 
 function updatePaperOptions(){
@@ -14792,13 +14249,14 @@ function toggleAllStudents(checkbox){
 
 function createScheduledExam(){
   const title = $("#seTitle").value.trim();
+  const examId = $("#seExamId").value;
+  const paperId = $("#sePaperId").value;
   const startTime = new Date($("#seStart").value).getTime();
   const endTime = new Date($("#seEnd").value).getTime();
   const duration = parseInt($("#seDuration").value);
   const instructions = $("#seInstructions").value.trim();
-  const source = document.getElementById("seSource").value;
   
-  if(!title || !startTime || !endTime || !duration){
+  if(!title || !examId || !paperId || !startTime || !endTime || !duration){
     toast("Please fill all required fields");
     return;
   }
@@ -14811,47 +14269,8 @@ function createScheduledExam(){
     return;
   }
   
-  let examData = {
-    title: title,
-    startTime: startTime,
-    endTime: endTime,
-    duration: duration,
-    instructions: instructions,
-    targetStudents: []
-  };
-  
-  if(source === "custom"){
-    const customPaperId = $("#seCustomPaperId").value;
-    if(!customPaperId){
-      toast("Please select a custom paper");
-      return;
-    }
-    const cp = CustomPapers.get(customPaperId);
-    if(!cp){
-      toast("Custom paper not found");
-      return;
-    }
-    const qCount = (cp.questionIds && cp.questionIds.length) || (cp.subjectDistribution||[]).reduce((s,x)=>s+(x.count||0),0) + (cp.chapterDistribution||[]).reduce((s,x)=>s+(x.count||0),0);
-    examData.examId = "custom";
-    examData.paperId = customPaperId;
-    examData.customPaperId = customPaperId;
-    examData.questionCount = qCount;
-    examData.neg = cp.neg || 0;
-    examData.totalMarks = cp.totalMarks;
-  } else {
-    const examId = $("#seExamId").value;
-    const paperId = $("#sePaperId").value;
-    if(!examId || !paperId){
-      toast("Please select exam type and paper set");
-      return;
-    }
-    const ep = EXAM_PAPERS.find(e=>e.id===examId);
-    const paper = ep.papers.find(p=>p.id===paperId);
-    examData.examId = examId;
-    examData.paperId = paperId;
-    examData.questionCount = paper.qs;
-    examData.neg = paper.neg;
-  }
+  const ep = EXAM_PAPERS.find(e=>e.id===examId);
+  const paper = ep.papers.find(p=>p.id===paperId);
   
   let targetStudents = [];
   if(!$("#seAllStudents").checked){
@@ -14861,9 +14280,19 @@ function createScheduledExam(){
       return;
     }
   }
-  examData.targetStudents = targetStudents;
   
-  ScheduledExams.add(examData);
+  ScheduledExams.add({
+    title: title,
+    examId: examId,
+    paperId: paperId,
+    startTime: startTime,
+    endTime: endTime,
+    duration: duration,
+    questionCount: paper.qs,
+    neg: paper.neg,
+    targetStudents: targetStudents,
+    instructions: instructions
+  });
   
   toast("✅ Exam scheduled successfully!");
   vScheduledExamsAdmin();
@@ -14959,51 +14388,8 @@ function startScheduledExam(examId){
     if(!confirm("You have already attempted this exam. Start again? (Previous result will be kept)"))return;
   }
   
-  /* === CUSTOM PAPER branch === */
-  if(exam.customPaperId || exam.examId === "custom"){
-    const cpId = exam.customPaperId || exam.paperId;
-    const cp = CustomPapers.get(cpId);
-    if(!cp){ toast("Custom paper not found — it may have been deleted by the teacher."); return; }
-    const qs = CustomPapers.getQuestions(cpId);
-    if(qs.length < 5){ toast("Not enough questions in this custom paper"); return; }
-    
-    /* Calculate end time: min of scheduled end time and duration from now */
-    const durationEnd = Date.now() + exam.duration * 60000;
-    const actualEnd = Math.min(durationEnd, exam.endTime);
-    const actualDuration = Math.round((actualEnd - Date.now()) / 60000);
-    
-    state.test = {
-      qids: qs.map(q=>q.id),
-      cur: 0, ans: {}, mark: {},
-      mode: "scheduled_exam",
-      title: exam.title + " — " + cp.title,
-      started: Date.now(),
-      end: actualEnd,
-      neg: exam.neg || cp.neg || 0,
-      timer: null,
-      mins: actualDuration,
-      _hasMarathi: false,
-      _isCustomPaper: true,
-      _customPaperId: cpId,
-      scheduledExamId: examId,
-      totalMarks: exam.totalMarks || cp.totalMarks
-    };
-    
-    log("START_CUSTOM_EXAM", exam.title);
-    state.examMode = true;
-    if(window.ExamSecurity) ExamSecurity.activate();
-    go("exam");
-    renderExam();
-    if(state.test.timer) clearInterval(state.test.timer);
-    state.test.timer = setInterval(tickExam, 1000);
-    return;
-  }
-  
-  /* === PREDEFINED EXAM PAPER branch (existing logic) === */
   const ep = EXAM_PAPERS.find(e=>e.id===exam.examId);
-  if(!ep){ toast("Exam paper configuration not found."); return; }
   const paper = ep.papers.find(p=>p.id===exam.paperId);
-  if(!paper){ toast("Paper set not found."); return; }
   
   /* Use section-wise selection from exam pattern */
   let qs=[];
@@ -16343,5 +15729,1043 @@ window._portalExtras={
 };
 
 })();
+
+/* ===================================================================
+   SCHOLARSHIPS MODULE — National + International Scholarship Schemes
+   - Each scheme has: name, intro, eligibility, procedure, web link
+   - Accordion-style UI consistent with portal design
+   =================================================================== */
+window._portalScholarships=(function(){
+
+  /* ===== NATIONAL SCHOLARSHIPS (India) ===== */
+  const NATIONAL_SCHOLARSHIPS=[
+    {
+      n:"National Scholarship Portal (NSP) — Central Schemes",
+      cat:"Central Govt",
+      intro:"The National Scholarship Portal is the single-stop platform for all central government scholarships — Pre-Matric, Post-Matric, Merit-cum-Means, Top Class Education, and more. Students apply once, and the portal routes applications to the relevant ministry (Minority Affairs, Social Justice, Tribal Affairs, etc.).",
+      eligibility:"Indian students from SC/ST/OBC/Minority/EWS categories studying in Class 1 to Post-Graduation. Income limits vary by scheme (typically ₹1.5–₹2.5 lakh/year for parents).",
+      procedure:"1) Register on scholarships.gov.in with Aadhaar. 2) Fill the application form with academic + bank details. 3) Upload documents (income, caste, mark sheets). 4) Submit before deadline (usually Sep–Oct). 5) Track application status on the portal. 6) Scholarship credited directly to bank via DBT.",
+      link:"https://scholarships.gov.in/",
+      deadline:"Usually Aug–Oct annually",
+      amount:"₹12,000–₹20,000/year (varies by scheme)"
+    },
+    {
+      n:"Pre-Matric Scholarship for SC/ST/OBC/Minority Students",
+      cat:"Central Govt",
+      intro:"For students studying in Class 1–10 from SC, ST, OBC, and Minority communities. Aims to reduce dropout rates at the pre-matric level by providing financial assistance for books, stationery, and other expenses.",
+      eligibility:"Students of SC/ST/OBC/Minority studying in Class 1–10. Parental income ≤ ₹1 lakh/year for SC/ST; ≤ ₹2.5 lakh/year for OBC/Minority.",
+      procedure:"1) Apply through NSP (scholarships.gov.in). 2) Select Pre-Matric scheme. 3) Fill academic + income details. 4) Upload caste, income, and previous mark sheet. 5) Get verified by school. 6) Funds credited to student's bank account.",
+      link:"https://scholarships.gov.in/",
+      deadline:"Aug–Oct",
+      amount:"₹1,050–₹5,500/year"
+    },
+    {
+      n:"Post-Matric Scholarship for SC/ST/OBC/Minority Students",
+      cat:"Central Govt",
+      intro:"For students studying in Class 11 to Post-Graduation from SC, ST, OBC, and Minority communities. Covers tuition fees, maintenance allowance, and other study expenses.",
+      eligibility:"Students of SC/ST/OBC/Minority studying in Class 11 to PG. Parental income ≤ ₹2.5 lakh/year for SC/ST; ≤ ₹1 lakh for OBC; ₹2.5 lakh for Minority.",
+      procedure:"1) Register on NSP. 2) Choose Post-Matric scheme. 3) Fill the application with current academic details. 4) Upload caste + income certificates (issued by Tehsildar). 5) Submit mark sheets of last qualifying exam. 6) Institute verifies online. 7) DBT credit to bank.",
+      link:"https://scholarships.gov.in/",
+      deadline:"Aug–Oct",
+      amount:"₹2,300–₹15,000/year (group-dependent)"
+    },
+    {
+      n:"Merit-cum-Means Scholarship for Professional Courses",
+      cat:"Central Govt",
+      intro:"For students from minority communities pursuing technical/professional courses (Engineering, Medical, MBA, Law, etc.). Covers tuition fees + maintenance.",
+      eligibility:"Minority community students (Muslim, Christian, Sikh, Buddhist, Jain, Parsi) admitted to professional courses. Parental income ≤ ₹2.5 lakh/year. Min 50% marks in previous exam.",
+      procedure:"1) Apply on NSP. 2) Select Merit-cum-Means scheme. 3) Upload admission proof + income certificate + minority certificate. 4) Institution verifies. 5) Up to ₹20,000/year credited to bank.",
+      link:"https://scholarships.gov.in/",
+      deadline:"Aug–Oct",
+      amount:"₹20,000/year (₹1,000/month maintenance)"
+    },
+    {
+      n:"INSPIRE Scholarship (SHE) — DST",
+      cat:"Science & Research",
+      intro:"Innovation in Science Pursuit for Inspired Research — Scholarship for Higher Education (SHE). Awarded by Department of Science & Technology to students who opt for Natural/Basic Sciences at B.Sc./M.Sc. level. Aims to attract young talent to science research.",
+      eligibility:"Students within top 1% of Class 12 board exam (CBSE/ICSE/State), OR JEE/NEET rank holders opting for Natural Sciences. Must enroll in B.Sc./Integrated M.Sc. in Physics/Chemistry/Mathematics/Biology/Earth Sciences/Statistics.",
+      procedure:"1) Visit online-inspire.gov.in. 2) Register with Class 12 marks + board certificate. 3) Upload admission proof for B.Sc./M.Sc. 4) Submit bank details for DBT. 5) Get verified by institution. 6) ₹80,000/year credited.",
+      link:"https://online-inspire.gov.in/",
+      deadline:"Usually Oct–Nov",
+      amount:"₹80,000/year (₹60,000 scholarship + ₹20,000 summer project)"
+    },
+    {
+      n:"Kishore Vaigyanik Protsahan Yojana (KVPY)",
+      cat:"Science & Research",
+      intro:"Funded by DST to identify and encourage talented students to pursue research careers in Science. Fellowship from 1st year of B.Sc./B.S./B.Stat./B.Math./Integrated M.Sc./M.S.",
+      eligibility:"Class 11, 12, and 1st-year UG students. Must clear KVPY Aptitude Test. Stream SA (Class 11), SX (Class 12), SB (1st-year UG).",
+      procedure:"1) Register at kvpy.iisc.ernet.in. 2) Appear for aptitude test (Nov). 3) Qualify for interview (Jan–Feb). 4) Fellowship starts after admission to science course. 5) Renewal based on academic performance.",
+      link:"https://kvpy.iisc.ernet.in/",
+      deadline:"Application Jul–Aug; Exam Nov",
+      amount:"₹5,000–₹7,000/month + annual contingency grant"
+    },
+    {
+      n:"NTSE (National Talent Search Examination) — NCERT",
+      cat:"School Level",
+      intro:"NCERT's flagship scholarship to identify and nurture talented students. Two-stage exam (Stage 1 by State, Stage 2 by NCERT). Scholarship awarded for Class 11 to PG.",
+      eligibility:"Class 10 students from recognized schools. No income limit. Stage 1 at state level, Stage 2 national.",
+      procedure:"1) Apply through school / state SCERT website. 2. Appear for Stage 1 (Nov). 3) Qualify for Stage 2 (NCERT, May). 4) Both MAT + SAT papers. 5) Scholarship starts in Class 11.",
+      link:"https://ncert.nic.in/programmes/talent_exam/index.html",
+      deadline:"Application Sep–Oct; Stage 1 Nov; Stage 2 May",
+      amount:"₹1,250/month (Class 11–12); ₹2,000/month (UG–PG)"
+    },
+    {
+      n:"NMMS (National Means-cum-Merit Scholarship)",
+      cat:"School Level",
+      intro:"Central Sector scheme to award scholarships to meritorious students of economically weaker sections to arrest their dropout at Class 8 and encourage them to continue study at secondary stage.",
+      eligibility:"Class 8 students. Parental income ≤ ₹1.5 lakh/year. Must clear NMMS exam (MAT + SAT). One scholarship per student.",
+      procedure:"1) Apply through school / SCERT. 2) Appear for State-level NMMS exam (Nov). 3) MAT + SAT, each 90 marks. 4) Qualify with 40% (32% for SC/ST/PH). 5) Scholarship credited from Class 9 to Class 12.",
+      link:"https://dsel.education.gov.in/nmmss",
+      deadline:"Application Aug–Sep; Exam Nov",
+      amount:"₹12,000/year (₹1,000/month for 4 years)"
+    },
+    {
+      n:"CBSE Merit Scholarship",
+      cat:"School Level",
+      intro:"CBSE scholarships for: (a) Single Girl Child — ₹500/month Class 11–12; (b) Merit Scholarship for Class 10 passouts — ₹500/month for 2 years; (c) Undergraduate scholarship for CBSE Class 12 passouts.",
+      eligibility:"Single Girl Child — only daughter of parents, studying in CBSE Class 11–12. Merit — Class 10 CBSE pass with min GPA. Income ≤ ₹6 lakh/year.",
+      procedure:"1) Apply on cbse.gov.in scholarship portal. 2) Upload CBSE Class 10/12 mark sheet. 3) Single Girl Child affidavit. 4) Income certificate. 5) Direct credit to bank.",
+      link:"https://www.cbse.gov.in/",
+      deadline:"Usually Sep–Oct",
+      amount:"₹500/month (₹6,000/year)"
+    },
+    {
+      n:"AICTE Pragati Scholarship for Girls",
+      cat:"Technical Education",
+      intro:"AICTE scholarship for girls admitted to 1st year of Diploma/Technical Degree course. Aimed at promoting girls' technical education.",
+      eligibility:"Girl students admitted to 1st year Diploma/Degree in AICTE-approved institutions. Family income ≤ ₹8 lakh/year. Max 2 girl children per family.",
+      procedure:"1) Apply on aicte-india.org. 2) Upload admission proof + income certificate + Aadhaar. 3) Institution verifies. 4) ₹30,000/year for tuition + ₹2,000/month maintenance.",
+      link:"https://www.aicte-pragati-saksham-gov.in/",
+      deadline:"Usually Sep–Oct",
+      amount:"₹30,000 + ₹2,000/month (up to ₹50,000/year)"
+    },
+    {
+      n:"AICTE Saksham Scholarship for Differently-Abled",
+      cat:"Technical Education",
+      intro:"AICTE scholarship for differently-abled students admitted to 1st year of Technical Degree/Diploma course.",
+      eligibility:"Differently-abled students (40%+ disability) admitted to AICTE-approved institutions. Income ≤ ₹8 lakh/year.",
+      procedure:"1) Apply on aicte-india.org portal. 2) Upload disability certificate from govt hospital. 3) Income certificate. 4) ₹30,000/year tuition + ₹2,000/month maintenance.",
+      link:"https://www.aicte-pragati-saksham-gov.in/",
+      deadline:"Sep–Oct",
+      amount:"₹30,000 + ₹2,000/month"
+    },
+    {
+      n:"AICTE PG Scholarship (GATE/GPAT)",
+      cat:"Post Graduate",
+      intro:"AICTE scholarship for students admitted to M.E./M.Tech/M.Pharm through GATE/GPAT qualification. Paid for 24 months.",
+      eligibility:"ME/MTech students with valid GATE score; MPharm with GPAT. Admission to AICTE-approved institution.",
+      procedure:"1) Institution reports to AICTE through portal. 2) Student validates details. 3) Bank account via PFMS. 4) ₹12,400/month for 24 months.",
+      link:"https://www.aicte-india.org/",
+      deadline:"Continuous (apply through institution)",
+      amount:"₹12,400/month for 24 months"
+    },
+    {
+      n:"IISc/IIT/UGC JRF — Junior Research Fellowship",
+      cat:"Research",
+      intro:"CSIR-UGC NET / DBT / ICMR JRF for students pursuing PhD. Stipend for 5 years with contingency grant. Top fellowships for science research in India.",
+      eligibility:"Master's degree with 55%+ (50% for SC/ST/OBC). Clear CSIR-UGC NET/DBT-JRF/ICMR-JRF/GATE. Age limit 28 years (33 for SC/ST/OBC/Women/PwD).",
+      procedure:"1) Apply for CSIR-UGC NET (Jun/Dec). 2) Qualify JRF cutoff. 3) Apply to IIT/IISc/University for PhD. 4) Fellowship activated after PhD registration. 5) ₹31,000/month for first 2 years; ₹35,000 for next 3 years.",
+      link:"https://csirnet.nta.nic.in/",
+      deadline:"NET applications Apr & Sep",
+      amount:"₹31,000–₹35,000/month + ₹20,000/year contingency"
+    },
+    {
+      n:"Maulana Azad National Fellowship (MANF) — Minority",
+      cat:"Research",
+      intro:"UGC fellowship for minority students pursuing M.Phil/PhD. Aims to increase minority representation in higher education and research.",
+      eligibility:"Minority community (Muslim/Christian/Sikh/Buddhist/Jain/Parsi) students with NET qualification. Income ≤ ₹6 lakh/year. Age 35 (38 for women, 40 for SC/ST/OBC).",
+      procedure:"1) Apply through UGC portal. 2) Upload NET certificate + minority certificate + income. 3) Get PhD admission. 4) ₹31,000–₹35,000/month for 5 years.",
+      link:"https://www.ugc.ac.in/",
+      deadline:"Variable — apply through UGC",
+      amount:"₹31,000–₹35,000/month + contingency"
+    },
+    {
+      n:"Rajiv Gandhi National Fellowship (RGNF) — SC/ST",
+      cat:"Research",
+      intro:"UGC fellowship for SC/ST students pursuing M.Phil/PhD. Designed to provide opportunities to SC/ST students for higher research.",
+      eligibility:"SC/ST students with NET qualification. Pursuing MPhil/PhD. Income no bar, but must be first-generation learner for preference.",
+      procedure:"1) Apply through UGC portal. 2) Upload NET + caste certificate. 3) Get admission in MPhil/PhD. 4) ₹31,000–₹35,000/month for 5 years.",
+      link:"https://www.ugc.ac.in/",
+      deadline:"Variable",
+      amount:"₹31,000–₹35,000/month + contingency"
+    },
+    {
+      n:"National Overseas Scholarship (NOS) — SC/ST/OBC/Minority",
+      cat:"Overseas Study",
+      intro:"Ministry of Social Justice scholarship for SC/ST/OBC/Minority/Children of Landless Agricultural Labourers to study abroad at Master's/PhD level in top foreign universities.",
+      eligibility:"SC/ST/OBC/Minority. Income ≤ ₹8 lakh/year. Age ≤ 35. Admission to top 500 QS-ranked foreign universities for Master's/PhD.",
+      procedure:"1) Apply through Ministry of Social Justice portal. 2) Upload foreign university admission offer. 3) Income + caste certificate. 4. Selection based on merit. 5) Up to ₹20 lakh/year tuition + maintenance.",
+      link:"https://socialjustice.gov.in/",
+      deadline:"Variable",
+      amount:"Up to ₹20,00,000/year (tuition + maintenance)"
+    },
+    {
+      n:"PG Indira Gandhi Scholarship for Single Girl Child",
+      cat:"Post Graduate",
+      intro:"UGC scholarship for single girl child pursuing postgraduate studies (first year). Aimed at supporting families with only one girl child.",
+      eligibility:"Single girl child admitted to 1st year PG. Age ≤ 30. No income bar.",
+      procedure:"1) Apply through UGC portal. 2) Upload PG admission proof + single girl child affidavit. 3) ₹36,200/month for 2 years.",
+      link:"https://www.ugc.ac.in/",
+      deadline:"Variable",
+      amount:"₹36,200/month for 2 years"
+    },
+    {
+      n:"Swami Vivekananda Single Girl Child Scholarship",
+      cat:"Post Graduate",
+      intro:"UGC scholarship for single girl child pursuing PhD. To compensate for the opportunity cost of higher education for the only girl child.",
+      eligibility:"Single girl child registered for PhD. Age ≤ 40. Income ≤ ₹6 lakh/year.",
+      procedure:"1) Apply through UGC. 2) Upload PhD registration + single girl affidavit + income. 3) ₹25,000/month for first 2 years; ₹28,000 next 3 years.",
+      link:"https://www.ugc.ac.in/",
+      deadline:"Variable",
+      amount:"₹25,000–₹28,000/month for 5 years"
+    },
+    {
+      n:"PNB, SBI, Canara Bank Education Loan Subsidy (CSS)",
+      cat:"Education Loan",
+      intro:"Central Sector Interest Subsidy (CSIS) on education loans for EWS students. Full interest subsidy during moratorium period on loans up to ₹7.5 lakh from scheduled banks.",
+      eligibility:"Family income ≤ ₹4.5 lakh/year. Loan from scheduled bank under CSIS. Professional/technical courses (Engineering, Medical, Management, etc.) approved by UGC/AICTE.",
+      procedure:"1) Apply for education loan at bank. 2) Submit income certificate. 3) Bank processes subsidy through NSP. 4) Interest paid by Govt during course + 1 year moratorium.",
+      link:"https://canarabank.com/",
+      deadline:"Continuous (apply through bank)",
+      amount:"Interest subsidy on loan up to ₹7.5 lakh"
+    },
+    {
+      n:"Maharashtra State Scholarships (MAHA-DBT)",
+      cat:"State Govt",
+      intro:"Maharashtra Direct Benefit Transfer portal for all state government scholarships — Rajarshi Chhatrapati Shahu Maharaj, Babasaheb Ambedkar, Panjabrao Deshmukh, and Karmaveer Patil scholarships.",
+      eligibility:"Maharashtra domicile. SC/ST/VJNT/OBC/SBC/Minority students. Income limits vary by scheme (₹1–8 lakh/year).",
+      procedure:"1) Register on mahadbtmahait.gov.in. 2) Aadhaar-linked. 3) Submit Caste + Income + Domicile. 4) Institute verifies. 5) DBT to bank.",
+      link:"https://mahadbtmahait.gov.in/",
+      deadline:"Continuous",
+      amount:"₹5,000–₹50,000/year (varies)"
+    }
+  ];
+
+  /* ===== INTERNATIONAL SCHOLARSHIPS ===== */
+  const INTERNATIONAL_SCHOLARSHIPS=[
+    {
+      n:"Fulbright-Nehru Master's Fellowship (USA)",
+      cat:"USA",
+      intro:"US-India Education Foundation (USIEF) fellowship for outstanding Indians to pursue Master's at US universities. Covers tuition, fees, living stipend, health insurance, and travel.",
+      eligibility:"Indian citizen with Bachelor's degree (4-year or 3-year+Master's). 3+ years work experience. Min 55% marks. TOEFL/IELTS. Age no bar but typically under 30.",
+      procedure:"1) Apply on usief.org.in (May–July). 2) Submit online application + 3 letters of reference. 3) Upload academic transcripts + GRE/GMAT + TOEFL/IELTS. 4) Interviews (Sep–Oct). 5) Apply to US universities separately. 6) Fellowship activated on admission.",
+      link:"https://www.usief.org.in/Fellowships/Indian-Citizens/Fulbright-Nehru-Masters.aspx",
+      deadline:"Application May–July",
+      amount:"Full tuition + $20,000/year stipend + insurance + travel"
+    },
+    {
+      n:"Fulbright-Nehru Doctoral Research Fellowship (USA)",
+      cat:"USA",
+      intro:"For Indian scholars registered for PhD at an Indian institution to conduct research at US universities for 6–9 months. Joint supervision between Indian and US advisors.",
+      eligibility:"Indian citizen registered for PhD at Indian institution. Completed coursework + qualifying exam. Letter of affiliation from US host institution required.",
+      procedure:"1) Apply on usief.org.in. 2) Submit PhD registration + course completion proof. 3) US host affiliation letter. 4) Indian supervisor's NOC. 5) Research proposal (5 pages). 6) Interviews Oct–Nov.",
+      link:"https://www.usief.org.in/",
+      deadline:"May–July",
+      amount:"$20,000–$30,000 stipend + J-1 visa + travel + insurance"
+    },
+    {
+      n:"Chevening Scholarship (UK Government)",
+      cat:"UK",
+      intro:"UK Government's global scholarship for one-year Master's at any UK university. Fully funded — tuition, monthly stipend, return airfare, thesis grant. Top international scholarship for Indian students.",
+      eligibility:"Indian citizen. Bachelor's degree with min 2:1 (or equivalent 60%+). 2+ years work experience (or 4,000+ hours of voluntary work). Apply to UK universities separately.",
+      procedure:"1) Apply on chevening.org/scholarships (Aug–Nov). 2) Submit 2 references. 3) Upload academic transcripts + English test. 4) Apply to 3 UK universities. 5) Interview (Mar–Apr). 6) Admission conditional.",
+      link:"https://www.chevening.org/scholarship/india/",
+      deadline:"Application Aug–Nov (closes early Nov)",
+      amount:"Full tuition + £18,000/year stipend + travel + thesis grant"
+    },
+    {
+      n:"Chevening Fellowship (Short-term UK)",
+      cat:"UK",
+      intro:"Short-term (12-week) professional fellowship at UK universities for mid-career professionals. For sectors like Cyber Security, Journalism, Leadership, Public Policy, Climate Change.",
+      eligibility:"Indian citizen. 5+ years work experience. Mid-career professional. No upper age limit. Specific to fellowship theme.",
+      procedure:"1) Apply on chevening.org/fellowships. 2) Submit CV + 2 references + 5-year work history. 3) Cover letter demonstrating leadership potential. 4) Interviews Apr–May. 5) 12-week UK residency.",
+      link:"https://www.chevening.org/fellowship/india/",
+      deadline:"Variable per fellowship",
+      amount:"Full programme cost + £18,000 stipend + travel + visa"
+    },
+    {
+      n:"DAAD Scholarship (Germany)",
+      cat:"Germany",
+      intro:"German Academic Exchange Service (DAAD) — multiple scholarships for Indians pursuing Master's/PhD at German universities. Includes DAAD Development-Related Postgraduate Courses, Study Scholarships, and Research Grants.",
+      eligibility:"Bachelor's degree (4 years) or Bachelor's + Master's. 2+ years work experience for Development-Related courses. English/German proficiency (TestDaF/DSH for German).",
+      procedure:"1) Apply on daad.de. 2) Upload CV (Europass format) + SOP + 2 letters. 3) Academic transcripts (attested). 4) Language proof. 5) Apply to German university separately. 6) Interview at DAAD New Delhi.",
+      link:"https://www.daad.de/en/",
+      deadline:"Variable (Oct–Mar for most courses)",
+      amount:"€861–€1,200/month + tuition waiver + travel + insurance"
+    },
+    {
+      n:"Erasmus Mundus Joint Master Degree (EU)",
+      cat:"Europe",
+      intro:"EU-funded programme for students to study in at least 2 different European countries. Full scholarship covers tuition, travel, visa, installation + monthly stipend. 100+ joint programmes available.",
+      eligibility:"Bachelor's degree (or equivalent) recognised in EU. Apply directly to consortium (not to individual universities). No age limit. English proficiency (TOEFL/IELTS).",
+      procedure:"1) Browse programmes at eacea.ec.europa.eu. 2) Apply to consortium (Oct–Jan). 3) Submit SOP + 2 references + CV + academic transcripts. 4) Interview (Feb–Mar). 5) Study in 2–4 EU countries over 2 years.",
+      link:"https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus_en",
+      deadline:"Oct–Jan (varies per programme)",
+      amount:"€1,400/month + €4,500 travel + €1,000 installation + tuition waiver"
+    },
+    {
+      n:"Rhodes Scholarship (Oxford, UK)",
+      cat:"UK",
+      intro:"World's oldest and most prestigious scholarship. Funds 2-year postgraduate study at University of Oxford. 5 scholarships for India each year. Selection based on academic excellence + leadership + service.",
+      eligibility:"Indian citizen. Age 19–25. Bachelor's degree with first class. Outstanding academic record + leadership + commitment to service.",
+      procedure:"1) Apply on rhodeshouse.ox.ac.uk. 2) Submit academic transcripts + 5–6 references + personal essay. 3) Evidence of leadership/sport/music/service. 4) Apply to Oxford course separately. 5) Interview in person (Oct–Nov).",
+      link:"https://www.rhodeshouse.ox.ac.uk/scholarships/",
+      deadline:"Application Jul–Sep",
+      amount:"Full Oxford tuition + £18,000/year stipend + travel"
+    },
+    {
+      n:"Commonwealth Scholarship (UK)",
+      cat:"UK",
+      intro:"UK Government scholarship for students from Commonwealth countries (including India) for Master's/PhD at UK universities. Fully funded. Aimed at candidates who could not afford to study in UK otherwise.",
+      eligibility:"Indian citizen. Bachelor's with upper second class (or equiv). For Master's — 1-year taught course. For PhD — Master's + research proposal. Apply through nominating agency in India (UGC/MHRD).",
+      procedure:"1) Apply through MHRD/UGC (India) for nomination (Aug–Sep). 2) Apply on cscuk.fcdo.gov.uk. 3) Submit 2 references + research proposal + academic transcripts. 4) Apply to UK university separately. 5) Interview (Mar–Apr).",
+      link:"https://cscuk.fcdo.gov.uk/scholarships/",
+      deadline:"Application Aug–Oct",
+      amount:"Full tuition + £1,300/month stipend + travel + thesis grant"
+    },
+    {
+      n:"Commonwealth Split-Site Scholarship (UK)",
+      cat:"UK",
+      intro:"For PhD students registered at Indian universities to spend 12 months at a UK university as part of their doctoral studies. Funds 12 months in UK only — does not cover full PhD.",
+      eligibility:"Indian citizen registered for PhD at Indian university. 12 months UK visit supported by UK supervisor. Indian supervisor's NOC.",
+      procedure:"1) Apply on cscuk.fcdo.gov.uk. 2) Upload PhD registration + UK host affiliation. 3) Indian supervisor's letter. 4) Research proposal. 5) Interview Mar–Apr.",
+      link:"https://cscuk.fcdo.gov.uk/scholarships/split-site/",
+      deadline:"Oct",
+      amount:"£1,300/month stipend + travel + tuition waiver for 12 months"
+    },
+    {
+      n:"Aussie Awards / Australia Awards Scholarship",
+      cat:"Australia",
+      intro:"Australian Government scholarship for students from developing countries (India included for some categories) to pursue Master's/PhD at Australian universities. Full scholarship for 2–4 years.",
+      eligibility:"Indian citizen. Bachelor's degree. Min 5 years work experience for Master's category. IELTS 6.5+. Apply through Australia Awards portal.",
+      procedure:"1) Apply on australiaawards.gov.au (Feb–Apr). 2) Submit academic transcripts + IELTS. 3) SOP + 2 references + CV. 4) Apply to Australian university. 5) Interview (Jun–Jul).",
+      link:"https://www.australiaawards.gov.au/",
+      deadline:"Feb–Apr",
+      amount:"Full tuition + AUD 30,000/year stipend + travel + OSHC insurance"
+    },
+    {
+      n:"Endeavour Postgraduate Scholarship (Australia)",
+      cat:"Australia",
+      intro:"Australian Government merit-based scholarship for international students pursuing Master's/PhD at Australian universities. Covers tuition + stipend + travel + health insurance.",
+      eligibility:"Indian citizen. Bachelor's degree with high distinction (70%+). IELTS 6.5+ or TOEFL 90+. Admission offer from Australian university.",
+      procedure:"1) Apply on study.sydney/endeavour. 2) Submit academic transcripts + English test. 3) Australian university admission offer. 4) SOP + 2 references. 5) Selection on merit.",
+      link:"https://www.study.sydney/",
+      deadline:"Variable",
+      amount:"AUD 140,500 (Master's) / AUD 272,500 (PhD) over 2–4 years"
+    },
+    {
+      n:"Vanier Canada Graduate Scholarship",
+      cat:"Canada",
+      intro:"Canadian Government scholarship for top PhD students worldwide to study at Canadian universities. 167 awarded each year. Recognises leadership + academic excellence + research potential.",
+      eligibility:"Indian citizen applying for PhD at Canadian university. Must be nominated by Canadian institution. Excellent academic record + research publications.",
+      procedure:"1) Apply to Canadian university for PhD admission. 2) University nominates you for Vanier. 3) Submit research proposal + CV + references. 4) Selection by Vanier committee. 5) CAD 50,000/year for 3 years.",
+      link:"https://vanier.gc.ca/",
+      deadline:"Variable (Sep–Nov)",
+      amount:"CAD 50,000/year for 3 years"
+    },
+    {
+      n:"Trudeau Scholarship (Canada)",
+      cat:"Canada",
+      intro:"Pierre Elliott Trudeau Foundation scholarship for PhD students in social sciences/humanities at Canadian universities. Recognises research on Trudeau Foundation themes.",
+      eligibility:"Indian citizen admitted to PhD in social sciences/humanities at Canadian university. Research must align with Trudeau Foundation themes (Human Dignity, Responsible Citizenship, Canada & the World).",
+      procedure:"1) Apply for PhD admission. 2) Apply on trudeaufoundation.ca. 3) Submit research proposal + CV + 4 references. 4) Interview. 5) CAD 40,000/year + CAD 20,000 research allowance.",
+      link:"https://www.trudeaufoundation.ca/",
+      deadline:"Variable",
+      amount:"CAD 40,000/year for 3 years + CAD 20,000 research"
+    },
+    {
+      n:"MEXT Scholarship (Japan)",
+      cat:"Japan",
+      intro:"Japanese Government (Monbukagakusho) scholarship for international students to pursue Undergraduate / Master's / PhD at Japanese universities. Covers tuition + monthly stipend + travel.",
+      eligibility:"Indian citizen. Age limit varies (Under-25 for UG, Under-35 for PG). Apply through Embassy of Japan in New Delhi. English/Japanese proficiency required.",
+      procedure:"1) Apply through Embassy of Japan (May–Jun). 2) Written exam (Math/English/World History). 3) Interview (Aug). 4) Apply to Japanese university. 5) MEXT approval + visa. 6) Stipend ¥117,000–¥148,000/month.",
+      link:"https://www.studyinjapan.go.jp/en/scholarship/",
+      deadline:"Application May–June",
+      amount:"¥117,000–¥148,000/month + tuition + travel + visa"
+    },
+    {
+      n:"Korea Global Scholarship (GKS) — South Korea",
+      cat:"South Korea",
+      intro:"South Korean Government scholarship for international students for Undergraduate (5 years) / Graduate (Master's 2.5 yrs / PhD 4 yrs) study at Korean universities. Includes 1-year Korean language training.",
+      eligibility:"Indian citizen. Age under 25 (UG), under 40 (PG). Min 70% in last degree. No IELTS requirement initially.",
+      procedure:"1) Apply through Korean Embassy or NIIED (Sep). 2) Submit academic transcripts + SOP + 2 letters. 3) Written exam + interview (Oct–Nov). 4) 1 year Korean language (5–6 level required). 5) Degree programme.",
+      link:"https://www.studyinkorea.go.kr/",
+      deadline:"Sep–Oct",
+      amount:"₩900,000/month (UG) / ₩1,600,000 (PG) + tuition + travel + Korean course"
+    },
+    {
+      n:"Singapore International Graduate Award (SINGA)",
+      cat:"Singapore",
+      intro:"A*STAR + NUS + NTU + SUTD joint PhD scholarship for international students in science/engineering at Singapore universities. Full funding for 4 years.",
+      eligibility:"Indian citizen. Bachelor's degree in science/engineering. English proficiency. Apply directly to SINGA portal.",
+      procedure:"1) Apply on singa.a-star.edu.sg. 2) Submit academic transcripts + SOP + 2 references. 3) Research proposal. 4) Interview (Feb–Mar). 5) PhD at NUS/NTU/SUTD.",
+      link:"https://www.a-star.edu.sg/Singa",
+      deadline:"Application Jan–Dec (multiple rounds)",
+      amount:"S$2,200/month (Yr 1–2) + S$2,700/month (Yr 3–4) + tuition + travel"
+    },
+    {
+      n:"Swiss Government Excellence Scholarship (Switzerland)",
+      cat:"Switzerland",
+      intro:"Swiss Government scholarship for international scholars for research fellowships + Master's at Swiss universities. India is a priority country.",
+      eligibility:"Indian citizen. Bachelor's degree (Master's). For research fellowship — Master's + research proposal from Swiss host. Age under 35 (Master's), no bar (research).",
+      procedure:"1) Apply on sbfi.admin.ch (Sep–Dec). 2) Submit Swiss host institution confirmation. 3) Research proposal + CV + 2 references. 4) Apply to Swiss university. 5) Selection by FCS.",
+      link:"https://www.sbfi.admin.ch/",
+      deadline:"Sep–Dec",
+      amount:"CHF 1,920/month (Master's) / CHF 3,500 (Postdoc) + tuition + travel + insurance"
+    },
+    {
+      n:"Eiffel Excellence Scholarship (France)",
+      cat:"France",
+      intro:"French Government scholarship for international students pursuing Master's (2 years) or PhD (10 months exchange) at French institutions. Aimed at future foreign decision-makers in public + private sectors.",
+      eligibility:"Indian citizen. Age under 25 (Master's), under 30 (PhD). Apply through French institution — student cannot apply directly. Master's in: Engineering, Economics, Law, Political Science.",
+      procedure:"1) Apply to French institution (Campus France). 2) Institution nominates you for Eiffel. 3) Submit academic excellence proof. 4) Selection by French Ministry of Europe + Foreign Affairs. 5) €1,181/month stipend.",
+      link:"https://www.campusfrance.org/en/eiffel-scholarship-program",
+      deadline:"Variable (institution submits Oct–Jan)",
+      amount:"€1,181/month (Master's) + €1,700/month (PhD) + travel + insurance"
+    },
+    {
+      n:"Italian Government Scholarship (MAECI)",
+      cat:"Italy",
+      intro:"Italian Ministry of Foreign Affairs scholarship for international students to pursue Master's / PhD / Research at Italian public universities. Covers tuition + monthly stipend + insurance.",
+      eligibility:"Indian citizen. Age under 28 (Master's), under 30 (PhD), under 40 (Research). Italian or English proficiency (depends on course). Apply through Italian Embassy.",
+      procedure:"1) Apply on estero.esteri.it (Mar–Jun). 2) Submit academic transcripts + Italian/English test. 3) SOP + 2 references. 4) Apply to Italian university. 5) Selection by Italian Embassy.",
+      link:"https://www.esteri.it/maec/viaggiare_e_vivere_all_estero/opportunita/borse_di_studio/",
+      deadline:"Mar–Jun",
+      amount:"€900/month + tuition waiver + health insurance"
+    },
+    {
+      n:"Stipendium Hungaricum (Hungary)",
+      cat:"Hungary",
+      intro:"Hungarian Government scholarship for international students (including India) for Bachelor's / Master's / PhD at Hungarian universities. India has bilateral agreement — quota allocated each year.",
+      eligibility:"Indian citizen. Apply through MHRD India (for nomination) + Stipendium Hungaricum portal. Min 60% in last degree. Age under 25 (UG), under 30 (Master's).",
+      procedure:"1) Apply through MHRD India (Jan–Feb). 2) Apply on stipendiumhungaricum.hu. 3) Submit academic transcripts + SOP + medical certificate. 4) Selection by Hungarian university. 5) HUF 40,000–80,000/month.",
+      link:"https://stipendiumhungaricum.hu/",
+      deadline:"Jan–Mar",
+      amount:"HUF 40,000 (UG) / HUF 80,000 (PG) / HUF 120,000 (PhD) per month + tuition + accommodation"
+    },
+    {
+      n:"Aga Khan Foundation International Scholarship",
+      cat:"Developing Countries",
+      intro:"Aga Khan Foundation scholarship for outstanding students from select developing countries (India included) who cannot afford to study abroad. 50% grant + 50% loan.",
+      eligibility:"Indian citizen. Excellent academic record. Admission to reputable university (any country). Financial need demonstrated. Age typically under 30.",
+      procedure:"1) Apply on the.akdn/scholarship (Jan–Mar). 2) Submit academic transcripts + admission letter + financial statement. 3) SOP + 3 references. 4) Interview (Apr–May). 5) 50% grant + 50% interest-free loan.",
+      link:"https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme",
+      deadline:"Jan–Mar",
+      amount:"Up to US$50,000 (50% grant + 50% loan, repayable over 5 years)"
+    },
+    {
+      n:"Joint Japan World Bank Scholarship (JJ/WBGSP)",
+      cat:"International",
+      intro:"World Bank scholarship for students from World Bank member developing countries (India included) to pursue Master's in development-related fields at participating universities in US/Europe/Africa.",
+      eligibility:"Indian citizen. 3+ years work experience in development sector. Age under 45. Admission to participating university (in development-related field). Apply through World Bank.",
+      procedure:"1) Apply on worldbank.org/scholarships (Feb–May). 2) Submit admission to participating university. 3) CV + 2 references + SOP + financial need. 4) Selection by World Bank. 5) Full funding for 1–2 year Master's.",
+      link:"https://www.worldbank.org/en/programs/joint-japan-world-bank-graduate-scholarship-program",
+      deadline:"Feb–May",
+      amount:"Full tuition + travel + US$24,000/year stipend + insurance"
+    },
+    {
+      n:"AUSAID / New Zealand Scholarship",
+      cat:"New Zealand",
+      intro:"New Zealand Government scholarship for students from Pacific/Asia/Africa/Caribbean/Latin America. India eligible for some categories. Fully funded Master's/PhD at NZ universities.",
+      eligibility:"Indian citizen. Age under 40 (Master's), under 45 (PhD). 5+ years work experience (for some categories). Apply through MFAT New Zealand.",
+      procedure:"1) Apply on mfat.govt.nz (Feb–Mar). 2) Submit academic transcripts + IELTS. 3) SOP + 2 references + CV. 4) Apply to NZ university. 5) Interview (Jun–Jul).",
+      link:"https://www.mfat.govt.nz/en/aid-and-development/scholarships/",
+      deadline:"Feb–Mar",
+      amount:"Full tuition + NZD 30,000/year stipend + travel + insurance"
+    },
+    {
+      n:"OFID Scholarship (OPEC Fund)",
+      cat:"International",
+      intro:"OPEC Fund for International Development (OFID) scholarship for students from developing countries (India included) to pursue Master's at any accredited university worldwide.",
+      eligibility:"Indian citizen. Bachelor's degree with distinction. Age under 30. Admission to Master's programme at any accredited university. Financial need.",
+      procedure:"1) Apply on ofid.org (Apr–May). 2) Submit admission to Master's programme. 3) Academic transcripts + SOP + 2 references. 4) Interview. 5) US$50,000 lump sum covering tuition + living.",
+      link:"https://ofid.org/",
+      deadline:"Apr–May",
+      amount:"Up to US$50,000 (one-time lump sum)"
+    }
+  ];
+
+  /* ===== UNIVERSITY-OFFERED SCHOLARSHIPS (Worldwide) ===== */
+  /* Scholarships offered directly by universities to international students —
+     these are separate from govt scholarships and often have separate applications. */
+  const UNIVERSITY_SCHOLARSHIPS=[
+    /* === USA Universities === */
+    {
+      n:"Harvard University Scholarships (USA)",
+      cat:"USA University",
+      intro:"Harvard offers need-based financial aid to international students. Families earning < $85,000/year pay nothing; those earning $85,000–$150,000 pay 0–10% of income. Aid covers tuition, room, board, fees, and travel.",
+      eligibility:"International students admitted to Harvard College (UG) or Harvard Graduate Schools. Need-based — no merit scholarships. Apply for financial aid at the same time as admission application.",
+      procedure:"1) Apply for admission to Harvard by deadlines (Jan 1 UG; Dec–Jan grad). 2) Submit CSS Profile + parental income proof. 3) Upload tax returns + bank statements. 4) Harvard committee reviews financial need. 5) Aid package includes grant + work-study + loan.",
+      link:"https://college.harvard.edu/financial-aid",
+      deadline:"UG admission Jan 1; Financial aid Feb deadlines",
+      amount:"Up to full tuition + room + board (~$80,000/year)"
+    },
+    {
+      n:"Stanford University Knight-Hennessy Scholars (USA)",
+      cat:"USA University",
+      intro:"Stanford's premier scholarship for graduate students. Funds any full-time graduate degree (PhD, Master's, professional schools) at Stanford. Includes tuition + stipend + leadership programme.",
+      eligibility:"International students admitted to any Stanford graduate programme. Apply within 7 years of earning first Bachelor's degree. Apply separately from admission — deadline early October.",
+      procedure:"1) Apply to Stanford graduate programme. 2) Apply to Knight-Hennessy by Oct. 3) Submit online application + essays + 3 references. 4) Shortlisting Nov–Dec. 5) Final interview Jan–Feb. 6) Selection Feb–Mar.",
+      link:"https://knight-hennessy.stanford.edu/",
+      deadline:"Application Oct (closes early Oct)",
+      amount:"Full tuition + stipend + academic allowance (~$100,000/year)"
+    },
+    {
+      n:"MIT Financial Aid for International Students (USA)",
+      cat:"USA University",
+      intro:"Massachusetts Institute of Technology offers need-based financial aid to international undergraduate students. Aid covers tuition, room, board, and personal expenses. About 80% of international students receive aid.",
+      eligibility:"International students admitted to MIT undergraduate programmes. Need-based — MIT meets 100% of demonstrated financial need. Apply for aid at admission time.",
+      procedure:"1) Apply for MIT admission (early action Nov 1, regular Jan 5). 2) Submit CSS Profile + parental income + bank statements. 3) Aid decision communicated with admission. 4) Aid covers full need — grant + work-study.",
+      link:"https://sfs.mit.edu/undergraduate-students/types-of-financial-aid/",
+      deadline:"Admission Nov 1 (EA), Jan 5 (Regular); Aid Feb deadline",
+      amount:"Up to full tuition + room + board (~$80,000/year)"
+    },
+    {
+      n:"Yale University Financial Aid (USA)",
+      cat:"USA University",
+      intro:"Yale offers need-based financial aid to international undergraduate students. Yale is need-blind for international students — admission chances not affected by aid application. 100% of demonstrated need met.",
+      eligibility:"International students admitted to Yale College. Need-based — apply at admission. Average Yale scholarship ~$60,000/year for aided international students.",
+      procedure:"1) Apply for Yale admission (Single Choice Early Action Nov 1, Regular Jan 2). 2) Submit CSS Profile + income proof + bank statement. 3) Aid decision with admission. 4) Annual re-application required.",
+      link:"https://admissions.yale.edu/financial-aid",
+      deadline:"Admission Nov 1 (SCEA), Jan 2 (Regular)",
+      amount:"Up to full tuition + room + board (~$78,000/year)"
+    },
+    {
+      n:"Princeton University Financial Aid (USA)",
+      cat:"USA University",
+      intro:"Princeton offers need-based aid to all students, including international. No loans — aid is 100% grants. ~60% of undergrads receive aid. Average aid ~$62,000/year.",
+      eligibility:"International students admitted to Princeton undergraduate programme. Need-based — no merit scholarships. Apply for aid at admission time.",
+      procedure:"1) Apply to Princeton admission (SCEA Nov 1, Regular Jan 1). 2) Submit Princeton Financial Aid Application + CSS Profile. 3) Upload tax returns + bank statements. 4) Aid decision with admission.",
+      link:"https://admission.princeton.edu/cost-aid",
+      deadline:"Admission Nov 1 (SCEA), Jan 1 (Regular)",
+      amount:"Up to full tuition + room + board (~$77,000/year)"
+    },
+    {
+      n:"Columbia University Financial Aid (USA)",
+      cat:"USA University",
+      intro:"Columbia College + Engineering offer need-based financial aid to international undergrads. Columbia is need-aware for international students — application considered with financial need in mind.",
+      eligibility:"International students admitted to Columbia UG. Need-based — average aid ~$60,000/year. Apply for aid when applying for admission.",
+      procedure:"1) Apply for Columbia admission (ED Nov 1, RD Jan 1). 2) Submit CSS Profile + COF (Certification of Finances). 3) Upload parental tax returns + income proof. 4) Aid decision with admission.",
+      link:"https://www.cc-seas.financialaid.columbia.edu/",
+      deadline:"Admission Nov 1 (ED), Jan 1 (RD); Aid Feb deadline",
+      amount:"Up to full tuition + room + board (~$78,000/year)"
+    },
+    {
+      n:"University of Chicago Financial Aid (USA)",
+      cat:"USA University",
+      intro:"UChicago offers need-based + merit scholarships to international undergraduates. Odyssey Scholarship for first-gen + low-income students. Merit scholarships like Omer Ismail, Stamps, Evans.",
+      eligibility:"International students admitted to UChicago undergraduate programme. Need-based aid + competitive merit scholarships. Apply for both at admission time.",
+      procedure:"1) Apply for UChicago admission (EA/ED Nov 1, RD Jan 3). 2) Submit CSS Profile + COF. 3) Upload income proof. 4. Separate essays for merit scholarships. 5) Aid + merit decision with admission.",
+      link:"https://collegeadmissions.uchicago.edu/costs",
+      deadline:"Admission Nov 1 (EA/ED), Jan 3 (RD)",
+      amount:"Up to full tuition + room + board (~$80,000/year)"
+    },
+    {
+      n:"University of Pennsylvania Penn World Scholars (USA)",
+      cat:"USA University",
+      intro:"Penn World Scholars programme provides financial + community support to outstanding international undergraduates across all four undergraduate schools. Need-based aid is also available.",
+      eligibility:"International students admitted to any Penn undergraduate school. Need-based financial aid (Penn is need-aware for internationals). World Scholars cohort is selected during admission.",
+      procedure:"1) Apply for Penn admission (ED Nov 1, RD Jan 5). 2) Submit CSS Profile + income proof. 3) Selection to World Scholars cohort made during admission review. 4) Aid + cohort designation communicated with admission.",
+      link:"https://admissions.upenn.edu/admissions-and-financial-aid/financial-aid",
+      deadline:"Admission Nov 1 (ED), Jan 5 (RD)",
+      amount:"Up to full tuition + room + board (~$80,000/year)"
+    },
+    /* === UK Universities === */
+    {
+      n:"University of Oxford Clarendon Fund (UK)",
+      cat:"UK University",
+      intro:"Clarendon Scholarship — Oxford's flagship scholarship for graduate students. Fully funds tuition + £18,000/year stipend. ~140 new scholars per year from across all departments.",
+      eligibility:"International students applying to Oxford Master's or DPhil. Apply for admission by December/January deadlines. Selection made during admission — no separate scholarship application.",
+      procedure:"1) Apply to Oxford graduate programme (Dec–Jan deadlines). 2) Indicate Clarendon interest in application. 3) Department nominates top applicants. 4) Clarendon committee final selection. 5) Scholarship communicated with admission offer.",
+      link:"https://www.ox.ac.uk/clarendon",
+      deadline:"Graduate admission deadlines Dec–Jan",
+      amount:"Full tuition + £18,000/year stipend"
+    },
+    {
+      n:"University of Oxford Rhodes + Weidenfeld-Hoffmann Scholarships (UK)",
+      cat:"UK University",
+      intro:"Weidenfeld-Hoffmann Scholarships at Oxford — fully funded Master's scholarships for students from developing countries (India included). Covers tuition + £18,000/year stipend + travel. Multiple named scholarships available.",
+      eligibility:"Indian citizen admitted to Oxford Master's programme. Returning to home country after study. Demonstrate leadership + commitment to home region.",
+      procedure:"1) Apply to Oxford Master's programme by Jan deadline. 2) Indicate scholarship interest in Oxford application. 3) Selection by scholarship committee. 4) Decision communicated with admission.",
+      link:"https://www.ox.ac.uk/clarendon/scholarships/weidenfeld-hoffmann",
+      deadline:"Oxford Master's application Dec–Jan",
+      amount:"Full tuition + £18,000/year stipend + travel"
+    },
+    {
+      n:"University of Cambridge Gates Scholarship (UK)",
+      cat:"UK University",
+      intro:"Gates Cambridge Scholarship — fully funded PhD + Master's at Cambridge. ~80 scholarships awarded annually to international students. Covers tuition + stipend + travel + family allowance.",
+      eligibility:"International students applying to any Cambridge graduate programme. Apply by December deadline. Selection based on academic excellence + leadership + commitment to improving lives.",
+      procedure:"1) Apply to Cambridge graduate programme by Dec deadline. 2) Submit Gates Cambridge application simultaneously. 3) Application includes SOP + 2 references + research proposal. 4) Shortlisting Feb. 5) Interview Mar–Apr. 6. Selection Apr.",
+      link:"https://www.gatescambridge.org/",
+      deadline:"Application Dec (US citizens) / Jan (others)",
+      amount:"Full tuition + £20,000/year stipend + travel + family allowance"
+    },
+    {
+      n:"Imperial College London President's Scholarships (UK)",
+      cat:"UK University",
+      intro:"Imperial College President's PhD Scholarships — 50 scholarships per year for outstanding international PhD students. Full tuition + £22,000/year stipend + £20,000 research allowance.",
+      eligibility:"International students applying for PhD at Imperial. Apply by January deadline. Strong academic record (1st class or equiv.) + research proposal required.",
+      procedure:"1) Apply to Imperial PhD programme by Jan. 2) Department nominates for President's Scholarship. 3) Upload CV + research proposal + 2 references. 4) Selection committee Mar. 5) Decision Apr.",
+      link:"https://www.imperial.ac.uk/study/fees-and-funding/presidents-scholarship/",
+      deadline:"PhD admission Jan",
+      amount:"Full tuition + £22,000/year + £20,000 research"
+    },
+    {
+      n:"UCL (University College London) Graduate Research Scholarships (UK)",
+      cat:"UK University",
+      intro:"UCL Graduate Research Scholarships — fully funded PhD scholarships for international students. Covers tuition + £18,000/year stipend. ~30 awards annually across all faculties.",
+      eligibility:"International students admitted to UCL PhD programme. Apply by January. Min upper second class (or equiv.) in Master's.",
+      procedure:"1) Apply to UCL PhD programme. 2) Submit scholarship application via department. 3) Upload CV + research proposal + 2 references. 4) Department nominates. 5) Decision Mar–Apr.",
+      link:"https://www.ucl.ac.uk/scholarships/",
+      deadline:"PhD admission Jan",
+      amount:"Full tuition + £18,000/year stipend"
+    },
+    {
+      n:"University of Edinburgh Global Scholarships (UK)",
+      cat:"UK University",
+      intro:"Edinburgh Global Undergraduate + Master's Scholarships for international students. Covers partial to full tuition for outstanding applicants. Multiple schemes including Glenmore, Royal Society of Edinburgh.",
+      eligibility:"International students admitted to Edinburgh UG or PG programmes. Apply by deadlines. Strong academic record required.",
+      procedure:"1) Apply to Edinburgh programme. 2) Submit separate scholarship application via MyEd portal. 3) Upload CV + references + SOP. 4) Selection by committee. 5) Decision Apr–May.",
+      link:"https://www.ed.ac.uk/student-funding/",
+      deadline:"UG admission Jan; Master's scholarship Apr",
+      amount:"£5,000–full tuition (varies per scheme)"
+    },
+    /* === Canada Universities === */
+    {
+      n:"University of Toronto Lester B. Pearson Scholarship (Canada)",
+      cat:"Canada University",
+      intro:"Lester B. Pearson International Scholarship — U of Toronto's flagship scholarship for international undergraduate students. Fully funded — tuition + books + residence + full living costs for 4 years. ~37 scholarships per year.",
+      eligibility:"International students applying to UG at UofT. Apply through high school nomination. Must be in final year of high school. Demonstrated leadership + exceptional academic record.",
+      procedure:"1) High school nominates student (Sep–Nov). 2) Apply for UofT admission by Jan. 3) Submit Pearson scholarship application by Jan. 4) Selection committee Feb–Mar. 5) Decision Apr.",
+      link:"https://future.utoronto.ca/pearson/",
+      deadline:"High school nomination Nov; Application Jan",
+      amount:"Full tuition + residence + books + living (~CAD 100,000/year)"
+    },
+    {
+      n:"University of British Columbia (UBC) International Leader of Tomorrow Award (Canada)",
+      cat:"Canada University",
+      intro:"UBC International Leader of Tomorrow Award — for outstanding international undergraduate students who demonstrate leadership + superior academic achievement. Covers tuition + living costs based on need.",
+      eligibility:"International students applying to UBC undergraduate. Demonstrate leadership + academic excellence + financial need. Apply by deadlines.",
+      procedure:"1) Apply to UBC admission by Jan 15. 2) Submit separate award application by Jan 31. 3) Upload SOP + references + financial documentation. 4) Selection committee Feb–Mar. 5) Decision Apr.",
+      link:"https://you.ubc.ca/financial-planning/scholarships-and-awards/international-leader-of-tomorrow-award/",
+      deadline:"UBC admission Jan 15; Award application Jan 31",
+      amount:"Up to full tuition + living (CAD 80,000/year)"
+    },
+    {
+      n:"McGill University Entrance Scholarships (Canada)",
+      cat:"Canada University",
+      intro:"McGill offers one-year entrance scholarships (CAD 3,000–12,000) for top international undergraduates. Major scholarships (CAD 30,000–50,000/year renewable) for exceptional candidates.",
+      eligibility:"International students admitted to McGill UG. Apply by deadlines. Top academic record required for major scholarships.",
+      procedure:"1) Apply to McGill admission by Feb 1. 2) Submit major scholarship application by Feb 1. 3) Upload SOP + 2 references + activities list. 4) Selection Mar. 5) Decision Mar–Apr.",
+      link:"https://www.mcgill.ca/studentaid/scholarships-aid/scholarships/entrance-scholarships",
+      deadline:"Admission + scholarship Feb 1",
+      amount:"CAD 3,000–50,000/year"
+    },
+    /* === Australia Universities === */
+    {
+      n:"University of Melbourne Graduate Research Scholarships (Australia)",
+      cat:"Australia University",
+      intro:"Melbourne Graduate Research Scholarship — fully funded PhD + Master's by Research. Covers full tuition + AUD 35,000/year stipend + relocation + thesis allowance. ~600 scholarships per year.",
+      eligibility:"International students applying to Melbourne PhD or MPhil. Apply by deadlines. Strong academic record + research proposal required.",
+      procedure:"1) Apply to Melbourne graduate research programme by Oct. 2) Submit scholarship application simultaneously. 3) Upload research proposal + 2 references + CV. 4) Selection Nov–Dec. 5) Decision Jan.",
+      link:"https://scholarships.unimelb.edu.au/awards/graduate-research-scholarships",
+      deadline:"Application Oct",
+      amount:"Full tuition + AUD 35,000/year + AUD 2,000 relocation + AUD 840 thesis"
+    },
+    {
+      n:"Australian National University (ANU) Chancellor's Scholarship (Australia)",
+      cat:"Australia University",
+      intro:"ANU Chancellor's International Scholarship — for outstanding international students applying to UG or PG. Covers 25% reduction in tuition fees for entire programme duration.",
+      eligibility:"International students applying to ANU UG or PG coursework programme. Strong academic record. Automatic consideration on admission application — no separate scholarship application.",
+      procedure:"1) Apply to ANU admission. 2) Submit academic transcripts + SOP. 3) Automatic consideration based on academic merit. 4) Decision with admission offer.",
+      link:"https://www.anu.edu.au/study/scholarships",
+      deadline:"Admission deadlines (variable)",
+      amount:"25% tuition fee reduction (AUD 15,000–25,000/year)"
+    },
+    {
+      n:"University of Sydney International Scholarships (Australia)",
+      cat:"Australia University",
+      intro:"University of Sydney International Scholarship (USydIS) — for outstanding international PhD students. Covers tuition + AUD 35,000/year stipend for up to 4 years.",
+      eligibility:"International students applying to Sydney PhD. Strong academic record + research proposal. Apply to PhD programme + scholarship simultaneously.",
+      procedure:"1) Apply to Sydney PhD programme. 2) Indicate scholarship interest. 3) Submit research proposal + 2 references + CV. 4) Department nominates. 5) Decision Mar + Sep rounds.",
+      link:"https://www.sydney.edu.au/scholarships/",
+      deadline:"Variable (Mar + Sep rounds)",
+      amount:"Full tuition + AUD 35,000/year stipend"
+    },
+    /* === Singapore Universities === */
+    {
+      n:"NUS Graduate Scholarship for ASEAN + Asia (Singapore)",
+      cat:"Singapore University",
+      intro:"National University of Singapore — Graduate Scholarship for ASEAN + Asia. Full tuition + monthly stipend + accommodation allowance for students from Asian countries including India.",
+      eligibility:"Indian citizen applying to NUS Master's or PhD. Apply to NUS graduate programme. Strong academic record required.",
+      procedure:"1) Apply to NUS graduate programme by Nov–Jan. 2) Indicate scholarship interest. 3) Submit SOP + 2 references + research proposal. 4) Selection Feb–Mar. 5) Decision Apr.",
+      link:"https://www.nus.edu.sg/admissions/graduate/financial-aid",
+      deadline:"Variable per programme (Nov–Jan)",
+      amount:"Full tuition + S$1,500–S$2,000/month + accommodation"
+    },
+    {
+      n:"NTU Nanyang Scholarship (Singapore)",
+      cat:"Singapore University",
+      intro:"Nanyang Technological University — Nanyang Scholarship for international undergraduate students. Covers full tuition + S$6,500/year living allowance + accommodation + travel. ~100 awards per year.",
+      eligibility:"International students applying to NTU undergraduate programme. Strong academic record + leadership + co-curricular record. Apply by admission deadline.",
+      procedure:"1) Apply to NTU UG admission by Jan. 2) Submit scholarship application via same portal. 3) Upload SOP + references + activities list. 4) Selection Feb–Mar. 5) Interview Mar–Apr. 6) Decision May.",
+      link:"https://www.ntu.edu.sg/admissions/international-students/scholarships-and-financial-aid",
+      deadline:"Admission Jan; Scholarship Mar",
+      amount:"Full tuition + S$6,500/year + accommodation + S$2,000 travel"
+    },
+    /* === European Universities === */
+    {
+      n:"ETH Zurich Excellence Scholarship (Switzerland)",
+      cat:"Europe University",
+      intro:"ETH Zurich Excellence Scholarship + Opportunity Programme — for outstanding international Master's students. Covers full tuition + CHF 12,000/semester stipend + CHF 3,000 one-time grant.",
+      eligibility:"International students applying to ETH Zurich Master's programme. Top 10% of Bachelor's degree class. Apply by December 15 deadline. No separate application — selected during admission review.",
+      procedure:"1) Apply to ETH Zurich Master's by Dec 15. 2) Indicate scholarship interest in application. 3) Selection committee review (Feb). 4) Decision communicated Mar.",
+      link:"https://ethz.ch/en/studies/financial/scholarships/excellencescholarship.html",
+      deadline:"Master's application Dec 15",
+      amount:"Full tuition + CHF 12,000/semester stipend + CHF 3,000 grant"
+    },
+    {
+      n:"TU Delft Justus + Louise van Effen Scholarship (Netherlands)",
+      cat:"Europe University",
+      intro:"Delft University of Technology — Justus + Louise van Effen Excellence Scholarship for outstanding international Master's students. Covers full tuition + €1,000/month living allowance for 2 years.",
+      eligibility:"International students admitted to TU Delft Master's programme. Top 10% of applicants. Apply by admission deadline (Dec–Apr).",
+      procedure:"1) Apply to TU Delft Master's programme by Dec 1 (non-EU). 2) Indicate scholarship interest. 3) Selection based on academic merit. 4) Decision Feb–Mar.",
+      link:"https://www.tudelft.nl/en/education/practical-matters/scholarships/justus-louise-van-effen",
+      deadline:"Master's application Dec 1 (non-EU)",
+      amount:"Full tuition + €1,000/month for 2 years"
+    },
+    {
+      n:"KTH Royal Institute of Technology Scholarships (Sweden)",
+      cat:"Europe University",
+      intro:"KTH Royal Institute of Technology — KTH Scholarship covers full tuition for international Master's students. KTH One-Year Scholarship for one-year Master's. KTH India Scholarship specifically for Indian students.",
+      eligibility:"International students (incl. India) applying to KTH Master's programme. Apply by January deadline. Strong academic record required.",
+      procedure:"1) Apply to KTH Master's programme by Jan 15. 2) Submit separate scholarship application by Feb. 3) Upload CV + SOP + references. 4) Selection committee Mar. 5) Decision Apr.",
+      link:"https://www.kth.se/en/studies/master/scholarships",
+      deadline:"Application Jan 15; Scholarship Feb",
+      amount:"Full tuition fee waiver (€15,000/year)"
+    },
+    {
+      n:"University of Bologna Uno-Europe Scholarship (Italy)",
+      cat:"Europe University",
+      intro:"University of Bologna — Uno-Europe Scholarship for international students admitted to English-taught Master's programmes. Covers €11,000/year for tuition + living. Italy's top university.",
+      eligibility:"International students (incl. India) admitted to Bologna English-taught Master's. Apply by deadline. Strong academic record required.",
+      procedure:"1) Apply to Bologna Master's by Mar–Apr. 2) Submit scholarship application via AlmaRadiation portal. 3) Upload CV + SOP + academic transcripts. 4) Selection committee. 5) Decision May–Jun.",
+      link:"https://www.unibo.it/en/international/study-unibo/scholarships-financial-aid",
+      deadline:"Application Mar–Apr",
+      amount:"€11,000/year for 2 years"
+    },
+    {
+      n:"Paris-Saclay University Master's Scholarships (France)",
+      cat:"Europe University",
+      intro:"Université Paris-Saclay — Idex Master's Scholarships for international students. Covers €10,000/year for tuition + living. ~150 scholarships per year across science + humanities programmes.",
+      eligibility:"International students applying to Paris-Saclay Master's programme. Age under 30. Apply by May deadline. English proficiency required for English-taught programmes.",
+      procedure:"1) Apply to Paris-Saclay Master's by May. 2) Submit scholarship application. 3) Upload academic transcripts + SOP + 2 references. 4) Selection committee Jun. 5) Decision Jul.",
+      link:"https://www.universite-paris-saclay.fr/en/education/master-s-scholarships",
+      deadline:"Application May",
+      amount:"€10,000/year for 1–2 years"
+    },
+    {
+      n:"Sciences Po Excellence Scholarship (France)",
+      cat:"Europe University",
+      intro:"Sciences Po — Emile Boutmy Excellence Scholarship for international non-EU students admitted to UG + Master's programmes. Covers tuition up to €19,000/year for UG + €13,000/year for PG.",
+      eligibility:"Non-EU international students admitted to Sciences Po UG or PG. First-time applicant to Sciences Po. Apply by deadlines. Strong academic record required.",
+      procedure:"1) Apply to Sciences Po admission by deadlines. 2) Submit Emile Boutmy scholarship application via Sciences Po portal. 3) Upload SOP + CV + academic transcripts. 4) Selection committee. 5) Decision with admission.",
+      link:"https://www.sciencespo.fr/admissions/en/financing-your-studies-sciences-po",
+      deadline:"Variable per programme",
+      amount:"Up to €19,000/year (UG) / €13,000/year (PG)"
+    },
+    /* === Germany Universities === */
+    {
+      n:"TU Munich Deutschlandstipendium (Germany)",
+      cat:"Germany University",
+      intro:"Technical University of Munich — Deutschlandstipendium (Germany Scholarship). €300/month for highly talented international + German students. Funded jointly by govt + private sponsors.",
+      eligibility:"International students admitted to TUM Bachelor's or Master's. Strong academic record + extracurricular achievements. Apply via TUM portal.",
+      procedure:"1) Apply to TUM admission by Jan–Jul (varies per programme). 2) Submit Deutschlandstipendium application via TUM portal. 3) Upload CV + academic transcripts + SOP. 4) Selection committee. 5) Decision Oct–Nov.",
+      link:"https://www.tum.de/en/studies/financial-aid/deutschlandstipendium",
+      deadline:"Variable per programme (Jan–Jul)",
+      amount:"€300/month for 1 year (renewable)"
+    },
+    {
+      n:"Heidelberg University Graduate Academy Scholarships (Germany)",
+      cat:"Germany University",
+      intro:"Heidelberg University — Graduate Academy scholarships for international PhD students. Includes Graduate Academy Funding Programme + Promotionskolleg. Covers €1,500/month stipend for up to 3 years.",
+      eligibility:"International students admitted to Heidelberg PhD. Apply by deadlines. Strong academic record + research proposal required.",
+      procedure:"1) Apply to Heidelberg PhD programme. 2) Submit scholarship application via Graduate Academy. 3) Upload research proposal + CV + 2 references. 4) Selection committee. 5) Decision May–Jun.",
+      link:"https://www.uni-heidelberg.de/en/study/all-subjects/doctoral-degrees/graduate-academy",
+      deadline:"Variable per programme",
+      amount:"€1,500/month for 3 years"
+    },
+    /* === Japan Universities === */
+    {
+      n:"University of Tokyo Graduate Scholarship for International Students (Japan)",
+      cat:"Japan University",
+      intro:"University of Tokyo — Graduate School of Science Scholarship for international PhD students. Covers full tuition + ¥180,000/month stipend + travel. ~50 scholarships per year.",
+      eligibility:"International students (incl. India) admitted to UTokyo PhD programme. Apply by deadlines. Strong academic record + research proposal required.",
+      procedure:"1) Apply to UTokyo PhD programme by Aug–Dec (varies per dept). 2) Indicate scholarship interest. 3) Submit research proposal + 2 references + CV. 4) Selection by department. 5) Decision Feb–Mar.",
+      link:"https://www.s.u-tokyo.ac.jp/en/admissions/scholarships/",
+      deadline:"Variable per department",
+      amount:"Full tuition + ¥180,000/month + travel"
+    },
+    {
+      n:"Kyoto University Japanese Government + University Scholarships (Japan)",
+      cat:"Japan University",
+      intro:"Kyoto University — offers multiple scholarships to international students including MEXT (Japanese Government), JASSO, and Kyoto University Original scholarships. Top research university in Japan.",
+      eligibility:"International students admitted to Kyoto UG or PG programme. Apply by deadlines. Most scholarships cover tuition + ¥120,000–¥180,000/month.",
+      procedure:"1) Apply to Kyoto University admission by deadlines. 2) Submit scholarship application via Kyoto U portal. 3) Upload CV + SOP + references. 4) Selection committee. 5) Decision Mar–Apr.",
+      link:"https://www.kyoto-u.ac.jp/en/education-campus-life/study-at-ku/admissions/scholarships-and-financial-aid",
+      deadline:"Variable per programme",
+      amount:"¥120,000–¥180,000/month + tuition"
+    },
+    /* === Indian Universities === */
+    {
+      n:"IIT Gandhinagar Overseas Summer Research Fellowship (India)",
+      cat:"India University",
+      intro:"IIT Gandhinagar — Overseas Summer Research Fellowship for undergraduate students to undertake 8-week research at top foreign universities (MIT, Caltech, Cambridge, etc.). Covers travel + stipend + accommodation.",
+      eligibility:"IIT Gandhinagar undergraduate students in their 4th–6th semester. Strong academic record + research interest. Selection based on application + interview.",
+      procedure:"1) Apply via IITGN internal portal by Nov–Dec. 2) Submit SOP + research proposal + academic transcripts. 3) Faculty recommendation letters. 4) Selection committee. 5) Decision Feb.",
+      link:"https://iitgn.ac.in/",
+      deadline:"Application Nov–Dec",
+      amount:"Travel + stipend + accommodation (~₹2 lakh)"
+    },
+    {
+      n:"IISc Bangalore PhD Fellowship (India)",
+      cat:"India University",
+      intro:"Indian Institute of Science Bangalore — Institute Research Award + DST-INSPIRE Fellowship for PhD students. ₹31,000–₹35,000/month for 5 years + contingency + housing allowance.",
+      eligibility:"Indian students admitted to IISc PhD programme. Apply for fellowship after admission. Strong academic record + research aptitude.",
+      procedure:"1) Apply to IISc PhD programme by Mar–Apr. 2) Clear GATE/NET/JEST. 3) Interview May–Jun. 4) Admission + fellowship offer. 5) Fellowship activated from registration date.",
+      link:"https://iisc.ac.in/admissions/",
+      deadline:"PhD application Mar–Apr",
+      amount:"₹31,000–₹35,000/month for 5 years + contingency"
+    },
+    {
+      n:"IIM Ahmedabad Fellow Programme in Management (FPM) Fellowship (India)",
+      cat:"India University",
+      intro:"Indian Institute of Management Ahmedabad — Fellow Programme in Management (Doctoral). Tuition waiver + ₹35,000/month stipend for 4–5 years. Top B-school PhD programme in India.",
+      eligibility:"Indian students admitted to IIMA FPM programme. Apply by Jan deadline. Master's degree + min 55%. CAT/GMAT/GRE/GATE score required.",
+      procedure:"1) Apply to IIMA FPM by Jan. 2) Submit CAT/GMAT/GRE/GATE score + SOP + 2 references. 3) Interview Feb–Mar. 4) Admission + fellowship offer Mar–Apr. 5) ₹35,000/month stipend + tuition waiver.",
+      link:"https://www.iima.ac.in/academics/programmes/fpm",
+      deadline:"Application Jan",
+      amount:"₹35,000/month + tuition waiver for 4–5 years"
+    },
+    {
+      n:"BITS Pilani Higher Education Scholarship (India)",
+      cat:"India University",
+      intro:"BITS Pilani — merit-cum-means scholarships for undergraduate students. Covers 15–80% of tuition based on need + merit. Also offers merit scholarships for top rankers in BITSAT.",
+      eligibility:"Indian students admitted to BITS Pilani UG programmes. Apply after admission. Merit scholarships for top 1% in BITSAT. Income-based for need scholarships.",
+      procedure:"1) Apply for BITSAT exam. 2) Admission through counselling. 3) Apply for scholarship after admission via BITS portal. 4) Submit income proof. 5) Selection based on merit + need.",
+      link:"https://www.bitsadmission.com/",
+      deadline:"BITSAT application Jan–Apr; Admission counselling Jun–Jul",
+      amount:"15–80% tuition waiver + ₹5,000/month (top rankers)"
+    },
+    {
+      n:"ISB (Indian School of Business) Need-Based Scholarship (India)",
+      cat:"India University",
+      intro:"ISB Hyderabad/Mohali — need-based scholarships for PGPM (Post Graduate Programme in Management). Covers up to ₹25 lakh for 1-year programme. ~30% of students receive aid.",
+      eligibility:"Indian students admitted to ISB PGPM. Apply for scholarship after admission offer. Need-based — income proof required.",
+      procedure:"1) Apply to ISB PGPM by Sep–Dec (Round 1) or Jan (Round 2). 2) Submit GMAT/GRE score + SOP + references. 3) Interview. 4) Admission offer. 5) Apply for need-based scholarship after admission.",
+      link:"https://www.isb.edu/en/pgp/fees-and-financing/financial-aid.html",
+      deadline:"PGP application Sep–Jan (Round 1 + 2)",
+      amount:"Up to ₹25 lakh (full tuition for 1 year)"
+    },
+    {
+      n:"Ashoka University Young India Fellowship (India)",
+      cat:"India University",
+      intro:"Ashoka University — Young India Fellowship (YIF) is a 1-year postgraduate diploma in Liberal Studies. Financial aid up to 100% based on need. ~50% of students receive some aid.",
+      eligibility:"Indian + international students with Bachelor's degree (any field). Apply by Round 1 (Oct) or Round 2 (Mar). Selection includes essay + interview.",
+      procedure:"1) Apply online at ashoka.edu.in by Oct or Mar. 2) Submit essays + SOP + references + CV. 3) Critical thinking test. 4) Personal interview. 5) Admission + financial aid offer.",
+      link:"https://www.ashoka.edu.in/yif/",
+      deadline:"Round 1: Oct; Round 2: Mar",
+      amount:"Up to 100% tuition waiver + ₹50,000/month stipend"
+    },
+    {
+      n:"TIFR (Tata Institute of Fundamental Research) Graduate Scholarship (India)",
+      cat:"India University",
+      intro:"TIFR Mumbai/Bangalore — Graduate Scholarship for PhD students in Mathematics, Physics, Chemistry, Biology, Computer Science. ₹31,000–₹35,000/month + tuition waiver + accommodation for 5 years.",
+      eligibility:"Indian students admitted to TIFR PhD programme via GS (Graduate School) exam. Apply by Nov. Master's degree with strong academic record.",
+      procedure:"1) Apply to TIFR GS exam by Nov. 2) Clear written exam (Dec) + interview (Feb–Mar). 3) Admission offer Mar–Apr. 4) Fellowship activated from joining.",
+      link:"https://univ.tifr.res.in/",
+      deadline:"GS application Nov",
+      amount:"₹31,000–₹35,000/month + tuition waiver + accommodation"
+    },
+    {
+      n:"CMI (Chennai Mathematical Institute) BSc/MSc Scholarship (India)",
+      cat:"India University",
+      intro:"Chennai Mathematical Institute — merit scholarships for BSc/MSc in Mathematics + Computer Science. Covers full tuition + ₹5,000/month stipend. Top mathematics institute in India.",
+      eligibility:"Indian students admitted to CMI BSc/MSc programme via entrance exam. Apply by Apr. Selection based on entrance exam + interview.",
+      procedure:"1) Apply online at cmi.ac.in by Apr. 2) Clear entrance exam (May). 3) Interview (Jun). 4) Admission + scholarship offer. 5) Full tuition + ₹5,000/month stipend.",
+      link:"https://www.cmi.ac.in/admissions/",
+      deadline:"Application Apr; Exam May",
+      amount:"Full tuition + ₹5,000/month for 3 years (BSc) / 2 years (MSc)"
+    }
+  ];
+
+  /* ===== Helper: render scholarship card ===== */
+  function scholarshipCard(s){
+    return `<div class="card" style="border-left:4px solid var(--brand);margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:12px">
+        <h3 style="margin:0;font-size:16px;flex:1">${esc(s.n)}</h3>
+        <span class="chip chip-purple" style="white-space:nowrap">${esc(s.cat)}</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:10px">
+        <b>📖 Introduction:</b> ${esc(s.intro)}
+      </div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:10px">
+        <b>✅ Eligibility:</b> ${esc(s.eligibility)}
+      </div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:10px">
+        <b>📋 Procedure:</b> ${esc(s.procedure)}
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:10px">
+        <div>📅 <b>Deadline:</b> ${esc(s.deadline)}</div>
+        <div>💰 <b>Amount:</b> ${esc(s.amount)}</div>
+      </div>
+      <a href="${s.link}" target="_blank" rel="noopener" class="btn btn-p btn-s" style="text-decoration:none;display:inline-flex">
+        🔗 Official Website ↗
+      </a>
+    </div>`;
+  }
+
+  /* ===== Main Scholarships view ===== */
+  function vScholarships(){
+    const totalLinks = NATIONAL_SCHOLARSHIPS.length + INTERNATIONAL_SCHOLARSHIPS.length + UNIVERSITY_SCHOLARSHIPS.length;
+
+    const cardsHTML = `
+      <div class="hero" style="background:linear-gradient(120deg,#eaf6ff 0%,#f3effc 55%,#eafaf6 100%)">
+        <h1>🎓 Scholarships — National + International + University</h1>
+        <p>A curated database of <b>${totalLinks} scholarship schemes</b> across <b>3 categories</b>: <b>${NATIONAL_SCHOLARSHIPS.length} Indian national scholarships</b> (NSP, INSPIRE, KVPY, NTSE, NMMS, AICTE, UGC, state schemes), <b>${INTERNATIONAL_SCHOLARSHIPS.length} international govt/foundation scholarships</b> (Fulbright, Chevening, DAAD, Erasmus, Rhodes, Commonwealth, MEXT, SINGA), and <b>${UNIVERSITY_SCHOLARSHIPS.length} university-offered scholarships</b> from top universities worldwide (Harvard, Stanford, MIT, Oxford, Cambridge, ETH Zurich, NUS, IIT, IIM, IISc, more). Each entry includes intro, eligibility, procedure, deadline, amount, and direct official web link.</p>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>💡 Pro Tip:</b> Apply early! Most scholarships open Aug–Oct and close within 6–8 weeks. Keep scanned copies of your Aadhaar, caste certificate, income certificate, mark sheets, and bank details ready before applying. Many national scholarships require DBT-linked bank accounts.
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="accordion-section" style="margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden">
+          <button class="accordion-header" data-acc="national" style="width:100%;text-align:left;padding:18px 22px;background:linear-gradient(135deg,#fff,#f8fafc);border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:14px">
+            <span style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:24px">🇮🇳</span>
+              <span>National Scholarships (India) <span style="font-size:12px;color:var(--muted);font-weight:600;margin-left:6px">(${NATIONAL_SCHOLARSHIPS.length})</span></span>
+            </span>
+            <span class="acc-icon" style="font-size:20px;color:var(--brand);transition:.2s">▼</span>
+          </button>
+          <div class="accordion-body" id="acc-national" style="padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease">
+            <div style="padding:14px 0">
+              <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Central Government, State Government, UGC/AICTE, and school-level scholarships for Indian students. Most are income-based with caste/category reservations.</p>
+              ${NATIONAL_SCHOLARSHIPS.map(scholarshipCard).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-section" style="margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden">
+          <button class="accordion-header" data-acc="international" style="width:100%;text-align:left;padding:18px 22px;background:linear-gradient(135deg,#fff,#f8fafc);border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:14px">
+            <span style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:24px">🌍</span>
+              <span>International Scholarships — Govt/Foundation (Abroad) <span style="font-size:12px;color:var(--muted);font-weight:600;margin-left:6px">(${INTERNATIONAL_SCHOLARSHIPS.length})</span></span>
+            </span>
+            <span class="acc-icon" style="font-size:20px;color:var(--brand);transition:.2s">▼</span>
+          </button>
+          <div class="accordion-body" id="acc-international" style="padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease">
+            <div style="padding:14px 0">
+              <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Fully-funded Master's / PhD scholarships offered by foreign governments + international foundations — Fulbright (USA), Chevening (UK), DAAD (Germany), Erasmus Mundus (EU), Rhodes (Oxford), Commonwealth, MEXT (Japan), Korea GKS, SINGA (Singapore), Swiss Govt, Eiffel (France), World Bank. Most require admission offer + English test + SOP.</p>
+              ${INTERNATIONAL_SCHOLARSHIPS.map(scholarshipCard).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-section" style="margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden">
+          <button class="accordion-header" data-acc="university" style="width:100%;text-align:left;padding:18px 22px;background:linear-gradient(135deg,#fff,#f8fafc);border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:14px">
+            <span style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:24px">🏛️</span>
+              <span>University Scholarships — Offered by Universities Worldwide <span style="font-size:12px;color:var(--muted);font-weight:600;margin-left:6px">(${UNIVERSITY_SCHOLARSHIPS.length})</span></span>
+            </span>
+            <span class="acc-icon" style="font-size:20px;color:var(--brand);transition:.2s">▼</span>
+          </button>
+          <div class="accordion-body" id="acc-university" style="padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease">
+            <div style="padding:14px 0">
+              <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Scholarships offered <b>directly by universities</b> to international students — separate from govt scholarships. Covers USA (Harvard, Stanford, MIT, Yale, Princeton, Columbia, UChicago, UPenn), UK (Oxford Clarendon, Cambridge Gates, Imperial, UCL, Edinburgh), Canada (UofT Pearson, UBC, McGill), Australia (Melbourne, ANU, Sydney), Singapore (NUS, NTU), Europe (ETH Zurich, TU Delft, KTH, Bologna, Paris-Saclay, Sciences Po, TUM, Heidelberg), Japan (UTokyo, Kyoto), and Indian universities (IIT, IISc, IIM, BITS, ISB, Ashoka, TIFR, CMI). These are need-based or merit-based and require separate application along with admission.</p>
+              ${UNIVERSITY_SCHOLARSHIPS.map(scholarshipCard).join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>📚 Required Documents Checklist (most scholarships):</b>
+        <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
+          <li>Aadhaar card (mandatory for Indian govt scholarships)</li>
+          <li>Caste certificate (for SC/ST/OBC schemes) — issued by Tehsildar</li>
+          <li>Income certificate — issued by Tehsildar (valid for 1 year)</li>
+          <li>Previous academic mark sheets (Class 10/12/UG/PG)</li>
+          <li>Bank passbook copy (DBT-linked for govt scholarships)</li>
+          <li>Passport-size photo + signature (scanned)</li>
+          <li>For international: TOEFL/IELTS score + GRE/GMAT (for USA), SOP + 2–3 LORs</li>
+          <li>For research: research proposal (3–5 pages) + host affiliation letter</li>
+          <li>For university scholarships: CSS Profile (US universities), admission application proof</li>
+        </ul>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:14px">
+        <b>🎯 Application Strategy:</b>
+        <ol style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
+          <li><b>Aug–Sep:</b> Apply to NSP for all central govt scholarships</li>
+          <li><b>Sep–Oct:</b> Apply to NTSE/NMMS through school (if applicable)</li>
+          <li><b>Oct–Nov:</b> Apply to state govt scholarship portal (MAHA-DBT etc.)</li>
+          <li><b>Nov–Dec:</b> Take GRE/TOEFL/IELTS for international applications</li>
+          <li><b>Dec–Jan:</b> Apply to US + UK universities for admission + financial aid (CSS Profile)</li>
+          <li><b>Jan–Mar:</b> Apply to Fulbright, Chevening, DAAD, Erasmus Mundus + university scholarships (Oxford Clarendon, Cambridge Gates, ETH Zurich)</li>
+          <li><b>Year-round:</b> Track all applications via email + portal</li>
+        </ol>
+      </div>
+    `;
+
+    renderShell("scholarships", cardsHTML);
+    bindHeader();
+
+    /* Wire accordion toggles — first one open by default */
+    let firstOpened = false;
+    document.querySelectorAll("[data-acc]").forEach(btn=>{
+      const id = btn.dataset.acc;
+      const body = document.getElementById("acc-"+id);
+      const icon = btn.querySelector(".acc-icon");
+      const toggle = (force)=>{
+        const isOpen = body.style.maxHeight && body.style.maxHeight !== "0px";
+        const willOpen = force===undefined ? !isOpen : force;
+        if(willOpen){
+          body.style.maxHeight = body.scrollHeight + "px";
+          body.style.paddingTop = "8px";
+          body.style.paddingBottom = "14px";
+          icon.style.transform = "rotate(180deg)";
+        } else {
+          body.style.maxHeight = "0";
+          body.style.paddingTop = "0";
+          body.style.paddingBottom = "0";
+          icon.style.transform = "rotate(0deg)";
+        }
+      };
+      btn.onclick = ()=>toggle();
+      if(!firstOpened){toggle(true); firstOpened=true;}
+    });
+  }
+  window.vScholarships = vScholarships;
+
+  return {
+    vScholarships,
+    NATIONAL_SCHOLARSHIPS,
+    INTERNATIONAL_SCHOLARSHIPS,
+    UNIVERSITY_SCHOLARSHIPS
+  };
+})();
+
+/* Append CSS for scholarships accordion if not already present */
+if(!document.getElementById("scholarshipsCss")){
+  const css=document.createElement("style");
+  css.id="scholarshipsCss";
+  css.textContent=`
+    .accordion-header:hover{background:linear-gradient(135deg,#f8fafc,#eef3fb)!important}
+    .card a.btn{text-decoration:none}
+  `;
+  document.head.appendChild(css);
+}
 
 </script>
