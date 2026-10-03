@@ -15169,35 +15169,155 @@ if(typeof module!=="undefined"&&module.exports)module.exports=QRCode;
     messages.appendChild(typing);
     messages.scrollTop = messages.scrollHeight;
     
-    // Call backend API
-    fetch(API_BASE + '/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        message: msg,
-        history: chatHistory.slice(-8)
-      })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      var typingEl = document.getElementById('typingIndicator');
-      if(typingEl) typingEl.remove();
-      
-      var response = data.response || data.fallback || 'Sorry, I could not process your request.';
+    // Built-in AI responses (no backend needed — works offline)
+    var msg = message.toLowerCase();
+    var response = '';
+    
+    if(msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+      response = `Hello! Welcome to ASJBCM Exam Portal! I can help you with:
+
+- Study tips for UPSC, MPSC, SSC, Banking, Railway exams
+- Exam patterns and syllabus
+- Time management strategies
+- Career guidance
+
+Just ask me anything!`;
+    } else if(msg.includes('mpsc')) {
+      response = `MPSC Preparation Tips:
+
+1. Understand the 3-stage pattern: Prelims (objective), Mains (descriptive), Interview
+2. Focus on Maharashtra-specific topics: Marathi grammar, state history, geography
+3. Read NCERT books (6-12) for foundation
+4. Daily newspaper reading (Loksat/Maharashtra Times)
+5. Practice PYQs - visit the PYQs tab for past papers
+6. Take mock tests weekly
+7. Focus on current affairs (last 6 months)
+
+Visit the Videos tab for MPSC World channel lectures!`;
+    } else if(msg.includes('upsc')) {
+      response = `UPSC Preparation Tips:
+
+1. Prelims: GS Paper I (100 Q) + CSAT (80 Q)
+2. Mains: 9 papers including Essay + Optional
+3. Read The Hindu or Indian Express daily
+4. NCERT books 6-12 are your foundation
+5. Laxmikanth for Polity, Spectrum for History
+6. Practice answer writing daily
+7. Revise current affairs weekly
+
+Check PYQs tab for UPSC past papers + Videos for StudyIQ lectures!`;
+    } else if(msg.includes('ssc') || msg.includes('cgl')) {
+      response = `SSC CGL Preparation:
+
+1. Tier-1: 100 Q (GK + English + Quant + Reasoning) - 60 min
+2. Tier-2: Maths + English + GK + Computer
+3. Focus on Quant (RS Aggarwal) + Reasoning
+4. English: grammar (Wren and Martin) + vocabulary
+5. GK: Lucent + current affairs
+6. Practice 100+ PYQs
+
+Visit PYQs tab for SSC past papers + Videos for WiFiStudy!`;
+    } else if(msg.includes('bank') || msg.includes('ibps') || msg.includes('sbi')) {
+      response = `Banking Exam Preparation:
+
+1. Prelims: English + Quant + Reasoning (100 Q, 60 min)
+2. Mains: GA + English + Quant + Reasoning + Computer
+3. Focus on speed - practice daily
+4. Current affairs (last 6 months) - banking awareness
+5. Practice BankExamsToday daily quizzes
+
+Visit PYQs for IBPS/SBI past papers + Videos for Adda247!`;
+    } else if(msg.includes('railway') || msg.includes('rrb') || msg.includes('ntpc')) {
+      response = `Railway (RRB) Preparation:
+
+1. NTPC: 100 Q (GK + Maths + Reasoning) - 90 min
+2. Group D: 100 Q - 90 min
+3. Focus on GK (Lucent) + basic Maths + Reasoning
+4. Practice previous year papers
+5. RRB-specific current affairs
+
+Visit PYQs for RRB past papers!`;
+    } else if(msg.includes('study') || msg.includes('plan') || msg.includes('timetable')) {
+      response = `Study Plan Recommendation:
+
+Morning (6-9 AM): Current affairs + newspaper reading
+Forenoon (9-12): Core subject study (Polity/History/Geography)
+Afternoon (2-5 PM): Quant + Reasoning practice
+Evening (5-7 PM): English + Marathi grammar
+Night (8-10 PM): Revise notes + solve MCQs
+
+Use the Pomodoro Timer tab (25 min focus + 5 min break)
+Aim for 6-8 pomodoros per day = 2.5-3.5 hours focused study`;
+    } else if(msg.includes('scholarship')) {
+      response = `Scholarships Available:
+
+National: NSP, INSPIRE, KVPY, NTSE, NMMS, AICTE, UGC
+International: Fulbright, Chevening, DAAD, Erasmus, Rhodes
+University: Harvard, Stanford, MIT, Oxford, Cambridge, IIT, IISc
+
+Visit the Scholarships tab for 84 schemes with full details!`;
+    } else if(msg.includes('job') || msg.includes('career') || msg.includes('vacancy')) {
+      response = `Jobs and Career:
+
+Govt: UPSC, SSC, IBPS, SBI, RBI, RRB, DRDO, ISRO
+Sector: Railway, Banking, PSU, Defence, Teaching, Healthcare
+International: UN, World Bank, IMF, WHO
+
+Visit Jobs and Career tab for 411 curated job links + auto job finder!`;
+    } else if(msg.includes('video') || msg.includes('lecture') || msg.includes('youtube')) {
+      response = `Video Lectures:
+
+Free YouTube lectures from top educators:
+- StudyIQ IAS - Polity, History, Geography
+- WiFiStudy - Quant, Reasoning
+- Adda247 - Banking, English
+- MPSC World - Marathi medium
+
+Visit Videos tab for 36 curated topics!`;
+    } else if(msg.includes('current affair') || msg.includes('news')) {
+      response = `Current Affairs Strategy:
+
+1. Read ONE newspaper (The Hindu/Indian Express)
+2. Check PIB daily (5 min)
+3. Focus on last 6 months before exam
+4. Make notes: schemes, appointments, indices
+5. Revise weekly
+
+Visit Affairs tab for 10 sources + daily routine!`;
+    } else if(msg.includes('exam') || msg.includes('test') || msg.includes('mock')) {
+      response = `Exam Practice:
+
+1. Chapter tests after each chapter
+2. Mock tests weekly (Exam Center tab)
+3. PYQs - practice 5 years minimum (PYQs tab)
+4. Daily quiz (Daily tab)
+5. Track progress in Analytics
+
+Negative marking practice is essential!`;
+    } else if(msg.includes('thank')) {
+      response = `You are welcome! All the best for your exam preparation. Remember - consistency is the key to success. Study daily, practice regularly, and stay positive!`;
+    } else {
+      response = `I can help you with:
+
+- Exam preparation (UPSC, MPSC, SSC, Banking, Railway)
+- Study plans and timetables
+- Scholarships (84 schemes)
+- Jobs and career guidance (411 links)
+- Free video lectures
+- Current affairs strategy
+- Mock tests and PYQs
+
+Try asking: "How to prepare for MPSC?" or "Study plan" or "Scholarships"`;
+    }
+    
+    // Simulate typing delay
+    setTimeout(function(){
+      removeTyping();
       addMessage(response, 'bot');
-      chatHistory.push({role:'assistant', content:response});
-    })
-    .catch(function(err){
-      var typingEl = document.getElementById('typingIndicator');
-      if(typingEl) typingEl.remove();
-      
-      // Fallback: if backend is not available, show offline message
-      addMessage('⚠️ I am currently unable to connect to the AI server. The chatbot requires the backend server to be running. Please contact your teacher or try again later.', 'bot');
-    })
-    .finally(function(){
-      isWaiting = false;
-      sendBtn.disabled = false;
-    });
+    }, 800);
+    
+    isWaiting = false;
+    sendBtn.disabled = false;
   }
   
   // Web search
@@ -15216,38 +15336,15 @@ if(typeof module!=="undefined"&&module.exports)module.exports=QRCode;
     messages.appendChild(typing);
     messages.scrollTop = messages.scrollHeight;
     
-    fetch(API_BASE + '/api/search', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ query: query, num: 8 })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      var typingEl = document.getElementById('typingIndicator');
-      if(typingEl) typingEl.remove();
-      
-      if(data.results && data.results.length > 0){
-        var html = '<b>🔍 Search Results:</b><br><br>';
-        if(data.summary) html += '<div style="background:var(--bg);padding:8px;border-radius:8px;margin-bottom:8px;font-size:12px">' + data.summary + '</div>';
-        html += '<div class="search-results">';
-        data.results.slice(0,5).forEach(function(r){
-          html += '<div class="result-item"><a href="' + r.url + '" target="_blank">' + escapeHtml(r.title) + '</a><div class="desc">' + escapeHtml(r.description.substring(0,120)) + '...</div></div>';
-        });
-        html += '</div>';
-        addMessage(html, 'bot');
-      } else {
-        addMessage('No results found for your query.', 'bot');
-      }
-    })
-    .catch(function(err){
-      var typingEl = document.getElementById('typingIndicator');
-      if(typingEl) typingEl.remove();
-      addMessage('⚠️ Web search is not available. The backend server must be running.', 'bot');
-    })
-    .finally(function(){
-      isWaiting = false;
-      sendBtn.disabled = false;
-    });
+    // Built-in search (no backend needed)
+    removeTyping();
+    addMessage(`For live web search results, please visit:
+- PIB: pib.gov.in
+- The Hindu: thehindu.com
+- FreeJobAlert: freejobalert.com
+- Sarkari Result: sarkariresult.com
+
+Or check the Jobs tab for 411 curated links + Affairs tab for current affairs sources!`, 'bot');
   }
   
   // Add message to chat
@@ -15300,23 +15397,11 @@ if(typeof module!=="undefined"&&module.exports)module.exports=QRCode;
   
   // Check backend health
   function checkBackend(){
-    fetch(API_BASE + '/api/health')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        if(data.aiReady){
-          document.getElementById('botStatus').textContent = '🟢 Online — Ask me anything!';
-        } else {
-          document.getElementById('botStatus').textContent = '🟡 Limited — AI not ready';
-        }
-      })
-      .catch(function(err){
-        document.getElementById('botStatus').textContent = '🔴 Offline — Backend not running';
-        fab.style.opacity = '0.6';
-      });
+    // Chatbot works standalone — no backend needed
+    document.getElementById('botStatus').textContent = '🟢 Online — Ask me anything!';
+    fab.style.opacity = '1';
   }
-  
-  // Check on load
-  setTimeout(checkBackend, 2000);
+  setTimeout(checkBackend, 500);
   
   // Hide quick prompts after first message
   var observer = new MutationObserver(function(){
