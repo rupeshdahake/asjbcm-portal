@@ -15170,10 +15170,10 @@ if(typeof module!=="undefined"&&module.exports)module.exports=QRCode;
     messages.scrollTop = messages.scrollHeight;
     
     // Built-in AI responses (no backend needed — works offline)
-    var msg = message.toLowerCase();
+    var lowerMsg = msg.toLowerCase();
     var response = '';
     
-    if(msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+    if(lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
       response = `Hello! Welcome to ASJBCM Exam Portal! I can help you with:
 
 - Study tips for UPSC, MPSC, SSC, Banking, Railway exams
@@ -15182,7 +15182,7 @@ if(typeof module!=="undefined"&&module.exports)module.exports=QRCode;
 - Career guidance
 
 Just ask me anything!`;
-    } else if(msg.includes('mpsc')) {
+    } else if(lowerMsg.includes('mpsc')) {
       response = `MPSC Preparation Tips:
 
 1. Understand the 3-stage pattern: Prelims (objective), Mains (descriptive), Interview
@@ -15194,7 +15194,7 @@ Just ask me anything!`;
 7. Focus on current affairs (last 6 months)
 
 Visit the Videos tab for MPSC World channel lectures!`;
-    } else if(msg.includes('upsc')) {
+    } else if(lowerMsg.includes('upsc')) {
       response = `UPSC Preparation Tips:
 
 1. Prelims: GS Paper I (100 Q) + CSAT (80 Q)
@@ -15206,7 +15206,7 @@ Visit the Videos tab for MPSC World channel lectures!`;
 7. Revise current affairs weekly
 
 Check PYQs tab for UPSC past papers + Videos for StudyIQ lectures!`;
-    } else if(msg.includes('ssc') || msg.includes('cgl')) {
+    } else if(lowerMsg.includes('ssc') || lowerMsg.includes('cgl')) {
       response = `SSC CGL Preparation:
 
 1. Tier-1: 100 Q (GK + English + Quant + Reasoning) - 60 min
@@ -15217,7 +15217,7 @@ Check PYQs tab for UPSC past papers + Videos for StudyIQ lectures!`;
 6. Practice 100+ PYQs
 
 Visit PYQs tab for SSC past papers + Videos for WiFiStudy!`;
-    } else if(msg.includes('bank') || msg.includes('ibps') || msg.includes('sbi')) {
+    } else if(lowerMsg.includes('bank') || lowerMsg.includes('ibps') || lowerMsg.includes('sbi')) {
       response = `Banking Exam Preparation:
 
 1. Prelims: English + Quant + Reasoning (100 Q, 60 min)
@@ -15227,7 +15227,7 @@ Visit PYQs tab for SSC past papers + Videos for WiFiStudy!`;
 5. Practice BankExamsToday daily quizzes
 
 Visit PYQs for IBPS/SBI past papers + Videos for Adda247!`;
-    } else if(msg.includes('railway') || msg.includes('rrb') || msg.includes('ntpc')) {
+    } else if(lowerMsg.includes('railway') || lowerMsg.includes('rrb') || lowerMsg.includes('ntpc')) {
       response = `Railway (RRB) Preparation:
 
 1. NTPC: 100 Q (GK + Maths + Reasoning) - 90 min
@@ -15237,7 +15237,7 @@ Visit PYQs for IBPS/SBI past papers + Videos for Adda247!`;
 5. RRB-specific current affairs
 
 Visit PYQs for RRB past papers!`;
-    } else if(msg.includes('study') || msg.includes('plan') || msg.includes('timetable')) {
+    } else if(lowerMsg.includes('study') || lowerMsg.includes('plan') || lowerMsg.includes('timetable')) {
       response = `Study Plan Recommendation:
 
 Morning (6-9 AM): Current affairs + newspaper reading
@@ -15248,7 +15248,7 @@ Night (8-10 PM): Revise notes + solve MCQs
 
 Use the Pomodoro Timer tab (25 min focus + 5 min break)
 Aim for 6-8 pomodoros per day = 2.5-3.5 hours focused study`;
-    } else if(msg.includes('scholarship')) {
+    } else if(lowerMsg.includes('scholarship')) {
       response = `Scholarships Available:
 
 National: NSP, INSPIRE, KVPY, NTSE, NMMS, AICTE, UGC
@@ -15256,7 +15256,7 @@ International: Fulbright, Chevening, DAAD, Erasmus, Rhodes
 University: Harvard, Stanford, MIT, Oxford, Cambridge, IIT, IISc
 
 Visit the Scholarships tab for 84 schemes with full details!`;
-    } else if(msg.includes('job') || msg.includes('career') || msg.includes('vacancy')) {
+    } else if(lowerMsg.includes('job') || lowerMsg.includes('career') || lowerMsg.includes('vacancy')) {
       response = `Jobs and Career:
 
 Govt: UPSC, SSC, IBPS, SBI, RBI, RRB, DRDO, ISRO
@@ -15264,7 +15264,7 @@ Sector: Railway, Banking, PSU, Defence, Teaching, Healthcare
 International: UN, World Bank, IMF, WHO
 
 Visit Jobs and Career tab for 411 curated job links + auto job finder!`;
-    } else if(msg.includes('video') || msg.includes('lecture') || msg.includes('youtube')) {
+    } else if(lowerMsg.includes('video') || lowerMsg.includes('lecture') || lowerMsg.includes('youtube')) {
       response = `Video Lectures:
 
 Free YouTube lectures from top educators:
@@ -15274,7 +15274,7 @@ Free YouTube lectures from top educators:
 - MPSC World - Marathi medium
 
 Visit Videos tab for 36 curated topics!`;
-    } else if(msg.includes('current affair') || msg.includes('news')) {
+    } else if(lowerMsg.includes('current affair') || lowerMsg.includes('news')) {
       response = `Current Affairs Strategy:
 
 1. Read ONE newspaper (The Hindu/Indian Express)
@@ -15284,7 +15284,7 @@ Visit Videos tab for 36 curated topics!`;
 5. Revise weekly
 
 Visit Affairs tab for 10 sources + daily routine!`;
-    } else if(msg.includes('exam') || msg.includes('test') || msg.includes('mock')) {
+    } else if(lowerMsg.includes('exam') || lowerMsg.includes('test') || lowerMsg.includes('mock')) {
       response = `Exam Practice:
 
 1. Chapter tests after each chapter
@@ -15294,7 +15294,7 @@ Visit Affairs tab for 10 sources + daily routine!`;
 5. Track progress in Analytics
 
 Negative marking practice is essential!`;
-    } else if(msg.includes('thank')) {
+    } else if(lowerMsg.includes('thank')) {
       response = `You are welcome! All the best for your exam preparation. Remember - consistency is the key to success. Study daily, practice regularly, and stay positive!`;
     } else {
       response = `I can help you with:
@@ -15345,6 +15345,12 @@ Try asking: "How to prepare for MPSC?" or "Study plan" or "Scholarships"`;
 - Sarkari Result: sarkariresult.com
 
 Or check the Jobs tab for 411 curated links + Affairs tab for current affairs sources!`, 'bot');
+  }
+  
+  // Remove typing indicator
+  function removeTyping(){
+    var t = document.getElementById('typingIndicator');
+    if(t) t.remove();
   }
   
   // Add message to chat
