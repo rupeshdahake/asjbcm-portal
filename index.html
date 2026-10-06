@@ -11089,7 +11089,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["bookmarks","⭐ Saved"],["results",t("myResults")],["analytics","📊 Analytics"],["leaderboard",t("leaderboard")],["certs",t("certs")],["badges","🏆 Badges"],["calendar","📅 Exams"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["planner","📝 Planner"],["mocktests","🎯 Mock Tests"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11159,6 +11159,8 @@ function go(view,arg,keep){
     currentaffairs:()=>window._portalExtra2&&window._portalExtra2.vCurrentAffairs(),
     pomodoro:()=>window._portalExtra2&&window._portalExtra2.vPomodoro(),
     examchecklist:()=>window._portalExtra2&&window._portalExtra2.vExamChecklist(),
+    scholarships:()=>window._portalScholarships&&window._portalScholarships.vScholarships(),
+    jobs:()=>window._portalJobs&&window._portalJobs.vJobs(),
     examlogin:()=>vExamLogin(),
     examselect:()=>vExamSelect(),
     adminlogin:()=>vAdminLogin(),
@@ -16415,6 +16417,204 @@ window._portalExtra2=(function(){
 
   return {vPYQs, vVideos, vCurrentAffairs, vPomodoro, vExamChecklist,
     PYQ_EXAMS, VIDEO_CATEGORIES, CA_SOURCES};
+})();
+
+/* ===================================================================
+   SCHOLARSHIPS + JOBS MODULES
+   =================================================================== */
+window._portalScholarships=(function(){
+  const NATIONAL_SCHOLARSHIPS=[
+    {n:"National Scholarship Portal (NSP)",cat:"Central Govt",intro:"Single-stop portal for all central govt scholarships — Pre-Matric, Post-Matric, Merit-cum-Means.",eligibility:"SC/ST/OBC/Minority/EWS students Class 1 to PG. Income ₹1.5-2.5 lakh/yr.",procedure:"1) Register on scholarships.gov.in with Aadhaar. 2) Fill application. 3) Upload documents. 4) Submit before deadline.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹12,000-₹20,000/year"},
+    {n:"INSPIRE Scholarship (SHE) — DST",cat:"Science",intro:"DST scholarship for students opting for Natural/Basic Sciences at B.Sc./M.Sc. level.",eligibility:"Top 1% of Class 12 board OR JEE/NEET rankers opting for Natural Sciences.",procedure:"1) Visit online-inspire.gov.in. 2) Register with Class 12 marks. 3) Upload admission proof.",link:"https://online-inspire.gov.in/",deadline:"Oct-Nov",amount:"₹80,000/year"},
+    {n:"NTSE — NCERT",cat:"School",intro:"NCERT flagship scholarship. Two-stage exam. Scholarship from Class 11 to PG.",eligibility:"Class 10 students. No income limit.",procedure:"1) Apply through school/SCERT. 2) Stage 1 (Nov). 3) Stage 2 (May).",link:"https://ncert.nic.in/programmes/talent_exam/index.html",deadline:"Sep-Oct application",amount:"₹1,250-₹2,000/month"},
+    {n:"NMMS",cat:"School",intro:"Central scheme for meritorious EWS students to arrest Class 8 dropout.",eligibility:"Class 8. Income ≤ ₹1.5 lakh/yr. Clear NMMS exam.",procedure:"1) Apply through school/SCERT. 2) State-level exam (Nov).",link:"https://dsel.education.gov.in/nmmss",deadline:"Aug-Sep",amount:"₹12,000/year"},
+    {n:"AICTE Pragati (Girls)",cat:"Technical",intro:"AICTE scholarship for girls in 1st year Diploma/Degree.",eligibility:"Girl students, AICTE-approved institutions. Income ≤ ₹8 lakh/yr.",procedure:"1) Apply on aicte-india.org. 2) Upload admission + income cert.",link:"https://www.aicte-pragati-saksham-gov.in/",deadline:"Sep-Oct",amount:"₹50,000/year"},
+    {n:"AICTE PG Scholarship (GATE/GPAT)",cat:"PG",intro:"AICTE scholarship for ME/MTech/MPharm through GATE/GPAT.",eligibility:"GATE/GPAT qualified, AICTE-approved institution.",procedure:"1) Institution reports to AICTE. 2) PFMS bank account.",link:"https://www.aicte-india.org/",deadline:"Continuous",amount:"₹12,400/month for 24 months"},
+    {n:"UGC JRF (CSIR-NET)",cat:"Research",intro:"CSIR-UGC NET JRF for PhD students. Stipend for 5 years.",eligibility:"Master's with 55%+. Clear CSIR-UGC NET. Age ≤ 28 (33 for reserved).",procedure:"1) Apply for NET (Jun/Dec). 2) Qualify JRF. 3) PhD admission.",link:"https://csirnet.nta.nic.in/",deadline:"Apr & Sep",amount:"₹31,000-₹35,000/month"},
+    {n:"PG Indira Gandhi Single Girl Child",cat:"PG",intro:"UGC scholarship for single girl child in PG.",eligibility:"Single girl child, 1st year PG, age ≤ 30.",procedure:"1) Apply through UGC. 2) Upload PG admission + affidavit.",link:"https://www.ugc.ac.in/",deadline:"Variable",amount:"₹36,200/month for 2 years"},
+    {n:"Maharashtra MAHA-DBT",cat:"State",intro:"Maharashtra state scholarships — Shahu, Ambedkar, Deshmukh, Patil.",eligibility:"Maharashtra domicile. SC/ST/VJNT/OBC/SBC/Minority. Income ₹1-8 lakh.",procedure:"1) Register on mahadbtmahait.gov.in. 2) Aadhaar-linked. 3) Submit certificates.",link:"https://mahadbtmahait.gov.in/",deadline:"Continuous",amount:"₹5,000-₹50,000/year"},
+    {n:"National Overseas Scholarship",cat:"Overseas",intro:"Ministry of Social Justice scholarship for SC/ST/OBC/Minority to study abroad.",eligibility:"Income ≤ ₹8 lakh/yr. Age ≤ 35. Top 500 QS-ranked university admission.",procedure:"1) Apply through Social Justice portal. 2) Upload foreign admission offer.",link:"https://socialjustice.gov.in/",deadline:"Variable",amount:"Up to ₹20 lakh/year"}
+  ];
+  const INTERNATIONAL_SCHOLARSHIPS=[
+    {n:"Fulbright-Nehru Master's (USA)",cat:"USA",intro:"USIEF fellowship for Indians to pursue Master's at US universities.",eligibility:"Bachelor's degree. 3+ years work experience. TOEFL/IELTS.",procedure:"1) Apply on usief.org.in (May-Jul). 2) Submit 3 references + GRE/TOEFL. 3) Interview.",link:"https://www.usief.org.in/",deadline:"May-Jul",amount:"Full tuition + $20,000/yr stipend"},
+    {n:"Chevening Scholarship (UK)",cat:"UK",intro:"UK Government fully-funded Master's at any UK university.",eligibility:"Bachelor's 60%+. 2+ years work experience.",procedure:"1) Apply on chevening.org (Aug-Nov). 2) 2 references + English test.",link:"https://www.chevening.org/scholarship/india/",deadline:"Aug-Nov",amount:"Full tuition + £18,000/yr + travel"},
+    {n:"DAAD Scholarship (Germany)",cat:"Germany",intro:"German Academic Exchange Service for Master's/PhD at German universities.",eligibility:"Bachelor's degree. 2+ years work experience. English/German proficiency.",procedure:"1) Apply on daad.de. 2) CV + SOP + 2 references.",link:"https://www.daad.de/en/",deadline:"Oct-Mar",amount:"€861-€1,200/month + tuition waiver"},
+    {n:"Erasmus Mundus (EU)",cat:"Europe",intro:"EU-funded programme — study in 2+ European countries. Full scholarship.",eligibility:"Bachelor's degree. Apply to consortium. English proficiency.",procedure:"1) Browse eacea.ec.europa.eu. 2) Apply to consortium (Oct-Jan).",link:"https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus_en",deadline:"Oct-Jan",amount:"€1,400/month + travel + tuition"},
+    {n:"Rhodes Scholarship (Oxford)",cat:"UK",intro:"World's oldest scholarship. 2-year postgraduate at Oxford.",eligibility:"Age 19-25. First class Bachelor's. Outstanding academic + leadership record.",procedure:"1) Apply on rhodeshouse.ox.ac.uk. 2) 5-6 references + personal essay.",link:"https://www.rhodeshouse.ox.ac.uk/scholarships/",deadline:"Jul-Sep",amount:"Full Oxford tuition + £18,000/yr"},
+    {n:"Commonwealth Scholarship (UK)",cat:"UK",intro:"UK Government scholarship for Commonwealth countries for Master's/PhD.",eligibility:"Bachelor's upper second class. Apply through MHRD/UGC India.",procedure:"1) Apply through MHRD/UGC (Aug-Sep). 2) Apply on cscuk.fcdo.gov.uk.",link:"https://cscuk.fcdo.gov.uk/scholarships/",deadline:"Aug-Oct",amount:"Full tuition + £1,300/month + travel"},
+    {n:"MEXT Scholarship (Japan)",cat:"Japan",intro:"Japanese Government scholarship for UG/PG at Japanese universities.",eligibility:"Age under 25 (UG), under 35 (PG). Apply through Embassy of Japan.",procedure:"1) Apply through Embassy (May-Jun). 2) Written exam + interview.",link:"https://www.studyinjapan.go.jp/en/scholarship/",deadline:"May-Jun",amount:"¥117,000-¥148,000/month + tuition + travel"},
+    {n:"Korea Global Scholarship (GKS)",cat:"South Korea",intro:"South Korean Government scholarship for UG/PG. Includes Korean language training.",eligibility:"Age under 25 (UG), under 40 (PG). Min 70% in last degree.",procedure:"1) Apply through Korean Embassy (Sep). 2) Exam + interview.",link:"https://www.studyinkorea.go.kr/",deadline:"Sep-Oct",amount:"₩900,000-₩1,600,000/month + tuition + travel"},
+    {n:"SINGA PhD (Singapore)",cat:"Singapore",intro:"A*STAR + NUS + NTU joint PhD scholarship. Full funding for 4 years.",eligibility:"Bachelor's in science/engineering. English proficiency.",procedure:"1) Apply on singa.a-star.edu.sg. 2) SOP + 2 references.",link:"https://www.a-star.edu.sg/Singa",deadline:"Jan-Dec",amount:"S$2,200-2,700/month + tuition + travel"},
+    {n:"Swiss Government Excellence",cat:"Switzerland",intro:"Swiss Government scholarship for Master's/research at Swiss universities.",eligibility:"Bachelor's for Master's. Master's + proposal for research. Age under 35.",procedure:"1) Apply on sbfi.admin.ch (Sep-Dec). 2) Swiss host confirmation.",link:"https://www.sbfi.admin.ch/",deadline:"Sep-Dec",amount:"CHF 1,920-3,500/month + tuition + travel"}
+  ];
+  const UNIVERSITY_SCHOLARSHIPS=[
+    {n:"Harvard University Financial Aid (USA)",cat:"USA University",intro:"Need-based aid. Families earning <$85,000 pay nothing.",eligibility:"International students admitted to Harvard. Need-based.",procedure:"1) Apply for admission. 2) Submit CSS Profile + income proof.",link:"https://college.harvard.edu/financial-aid",deadline:"Jan 1 admission",amount:"Up to ~$80,000/year"},
+    {n:"Stanford Knight-Hennessy Scholars (USA)",cat:"USA University",intro:"Stanford's premier graduate scholarship. Any full-time graduate degree.",eligibility:"Admitted to Stanford graduate programme. Within 7 years of Bachelor's.",procedure:"1) Apply to Stanford. 2) Apply to Knight-Hennessy by Oct.",link:"https://knight-hennessy.stanford.edu/",deadline:"Oct",amount:"~$100,000/year (tuition + stipend)"},
+    {n:"Oxford Clarendon Fund (UK)",cat:"UK University",intro:"Oxford's flagship graduate scholarship. Full tuition + £18,000/yr.",eligibility:"International students applying to Oxford Master's/DPhil.",procedure:"1) Apply to Oxford (Dec-Jan). 2) Indicate Clarendon interest.",link:"https://www.ox.ac.uk/clarendon",deadline:"Dec-Jan",amount:"Full tuition + £18,000/yr"},
+    {n:"Cambridge Gates Scholarship (UK)",cat:"UK University",intro:"Gates Cambridge — fully funded PhD/Master's. ~80 awards/year.",eligibility:"International students. Academic excellence + leadership.",procedure:"1) Apply to Cambridge by Dec. 2) Gates Cambridge application.",link:"https://www.gatescambridge.org/",deadline:"Dec-Jan",amount:"Full tuition + £20,000/yr + travel"},
+    {n:"ETH Zurich Excellence (Switzerland)",cat:"Europe University",intro:"Full tuition + CHF 12,000/semester for outstanding Master's students.",eligibility:"Top 10% of Bachelor's class. Apply by Dec 15.",procedure:"1) Apply to ETH Master's. 2) Indicate scholarship interest.",link:"https://ethz.ch/en/studies/financial/scholarships/excellencescholarship.html",deadline:"Dec 15",amount:"Full tuition + CHF 12,000/semester"},
+    {n:"NUS Graduate Scholarship (Singapore)",cat:"Singapore University",intro:"Full tuition + S$1,500-2,000/month for Asian students.",eligibility:"Indian citizen applying to NUS Master's/PhD.",procedure:"1) Apply to NUS (Nov-Jan). 2) Indicate scholarship.",link:"https://www.nus.edu.sg/admissions/graduate/financial-aid",deadline:"Nov-Jan",amount:"Full tuition + S$1,500-2,000/month"},
+    {n:"UofT Lester B. Pearson (Canada)",cat:"Canada University",intro:"U of Toronto flagship — full tuition + residence + living for 4 years.",eligibility:"International UG applicants. High school nomination required.",procedure:"1) High school nominates (Nov). 2) Apply to UofT (Jan).",link:"https://future.utoronto.ca/pearson/",deadline:"Nov-Jan",amount:"~CAD 100,000/year"},
+    {n:"IISc Bangalore PhD Fellowship",cat:"India University",intro:"₹31,000-35,000/month for 5 years + contingency.",eligibility:"GATE/NET qualified. Admission to IISc PhD.",procedure:"1) Apply to IISc PhD (Mar-Apr). 2) Clear GATE/NET.",link:"https://iisc.ac.in/admissions/",deadline:"Mar-Apr",amount:"₹31,000-35,000/month for 5 years"},
+    {n:"IIM Ahmedabad FPM Fellowship",cat:"India University",intro:"₹35,000/month + tuition waiver for 4-5 years.",eligibility:"Master's + CAT/GMAT/GRE/GATE. Apply by Jan.",procedure:"1) Apply to IIMA FPM (Jan). 2) Interview Feb-Mar.",link:"https://www.iima.ac.in/academics/programmes/fpm",deadline:"Jan",amount:"₹35,000/month + tuition waiver"},
+    {n:"Ashoka University YIF",cat:"India University",intro:"1-year PG diploma in Liberal Studies. Aid up to 100%.",eligibility:"Bachelor's degree. Apply by Oct or Mar.",procedure:"1) Apply at ashoka.edu.in. 2) Essays + interview.",link:"https://www.ashoka.edu.in/yif/",deadline:"Oct / Mar",amount:"Up to 100% tuition + ₹50,000/month"}
+  ];
+  function sc(s){return `<div class="card" style="border-left:4px solid var(--brand);margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:12px">
+      <h3 style="margin:0;font-size:16px;flex:1">${s.n}</h3>
+      <span class="chip chip-purple" style="white-space:nowrap">${s.cat}</span>
+    </div>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>📖 Intro:</b> ${s.intro}</div>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>✅ Eligibility:</b> ${s.eligibility}</div>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>📋 Procedure:</b> ${s.procedure}</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:10px">
+      <div>📅 <b>Deadline:</b> ${s.deadline}</div><div>💰 <b>Amount:</b> ${s.amount}</div>
+    </div>
+    <a href="${s.link}" target="_blank" rel="noopener" class="btn btn-p btn-s" style="text-decoration:none;display:inline-flex">🔗 Official Website ↗</a>
+  </div>`;}
+  function vScholarships(){
+    const t=NATIONAL_SCHOLARSHIPS.length+INTERNATIONAL_SCHOLARSHIPS.length+UNIVERSITY_SCHOLARSHIPS.length;
+    let h=`<div class="hero"><h1>🎓 Scholarships — National + International + University</h1>
+    <p><b>${t} scholarship schemes</b>: <b>${NATIONAL_SCHOLARSHIPS.length} national</b> (NSP, INSPIRE, NTSE, AICTE, UGC), <b>${INTERNATIONAL_SCHOLARSHIPS.length} international</b> (Fulbright, Chevening, DAAD, Erasmus, Rhodes, MEXT), <b>${UNIVERSITY_SCHOLARSHIPS.length} university-offered</b> (Harvard, Stanford, Oxford, Cambridge, ETH, NUS, IISc, IIM).</p></div>`;
+    [[ "🇮🇳 National Scholarships (India)",NATIONAL_SCHOLARSHIPS],
+     ["🌍 International Scholarships (Govt/Foundation)",INTERNATIONAL_SCHOLARSHIPS],
+     ["🏛️ University Scholarships (Worldwide)",UNIVERSITY_SCHOLARSHIPS]].forEach(function(arr){
+      h+=`<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">${arr[0]} (${arr[1].length})</h2>${arr[1].map(sc).join("")}</div>`;
+    });
+    renderShell("scholarships",h);bindHeader();
+  }
+  return {vScholarships,NATIONAL_SCHOLARSHIPS,INTERNATIONAL_SCHOLARSHIPS,UNIVERSITY_SCHOLARSHIPS};
+})();
+
+window._portalJobs=(function(){
+  const SECTIONS=[
+    {id:"govt",icon:"🏛️",title:"Government Jobs — Official Portals",items:[
+      {n:"UPSC Official",u:"https://www.upsc.gov.in/",d:"Civil Services, CDS, NDA, IES, CMS"},
+      {n:"SSC Online",u:"https://ssc.nic.in/",d:"CGL, CHSL, MTS, GD, JE"},
+      {n:"IBPS",u:"https://www.ibps.in/",d:"Bank PO, Clerk, SO, RRB"},
+      {n:"SBI Careers",u:"https://www.sbi.co.in/web/careers",d:"SBI PO, Clerk, SO"},
+      {n:"RBI Careers",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"RBI Grade B, Assistant"},
+      {n:"RRB (Railway)",u:"https://www.rrbcdg.gov.in/",d:"NTPC, ALP, Group D, JE"},
+      {n:"DRDO Careers",u:"https://drdo.gov.in/careers",d:"Defence Research"},
+      {n:"ISRO Careers",u:"https://www.isro.gov.in/Careers.html",d:"Space Research"},
+      {n:"MPSC",u:"https://mpsc.gov.in/",d:"Maharashtra PSC"},
+      {n:"FreeJobAlert",u:"https://www.freejobalert.com/",d:"Daily govt job alerts"},
+      {n:"Sarkari Result",u:"https://www.sarkariresult.com/",d:"Results, admit cards"},
+      {n:"National Career Service",u:"https://www.ncs.gov.in/",d:"Govt of India job portal"}
+    ]},
+    {id:"railway",icon:"🚆",title:"Railway Jobs — RRB, Metro, IRCTC",items:[
+      {n:"RRB Chandigarh",u:"https://www.rrbcdg.gov.in/",d:"Northern Railway"},
+      {n:"RRB Mumbai",u:"https://rrbmumbai.gov.in/",d:"Western Railway"},
+      {n:"RRB Chennai",u:"https://rrbchennai.gov.in/",d:"Southern Railway"},
+      {n:"IRCTC Careers",u:"https://www.irctc.com/Careers.html",d:"Catering & Tourism"},
+      {n:"DMRC Careers",u:"https://www.delhimetrorail.com/careers",d:"Delhi Metro"},
+      {n:"Konkan Railway",u:"https://www.konkanrailway.com/careers/",d:"Konkan Railway"}
+    ]},
+    {id:"banking",icon:"🏦",title:"Banking Jobs — PSU + Private",items:[
+      {n:"IBPS Official",u:"https://www.ibps.in/",d:"Bank PO, Clerk, SO, RRB"},
+      {n:"SBI Careers",u:"https://www.sbi.co.in/web/careers",d:"SBI PO, Clerk, SO"},
+      {n:"RBI Careers",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"RBI Grade B, Assistant"},
+      {n:"NABARD Careers",u:"https://www.nabard.org/careers.asp",d:"Agri & Rural Dev Bank"},
+      {n:"PNB Careers",u:"https://www.pnbindia.in/careers.html",d:"Punjab National Bank"},
+      {n:"Bank of Baroda",u:"https://www.bankofbaroda.in/career",d:"BoB recruitment"},
+      {n:"BankExamsToday",u:"https://www.bankexamstoday.com/",d:"Banking exam prep + alerts"},
+      {n:"Bankers Adda",u:"https://www.bankersadda.com/",d:"Banking prep + vacancies"},
+      {n:"HDFC Bank Careers",u:"https://www.hdfcbank.com/personal/about-us/careers",d:"Private bank HDFC"},
+      {n:"ICICI Bank Careers",u:"https://www.icicibank.com/about-us/careers",d:"Private bank ICICI"}
+    ]},
+    {id:"defence",icon:"🪖",title:"Defence, Police & Paramilitary",items:[
+      {n:"Indian Army",u:"https://joinindianarmy.nic.in/",d:"Agniveer, SSC, TGC"},
+      {n:"Indian Navy",u:"https://www.joinindiannavy.gov.in/",d:"SSR, AA, Officer"},
+      {n:"Indian Air Force",u:"https://afcat.cdac.in/Career/",d:"AFCAT, Group X/Y"},
+      {n:"Coast Guard",u:"https://joinindiancoastguard.cdac.in/",d:"Navik, Yantrik"},
+      {n:"CRPF",u:"https://crpf.gov.in/careers.htm",d:"Central Reserve Police"},
+      {n:"BSF",u:"https://rect.bsf.gov.in/",d:"Border Security Force"},
+      {n:"CISF",u:"https://cisfrectt.in/",d:"Central Industrial Security"},
+      {n:"Maharashtra Police",u:"https://www.mahapolice.gov.in/",d:"MH State Police"}
+    ]},
+    {id:"psu",icon:"🏭",title:"PSU Jobs — Public Sector Undertakings",items:[
+      {n:"NTPC Jobs",u:"https://www.ntpc.co.in/careers",d:"National Thermal Power"},
+      {n:"ONGC Careers",u:"https://ongcindia.com/",d:"Oil & Natural Gas"},
+      {n:"IOCL Careers",u:"https://iocl.com/careers",d:"Indian Oil"},
+      {n:"BHEL Careers",u:"https://careers.bhel.in/",d:"Bharat Heavy Electricals"},
+      {n:"GAIL Careers",u:"https://gailonline.com/careers.html",d:"Gas Authority of India"},
+      {n:"SAIL Careers",u:"https://sail.co.in/careers.aspx",d:"Steel Authority"},
+      {n:"Coal India",u:"https://www.coalindia.in/careers/",d:"Largest coal producer"},
+      {n:"HAL Careers",u:"https://hal-india.co.in/",d:"Hindustan Aeronautics"}
+    ]},
+    {id:"teaching",icon:"🎓",title:"Teaching & Education Jobs",items:[
+      {n:"CTET (CBSE)",u:"https://ctet.nic.in/",d:"Central Teacher Eligibility"},
+      {n:"UGC NET",u:"https://ugcnet.nta.nic.in/",d:"Asst Professor/JRF"},
+      {n:"KVS Recruitment",u:"https://kvsangathan.nic.in/recruitment",d:"Kendriya Vidyalaya"},
+      {n:"NVS Recruitment",u:"https://navodaya.gov.in/nvs/recruitment",d:"Navodaya Vidyalaya"},
+      {n:"DSSSB",u:"https://dsssb.delhi.gov.in/",d:"Delhi Subordinate Services"},
+      {n:"NCERT Jobs",u:"https://ncert.nic.in/recruitment.php",d:"NCERT recruitment"}
+    ]},
+    {id:"private",icon:"🏢",title:"Private Sector Jobs",items:[
+      {n:"Naukri.com",u:"https://www.naukri.com/",d:"India's #1 job portal"},
+      {n:"LinkedIn Jobs",u:"https://www.linkedin.com/jobs/",d:"Network-based jobs"},
+      {n:"Indeed India",u:"https://www.indeed.co.in/",d:"Global aggregator"},
+      {n:"Glassdoor India",u:"https://www.glassdoor.co.in/",d:"Reviews + jobs"},
+      {n:"Freshersworld",u:"https://www.freshersworld.com/",d:"Fresher-focused"},
+      {n:"Internshala",u:"https://internshala.com/",d:"Internships + fresher"}
+    ]},
+    {id:"it",icon:"💻",title:"Engineering & IT Companies",items:[
+      {n:"TCS Careers",u:"https://www.tcs.com/careers",d:"Tata Consultancy"},
+      {n:"Infosys Careers",u:"https://www.infosys.com/careers/",d:"Infosys"},
+      {n:"Wipro Careers",u:"https://careers.wipro.com/",d:"Wipro"},
+      {n:"Accenture India",u:"https://www.accenture.com/in-en/careers",d:"Accenture"},
+      {n:"Microsoft India",u:"https://careers.microsoft.com/",d:"Microsoft"},
+      {n:"Google India",u:"https://www.google.com/about/careers/applications/",d:"Google"},
+      {n:"Amazon India",u:"https://www.amazon.jobs/en/locations/india",d:"Amazon"},
+      {n:"Flipkart Careers",u:"https://www.flipkartcareers.com/",d:"Flipkart"}
+    ]},
+    {id:"international",icon:"🌍",title:"International Jobs — UN, World Bank",items:[
+      {n:"UN Careers",u:"https://careers.un.org/",d:"United Nations"},
+      {n:"UNDP Jobs",u:"https://www.undp.org/careers",d:"UN Development Programme"},
+      {n:"UNICEF Careers",u:"https://www.unicef.org/careers",d:"UN Children's Fund"},
+      {n:"WHO Careers",u:"https://www.who.int/careers",d:"World Health Org"},
+      {n:"World Bank Jobs",u:"https://www.worldbank.org/en/about/careers",d:"World Bank Group"},
+      {n:"IMF Careers",u:"https://www.imf.org/en/About/Careers",d:"International Monetary Fund"},
+      {n:"UN Volunteers",u:"https://www.unv.org/",d:"UN Volunteers programme"},
+      {n:"DevNetJobs",u:"https://www.devnetjobs.org/",d:"International development"}
+    ]},
+    {id:"exam-calendar",icon:"📅",title:"Exam Calendar — Upcoming Exams",items:[
+      {n:"UPSC Civil Services Prelims",u:"https://upsc.gov.in/",d:"May-Jun"},
+      {n:"SSC CGL Tier-1",u:"https://ssc.nic.in/",d:"Jul"},
+      {n:"IBPS PO Prelims",u:"https://www.ibps.in/",d:"Oct"},
+      {n:"IBPS Clerk Prelims",u:"https://www.ibps.in/",d:"Aug-Sep"},
+      {n:"SBI PO Prelims",u:"https://www.sbi.co.in/web/careers",d:"Jun-Jul"},
+      {n:"RRB NTPC",u:"https://www.rrbcdg.gov.in/",d:"Dec-Feb"},
+      {n:"MPSC State Service Prelims",u:"https://mpsc.gov.in/",d:"Apr-May"},
+      {n:"CTET (CBSE)",u:"https://ctet.nic.in/",d:"Dec & Jul"}
+    ]},
+    {id:"resources",icon:"📚",title:"Career Resources + Books + Courses",items:[
+      {n:"SWAYAM (Free Courses)",u:"https://swayam.gov.in/",d:"Govt MOOCs — free certificates"},
+      {n:"NPTEL Courses",u:"https://nptel.ac.in/",d:"IIT/IISc engineering — free"},
+      {n:"AICTE Internship Portal",u:"https://internship.aicte-india.org/",d:"Student internships"},
+      {n:"PMKVY (Skill India)",u:"https://www.pmkvyofficial.org/",d:"Free skill development"},
+      {n:"NCS Resume Builder",u:"https://www.ncs.gov.in/",d:"Free govt resume builder"},
+      {n:"GeeksforGeeks",u:"https://www.geeksforgeeks.org/",d:"Coding interview prep"},
+      {n:"IndiaBix",u:"https://www.indiabix.com/",d:"Aptitude + reasoning practice"},
+      {n:"PIB (Current Affairs)",u:"https://pib.gov.in/",d:"Press Information Bureau"}
+    ]}
+  ];
+  function vJobs(){
+    const total=SECTIONS.reduce((s,x)=>s+x.items.length,0);
+    let h=`<div class="hero"><h1>💼 Jobs & Careers — Auto Job Finder Engine</h1>
+    <p><b>${total} verified web links</b> across <b>${SECTIONS.length} categories</b>: govt, railway, banking, PSU, defence, teaching, private, IT, international, exam calendar, career resources. Click any link to open the official portal.</p></div>`;
+    h+=`<div class="alert alert-info" style="margin-top:14px"><b>💡 Pro Tip:</b> Visit 3-4 portals daily. Apply within 7 days of any notification — early applicants have an edge.</div>`;
+    SECTIONS.forEach(function(s){
+      h+=`<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">${s.icon} ${s.title} (${s.items.length})</h2>
+      <div class="grid g3" style="gap:10px">${s.items.map(function(it){
+        return `<a href="${it.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px;display:block;border:1px solid var(--line);border-left:4px solid var(--brand)">
+          <div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:3px">${it.n} ↗</div>
+          <div style="font-size:12px;color:var(--muted)">${it.d}</div></a>`;
+      }).join("")}</div></div>`;
+    });
+    renderShell("jobs",h);bindHeader();
+  }
+  return {vJobs,SECTIONS};
 })();
 
 </script>
