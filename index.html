@@ -32,6 +32,30 @@
 :root.dark ::-webkit-scrollbar-thumb{background:#475569;border-color:#1e293b}
 :root.dark ::-webkit-scrollbar-track{background:#1e293b}
 :root.dark .auth-card{background:rgba(30,41,59,.97)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .topbar-in{padding:8px 12px;gap:8px}
+  .brand-name{font-size:12px}
+  .nav{gap:2px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .nav a{padding:6px 10px;font-size:11px;white-space:nowrap;flex-shrink:0}
+  .wrap{padding:14px 12px 50px}
+  .hero{padding:18px 16px;border-radius:14px}
+  .hero h1{font-size:20px}
+  .daily-grid{grid-template-columns:1fr!important}
+  .stat-cards{grid-template-columns:repeat(2,1fr)!important}
+  .grid.g3{grid-template-columns:1fr!important}
+  .grid.g4{grid-template-columns:1fr 1fr!important}
+  .grid.g2{grid-template-columns:1fr!important}
+  iframe{height:350px!important}
+  .chatbot-window{width:calc(100vw - 24px)!important}
+}
+@media(max-width:480px){
+  .grid.g4{grid-template-columns:1fr!important}
+  .hero h1{font-size:18px}
+  iframe{height:300px!important}
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans','Noto Sans Devanagari',Roboto,Arial,sans-serif;
@@ -13030,6 +13054,46 @@ function vDashboard(){
       <div class="meta"><span class="pill">${chs.length} ${esc(t("chapters"))}</span><span class="pill">${qs} ${esc(t("questionCount"))}</span><span class="pill">EN / हिन्दी</span></div>
     </div>`;
   }).join("");
+  /* Daily Thought + Fun Fact */
+  const THOUGHTS=[
+    {t:"Success is not final, failure is not fatal: it is the courage to continue that counts.",a:"Winston Churchill"},
+    {t:"The future belongs to those who believe in the beauty of their dreams.",a:"Eleanor Roosevelt"},
+    {t:"Education is the most powerful weapon which you can use to change the world.",a:"Nelson Mandela"},
+    {t:"The expert in anything was once a beginner.",a:"Helen Hayes"},
+    {t:"Arise, awake, and stop not till the goal is reached.",a:"Swami Vivekananda"},
+    {t:"The only way to do great work is to love what you do.",a:"Steve Jobs"},
+    {t:"Believe you can and you are halfway there.",a:"Theodore Roosevelt"},
+    {t:"The mind is everything. What you think you become.",a:"Buddha"},
+    {t:"An investment in knowledge pays the best interest.",a:"Benjamin Franklin"},
+    {t:"It always seems impossible until it's done.",a:"Nelson Mandela"},
+    {t:"If you can dream it, you can do it.",a:"Walt Disney"},
+    {t:"Be the change that you wish to see in the world.",a:"Mahatma Gandhi"},
+    {t:"The best time to plant a tree was 20 years ago. The second best time is now.",a:"Chinese Proverb"},
+    {t:"Quality is not an act, it is a habit.",a:"Aristotle"},
+    {t:"Hardships often prepare ordinary people for an extraordinary destiny.",a:"C.S. Lewis"}
+  ];
+  const FUN_FACTS=[
+    "The human brain can read about 200-250 words per minute — that's a book every 8 hours of focused reading.",
+    "Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that's still edible!",
+    "Octopuses have three hearts, nine brains, and blue blood.",
+    "A single cloud can weigh more than a million pounds.",
+    "Bananas are berries, but strawberries aren't.",
+    "The shortest war in history lasted 38 minutes (Anglo-Zanzibar War, 1896).",
+    "Honey bees can recognize human faces.",
+    "Your stomach gets a new lining every 3-4 days.",
+    "A group of flamingos is called a 'flamboyance'.",
+    "The Eiffel Tower can grow up to 6 inches taller in summer.",
+    "Sharks existed before trees — sharks are 400 million years old.",
+    "There are more possible chess games than atoms in the observable universe.",
+    "Your heart beats about 100,000 times a day, pumping 7,500 litres of blood.",
+    "The Amazon rainforest produces 20% of the world's oxygen.",
+    "A bolt of lightning is 5 times hotter than the surface of the sun."
+  ];
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const todayThought = THOUGHTS[dayOfYear % THOUGHTS.length];
+  const todayFact = FUN_FACTS[dayOfYear % FUN_FACTS.length];
+  const today = new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
   renderShell("dashboard",`
     ${window._portalExtras?window._portalExtras.examCountdownHTML():""}
     <div class="hero">
@@ -13037,6 +13101,24 @@ function vDashboard(){
       <p>${esc(SUBJECTS.length)} ${esc(t("subjects"))} • ${esc(allChapters().length)} ${esc(t("chapters"))} • ${esc(allQuestions().length)} ${esc(t("totalQuestions"))} — ${esc(t("madeWith"))}</p>
       <div class="hi-line">हर विषय में अध्ययन सामग्री, मार्गदर्शन, अभ्यास प्रश्न और समयबद्ध परीक्षण उपलब्ध हैं।</div>
     </div>
+    <div class="daily-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">
+      <div class="card" style="padding:18px 22px;background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:1px solid #f59e0b;cursor:pointer" id="todayThought" title="Click for another thought">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:800;font-size:13px;color:#92400e;letter-spacing:.5px">💭 THOUGHT OF THE DAY</span>
+          <span style="font-size:11px;color:#92400e;font-weight:600">${today}</span>
+        </div>
+        <div style="font-style:italic;font-size:15.5px;line-height:1.6;color:#1f2937">"${todayThought.t}"</div>
+        <div style="margin-top:8px;font-size:12.5px;color:#92400e;font-weight:700">— ${todayThought.a}</div>
+      </div>
+      <div class="card" style="padding:18px 22px;background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);border:1px solid #3b82f6;cursor:pointer" id="todayFunFact" title="Click for another fun fact">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:800;font-size:13px;color:#1e3a8a;letter-spacing:.5px">🌟 FUN FACT OF THE DAY</span>
+          <span style="font-size:11px;color:#1e3a8a;font-weight:600">#${(dayOfYear%FUN_FACTS.length)+1} of ${FUN_FACTS.length}</span>
+        </div>
+        <div style="font-size:14.5px;line-height:1.55;color:#1e3a8a">💡 ${todayFact}</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:8px">💡 Tip: Click on any card to see another quote / fact</div>
     <div class="stat-cards">
       <div class="stat"><div class="v b">${allQuestions().length}</div><div class="l">${esc(t("totalQuestions"))}</div></div>
       <div class="stat"><div class="v g">${myResults.length}</div><div class="l">${esc(t("attempts"))}</div></div>
@@ -13048,6 +13130,9 @@ function vDashboard(){
     <div class="grid g3">${subs}</div>`);
   document.querySelectorAll("[data-sub]").forEach(c=>c.onclick=()=>go("subject",c.dataset.sub));
   $("#grandBtn").onclick=()=>startMock("all");
+  const tt=$("#todayThought"),ff=$("#todayFunFact");
+  if(tt)tt.onclick=()=>{const n=THOUGHTS[Math.floor(Math.random()*THOUGHTS.length)];tt.querySelector("div:nth-child(2)").textContent='"'+n.t+'"';tt.querySelector("div:nth-child(3)").textContent="— "+n.a;};
+  if(ff)ff.onclick=()=>{const n=FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)];ff.querySelector("div:nth-child(2)").textContent="💡 "+n;};
 }
 
 function vSubject(){
@@ -15889,8 +15974,8 @@ window._portalExtra2=(function(){
       {n:"IBPS PO Mains 2023",u:"https://www.ibps.in/",d:"155 Q — GA + English + Quant + Reasoning + Computer"},
       {n:"IBPS Clerk Prelims 2023",u:"https://www.ibps.in/",d:"100 Q — 3 sections"},
       {n:"IBPS Clerk Mains 2023",u:"https://www.ibps.in/",d:"190 Q — 5 sections"},
-      {n:"SBI PO Prelims 2023",u:"https://sbi.co.in/web/careers",d:"100 Q — 3 sections"},
-      {n:"SBI Clerk Prelims 2023",u:"https://sbi.co.in/web/careers",d:"100 Q — English + Quant + Reasoning"},
+      {n:"SBI PO Prelims 2023",u:"https://www.sbi.co.in/web/careers",d:"100 Q — 3 sections"},
+      {n:"SBI Clerk Prelims 2023",u:"https://www.sbi.co.in/web/careers",d:"100 Q — English + Quant + Reasoning"},
       {n:"RBI Grade B 2023",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"200 Q — Phase 1"},
       {n:"RBI Assistant 2023",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"100 Q — Prelims"}
     ]}
@@ -15983,13 +16068,13 @@ window._portalExtra2=(function(){
 
   /* Real verified YouTube channels — using /c/ format (most reliable) */
   const VIDEO_CHANNELS=[
-    {n:"StudyIQ IAS",u:"https://www.youtube.com/@studyiqofficial",d:"India's largest UPSC/SSC coaching — polity, history, geography, economy, current affairs"},
-    {n:"Unacademy",u:"https://www.youtube.com/@unacademy",d:"India's largest learning platform — UPSC, SSC, Banking, CAT, JEE"},
-    {n:"Drishti IAS",u:"https://www.youtube.com/@DrishtiIASofficials",d:"Hindi + English medium IAS coaching — history, polity, current affairs"},
-    {n:"WiFiStudy",u:"https://www.youtube.com/@WifiStudy1",d:"SSC, Railway, Banking — quant, reasoning, English, GK"},
-    {n:"Adda247",u:"https://www.youtube.com/@adda247",d:"Banking, SSC, Railway — English, quant, reasoning, GK"},
-    {n:"MPSC World",u:"https://www.youtube.com/results?search_query=mpsc+world+marathi+channel",d:"Maharashtra PSC — Marathi medium, grammar, GK, maths"},
-    {n:"Thora Academy",u:"https://www.youtube.com/results?search_query=thora+academy+mpsc+marathi",d:"MPSC Marathi medium — literature, grammar, GK"}
+    {n:"StudyIQ IAS",u:"https://www.youtube.com/c/studyiqofficial",d:"India's largest UPSC/SSC coaching — polity, history, geography, economy, current affairs"},
+    {n:"Unacademy",u:"https://www.youtube.com/c/unacademy",d:"India's largest learning platform — UPSC, SSC, Banking, CAT, JEE"},
+    {n:"Drishti IAS",u:"https://www.youtube.com/c/drishtiias",d:"Hindi + English medium IAS coaching — history, polity, current affairs"},
+    {n:"WiFiStudy",u:"https://www.youtube.com/c/wifistudy",d:"SSC, Railway, Banking — quant, reasoning, English, GK"},
+    {n:"Adda247",u:"https://www.youtube.com/c/adda247",d:"Banking, SSC, Railway — English, quant, reasoning, GK"},
+    {n:"MPSC World",u:"https://www.youtube.com/c/mpscworld",d:"Maharashtra PSC — Marathi medium, grammar, GK, maths"},
+    {n:"Thora Academy",u:"https://www.youtube.com/c/thorampsc",d:"MPSC Marathi medium — literature, grammar, GK"}
   ];
 
   function vVideos(){
@@ -16052,7 +16137,7 @@ window._portalExtra2=(function(){
     {n:"Indian Express — Explained",u:"https://indianexpress.com/section/explained/",d:"Deep-dive explainers on policy, economy, international affairs",icon:"📰"},
     {n:"PRS India — Legislative Research",u:"https://prsindia.org/",d:"Parliament bills tracking, policy analysis, committee reports",icon:"📜"},
     {n:"Economic Times — Economy News",u:"https://economictimes.indiatimes.com/news/economy",d:"RBI, GDP, inflation, budget, banking sector updates",icon:"💰"},
-    {n:"Down to Earth — Environment",u:"https://www.downtoearth.org.in",d:"Environment, climate change, biodiversity — for UPSC environment section",icon:"🌍"},
+    {n:"Down to Earth — Environment",u:"https://www.downtoearth.org.in/",d:"Environment, climate change, biodiversity — for UPSC environment section",icon:"🌍"},
     {n:"IDSA — Defence + Strategic Affairs",u:"https://idsa.in/",d:"Defence, national security, international relations analysis",icon:"🪖"},
     {n:"World Bank — India Updates",u:"https://www.worldbank.org/en/country/india",d:"World Bank reports on Indian economy + development",icon:"🌐"},
     {n:"MEA — External Affairs",u:"https://www.mea.gov.in/",d:"Ministry of External Affairs — foreign policy + international visits",icon:"🌏"},
@@ -16419,320 +16504,136 @@ window._portalExtra2=(function(){
     PYQ_EXAMS, VIDEO_CATEGORIES, CA_SOURCES};
 })();
 
-/* ===================================================================
-   SCHOLARSHIPS + JOBS + FREE COURSES MODULES
-   Includes: National, International, University, Trust/Foundation scholarships
-   + Free skill-based courses from MNCs (Google, Microsoft, IBM, Amazon, etc.)
-   =================================================================== */
+/* ===== SCHOLARSHIPS + JOBS MODULES ===== */
 window._portalScholarships=(function(){
-
   const NATIONAL_SCHOLARSHIPS=[
-    {n:"National Scholarship Portal (NSP)",cat:"Central Govt",intro:"Single-stop portal for all central govt scholarships.",eligibility:"SC/ST/OBC/Minority/EWS, Class 1 to PG. Income ₹1.5-2.5 lakh/yr.",procedure:"Register on scholarships.gov.in with Aadhaar, fill form, upload docs.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹12,000-₹20,000/year"},
-    {n:"INSPIRE Scholarship (SHE) — DST",cat:"Science",intro:"DST scholarship for Natural/Basic Sciences students.",eligibility:"Top 1% Class 12 OR JEE/NEET rankers in Natural Sciences.",procedure:"Apply on online-inspire.gov.in with Class 12 marks.",link:"https://www.google.com/search?q=inspire+scholarship+dst+apply",deadline:"Oct-Nov",amount:"₹80,000/year"},
-    {n:"NTSE — NCERT",cat:"School",intro:"NCERT flagship scholarship, Class 11 to PG.",eligibility:"Class 10 students.",procedure:"Apply through school, 2-stage exam.",link:"https://www.google.com/search?q=ntse+ncert+scholarship+apply",deadline:"Sep-Oct",amount:"₹1,250-₹2,000/month"},
-    {n:"NMMS",cat:"School",intro:"Scholarship for EWS students from Class 9-12.",eligibility:"Class 8, income ≤ ₹1.5 lakh/yr.",procedure:"Apply through school, state exam.",link:"https://dsel.education.gov.in/nmmss",deadline:"Aug-Sep",amount:"₹12,000/year"},
-    {n:"AICTE Pragati (Girls)",cat:"Technical",intro:"AICTE scholarship for girls in technical courses.",eligibility:"Girl students, AICTE-approved, income ≤ ₹8 lakh.",procedure:"Apply on aicte-india.org.",link:"https://www.google.com/search?q=aicte+pragati+saksham+scholarship+apply",deadline:"Sep-Oct",amount:"₹50,000/year"},
-    {n:"AICTE PG (GATE/GPAT)",cat:"PG",intro:"AICTE scholarship for ME/MTech/MPharm.",eligibility:"GATE/GPAT qualified, AICTE institution.",procedure:"Institution reports to AICTE.",link:"https://www.aicte-india.org/",deadline:"Continuous",amount:"₹12,400/month for 24 months"},
-    {n:"UGC JRF (CSIR-NET)",cat:"Research",intro:"PhD fellowship for 5 years.",eligibility:"Master's 55%+, clear NET, age ≤ 28.",procedure:"Apply for NET, qualify JRF, PhD admission.",link:"https://csirnet.nta.nic.in/",deadline:"Apr & Sep",amount:"₹31,000-₹35,000/month"},
-    {n:"PG Indira Gandhi Single Girl Child",cat:"PG",intro:"UGC scholarship for single girl child in PG.",eligibility:"Single girl child, PG 1st year, age ≤ 30.",procedure:"Apply through UGC portal.",link:"https://www.ugc.ac.in/",deadline:"Variable",amount:"₹36,200/month for 2 years"},
-    {n:"Maharashtra MAHA-DBT",cat:"State",intro:"Maharashtra state scholarships.",eligibility:"MH domicile, SC/ST/OBC/Minority, income ₹1-8 lakh.",procedure:"Register on mahadbtmahait.gov.in.",link:"https://mahadbtmahait.gov.in/",deadline:"Continuous",amount:"₹5,000-₹50,000/year"},
-    {n:"National Overseas Scholarship",cat:"Overseas",intro:"Study abroad at top 500 QS universities.",eligibility:"SC/ST/OBC/Minority, income ≤ ₹8 lakh, age ≤ 35.",procedure:"Apply through Social Justice portal.",link:"https://socialjustice.gov.in/",deadline:"Variable",amount:"Up to ₹20 lakh/year"}
+    {n:"National Scholarship Portal (NSP)",cat:"Central",intro:"Single-stop for all central govt scholarships.",eligibility:"SC/ST/OBC/Minority/EWS, Class 1 to PG.",procedure:"Register on scholarships.gov.in.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹12,000-₹20,000/yr"},
+    {n:"INSPIRE Scholarship (SHE)",cat:"Science",intro:"DST scholarship for Natural Sciences.",eligibility:"Top 1% Class 12 or JEE/NEET rankers.",procedure:"Apply on online-inspire.gov.in.",link:"https://www.google.com/search?q=inspire+scholarship+apply",deadline:"Oct-Nov",amount:"₹80,000/yr"},
+    {n:"NTSE — NCERT",cat:"School",intro:"NCERT flagship scholarship.",eligibility:"Class 10 students.",procedure:"Apply through school.",link:"https://www.google.com/search?q=ntse+scholarship+apply",deadline:"Sep-Oct",amount:"₹1,250-₹2,000/month"},
+    {n:"NMMS",cat:"School",intro:"Scholarship for EWS students.",eligibility:"Class 8, income ≤ ₹1.5 lakh.",procedure:"Apply through school.",link:"https://www.google.com/search?q=nmms+scholarship+apply",deadline:"Aug-Sep",amount:"₹12,000/yr"},
+    {n:"AICTE Pragati (Girls)",cat:"Technical",intro:"AICTE scholarship for girls.",eligibility:"Girl students, AICTE-approved.",procedure:"Apply on aicte-india.org.",link:"https://www.google.com/search?q=aicte+pragati+scholarship+apply",deadline:"Sep-Oct",amount:"₹50,000/yr"},
+    {n:"AICTE PG (GATE/GPAT)",cat:"PG",intro:"AICTE scholarship for ME/MTech.",eligibility:"GATE/GPAT qualified.",procedure:"Institution reports to AICTE.",link:"https://www.aicte-india.org/",deadline:"Continuous",amount:"₹12,400/month"},
+    {n:"UGC JRF (CSIR-NET)",cat:"Research",intro:"PhD fellowship for 5 years.",eligibility:"Master's 55%+, clear NET.",procedure:"Apply for NET.",link:"https://csirnet.nta.nic.in/",deadline:"Apr & Sep",amount:"₹31,000-₹35,000/month"},
+    {n:"PG Indira Gandhi Single Girl Child",cat:"PG",intro:"UGC scholarship for single girl child.",eligibility:"Single girl child, PG 1st year.",procedure:"Apply through UGC.",link:"https://www.ugc.ac.in/",deadline:"Variable",amount:"₹36,200/month"},
+    {n:"Maharashtra MAHA-DBT",cat:"State",intro:"Maharashtra state scholarships.",eligibility:"MH domicile, SC/ST/OBC/Minority.",procedure:"Register on mahadbtmahait.gov.in.",link:"https://mahadbtmahait.gov.in/",deadline:"Continuous",amount:"₹5,000-₹50,000/yr"},
+    {n:"National Overseas Scholarship",cat:"Overseas",intro:"Study abroad at top universities.",eligibility:"SC/ST/OBC/Minority, income ≤ ₹8 lakh.",procedure:"Apply through Social Justice portal.",link:"https://socialjustice.gov.in/",deadline:"Variable",amount:"Up to ₹20 lakh/yr"}
   ];
-
   const INTERNATIONAL_SCHOLARSHIPS=[
-    {n:"Fulbright-Nehru Master's (USA)",cat:"USA",intro:"USIEF fellowship for Master's at US universities.",eligibility:"Bachelor's, 3+ years work, TOEFL.",procedure:"Apply on usief.org.in May-Jul.",link:"https://www.usief.org.in/",deadline:"May-Jul",amount:"Full tuition + $20,000/yr"},
-    {n:"Chevening Scholarship (UK)",cat:"UK",intro:"UK Govt fully-funded Master's.",eligibility:"Bachelor's 60%+, 2+ years work.",procedure:"Apply on chevening.org Aug-Nov.",link:"https://www.chevening.org/scholarship/india/",deadline:"Aug-Nov",amount:"Full tuition + £18,000/yr"},
-    {n:"DAAD (Germany)",cat:"Germany",intro:"German exchange service for Master's/PhD.",eligibility:"Bachelor's, 2+ years work.",procedure:"Apply on daad.de.",link:"https://www.daad.de/en/",deadline:"Oct-Mar",amount:"€861-€1,200/month + tuition"},
-    {n:"Erasmus Mundus (EU)",cat:"Europe",intro:"Study in 2+ EU countries, fully funded.",eligibility:"Bachelor's, English proficiency.",procedure:"Apply to consortium Oct-Jan.",link:"https://www.google.com/search?q=erasmus+mundus+scholarship+apply+2025",deadline:"Oct-Jan",amount:"€1,400/month + travel + tuition"},
-    {n:"Rhodes (Oxford)",cat:"UK",intro:"World's oldest scholarship, 2-yr at Oxford.",eligibility:"Age 19-25, first class Bachelor's.",procedure:"Apply on rhodeshouse.ox.ac.uk.",link:"https://www.rhodeshouse.ox.ac.uk/scholarships/",deadline:"Jul-Sep",amount:"Full tuition + £18,000/yr"},
-    {n:"Commonwealth (UK)",cat:"UK",intro:"UK Govt scholarship for Commonwealth countries.",eligibility:"Bachelor's upper second, apply via MHRD/UGC.",procedure:"Apply through MHRD Aug-Sep.",link:"https://cscuk.fcdo.gov.uk/scholarships/",deadline:"Aug-Oct",amount:"Full tuition + £1,300/month"},
-    {n:"MEXT (Japan)",cat:"Japan",intro:"Japanese Govt scholarship for UG/PG.",eligibility:"Age under 25 (UG)/35 (PG).",procedure:"Apply through Embassy May-Jun.",link:"https://www.google.com/search?q=mext+scholarship+japan+apply",deadline:"May-Jun",amount:"¥117,000-¥148,000/month + tuition"},
-    {n:"Korea GKS (South Korea)",cat:"South Korea",intro:"Korean Govt scholarship, includes language training.",eligibility:"Age under 25 (UG)/40 (PG), 70%+.",procedure:"Apply through Korean Embassy Sep.",link:"https://www.studyinkorea.go.kr/",deadline:"Sep-Oct",amount:"₩900,000-₩1,600,000/month + tuition"},
-    {n:"SINGA PhD (Singapore)",cat:"Singapore",intro:"A*STAR + NUS + NTU PhD, 4 years.",eligibility:"Bachelor's in science/engineering.",procedure:"Apply on singa.a-star.edu.sg.",link:"https://www.a-star.edu.sg/Singa",deadline:"Jan-Dec",amount:"S$2,200-2,700/month + tuition"},
-    {n:"Swiss Govt Excellence",cat:"Switzerland",intro:"Swiss Govt scholarship for Master's/research.",eligibility:"Bachelor's, age under 35.",procedure:"Apply on sbfi.admin.ch Sep-Dec.",link:"https://www.sbfi.admin.ch/",deadline:"Sep-Dec",amount:"CHF 1,920-3,500/month + tuition"}
+    {n:"Fulbright-Nehru Master's (USA)",cat:"USA",intro:"USIEF fellowship for Master's at US universities.",eligibility:"Bachelor's, 3+ years work, TOEFL.",procedure:"Apply on usief.org.in.",link:"https://www.usief.org.in/",deadline:"May-Jul",amount:"Full tuition + $20,000/yr"},
+    {n:"Chevening Scholarship (UK)",cat:"UK",intro:"UK Govt fully-funded Master's.",eligibility:"Bachelor's 60%+, 2+ years work.",procedure:"Apply on chevening.org.",link:"https://www.chevening.org/scholarship/india/",deadline:"Aug-Nov",amount:"Full tuition + £18,000/yr"},
+    {n:"DAAD (Germany)",cat:"Germany",intro:"German exchange for Master's/PhD.",eligibility:"Bachelor's, 2+ years work.",procedure:"Apply on daad.de.",link:"https://www.google.com/search?q=daad+scholarship+apply",deadline:"Oct-Mar",amount:"€861-€1,200/month"},
+    {n:"Erasmus Mundus (EU)",cat:"Europe",intro:"Study in 2+ EU countries.",eligibility:"Bachelor's, English proficiency.",procedure:"Apply to consortium.",link:"https://www.google.com/search?q=erasmus+mundus+scholarship+apply",deadline:"Oct-Jan",amount:"€1,400/month + tuition"},
+    {n:"Rhodes (Oxford)",cat:"UK",intro:"World's oldest scholarship.",eligibility:"Age 19-25, first class.",procedure:"Apply on rhodeshouse.ox.ac.uk.",link:"https://www.google.com/search?q=rhodes+scholarship+apply",deadline:"Jul-Sep",amount:"Full tuition + £18,000/yr"},
+    {n:"Commonwealth (UK)",cat:"UK",intro:"UK Govt scholarship.",eligibility:"Bachelor's, apply via MHRD/UGC.",procedure:"Apply through MHRD.",link:"https://www.google.com/search?q=commonwealth+scholarship+apply",deadline:"Aug-Oct",amount:"Full tuition + £1,300/month"},
+    {n:"MEXT (Japan)",cat:"Japan",intro:"Japanese Govt scholarship.",eligibility:"Age under 25 (UG)/35 (PG).",procedure:"Apply through Embassy.",link:"https://www.google.com/search?q=mext+scholarship+apply",deadline:"May-Jun",amount:"¥117,000-¥148,000/month"},
+    {n:"Korea GKS",cat:"South Korea",intro:"Korean Govt scholarship.",eligibility:"Age under 25 (UG)/40 (PG).",procedure:"Apply through Korean Embassy.",link:"https://www.google.com/search?q=korea+global+scholarship+apply",deadline:"Sep-Oct",amount:"₩900,000-₩1,600,000/month"},
+    {n:"SINGA PhD (Singapore)",cat:"Singapore",intro:"A*STAR + NUS + NTU PhD.",eligibility:"Bachelor's in science/engineering.",procedure:"Apply on singa.a-star.edu.sg.",link:"https://www.google.com/search?q=singa+phd+scholarship+apply",deadline:"Jan-Dec",amount:"S$2,200-2,700/month"},
+    {n:"Swiss Govt Excellence",cat:"Switzerland",intro:"Swiss Govt scholarship.",eligibility:"Bachelor's, age under 35.",procedure:"Apply on sbfi.admin.ch.",link:"https://www.google.com/search?q=swiss+government+scholarship+apply",deadline:"Sep-Dec",amount:"CHF 1,920-3,500/month"}
   ];
-
-  const UNIVERSITY_SCHOLARSHIPS=[
-    {n:"Harvard Financial Aid (USA)",cat:"USA University",intro:"Need-based. Families <$85k pay nothing.",eligibility:"Admitted to Harvard. Need-based.",procedure:"Submit CSS Profile with admission.",link:"https://college.harvard.edu/financial-aid",deadline:"Jan 1",amount:"Up to ~$80,000/year"},
-    {n:"Stanford Knight-Hennessy (USA)",cat:"USA University",intro:"Premier graduate scholarship, any degree.",eligibility:"Admitted to Stanford grad programme.",procedure:"Apply by Oct, separate application.",link:"https://knight-hennessy.stanford.edu/",deadline:"Oct",amount:"~$100,000/year"},
-    {n:"Oxford Clarendon Fund (UK)",cat:"UK University",intro:"Oxford flagship graduate scholarship.",eligibility:"Applying to Oxford Master's/DPhil.",procedure:"Apply to Oxford, indicate interest.",link:"https://www.ox.ac.uk/clarendon",deadline:"Dec-Jan",amount:"Full tuition + £18,000/yr"},
-    {n:"Cambridge Gates (UK)",cat:"UK University",intro:"Gates Cambridge, ~80 awards/year.",eligibility:"Academic excellence + leadership.",procedure:"Apply to Cambridge by Dec.",link:"https://www.google.com/search?q=gates+cambridge+scholarship+apply",deadline:"Dec-Jan",amount:"Full tuition + £20,000/yr + travel"},
-    {n:"ETH Zurich Excellence (Switzerland)",cat:"Europe University",intro:"Full tuition + CHF 12,000/semester.",eligibility:"Top 10% of Bachelor's class.",procedure:"Apply to ETH Master's by Dec 15.",link:"https://ethz.ch/en/studies/financial/scholarships/excellencescholarship.html",deadline:"Dec 15",amount:"Full tuition + CHF 12,000/semester"},
-    {n:"NUS Graduate (Singapore)",cat:"Singapore University",intro:"Full tuition + S$1,500-2,000/month.",eligibility:"Indian citizen, NUS Master's/PhD.",procedure:"Apply to NUS Nov-Jan.",link:"https://www.nus.edu.sg/admissions/graduate/financial-aid",deadline:"Nov-Jan",amount:"Full tuition + S$1,500-2,000/month"},
-    {n:"UofT Pearson (Canada)",cat:"Canada University",intro:"Full ride, 4 years at U of Toronto.",eligibility:"International UG, high school nomination.",procedure:"Nomination Nov, apply Jan.",link:"https://future.utoronto.ca/pearson/",deadline:"Nov-Jan",amount:"~CAD 100,000/year"},
-    {n:"IISc Bangalore PhD",cat:"India University",intro:"₹31,000-35,000/month for 5 years.",eligibility:"GATE/NET qualified, IISc PhD.",procedure:"Apply to IISc Mar-Apr.",link:"https://iisc.ac.in/admissions/",deadline:"Mar-Apr",amount:"₹31,000-35,000/month for 5 years"},
-    {n:"IIM Ahmedabad FPM",cat:"India University",intro:"₹35,000/month + tuition waiver, 4-5 years.",eligibility:"Master's + CAT/GMAT/GRE/GATE.",procedure:"Apply to IIMA FPM by Jan.",link:"https://www.iima.ac.in/",deadline:"Jan",amount:"₹35,000/month + tuition waiver"},
-    {n:"Ashoka YIF",cat:"India University",intro:"1-year PG diploma, aid up to 100%.",eligibility:"Bachelor's degree.",procedure:"Apply at ashoka.edu.in.",link:"https://www.ashoka.edu.in/yif/",deadline:"Oct / Mar",amount:"Up to 100% tuition + ₹50,000/month"}
-  ];
-
-  /* ===== NEW: TRUST & FOUNDATION SCHOLARSHIPS ===== */
   const TRUST_SCHOLARSHIPS=[
-    {n:"Tata Scholarship — Cornell University (USA)",cat:"Indian Trust",intro:"Tata Education and Development Trust funds Indian students at Cornell University. Covers full tuition + living expenses for undergraduate study.",eligibility:"Indian citizens admitted to Cornell UG. Need-based. Strong academic record.",procedure:"1) Apply to Cornell admission. 2) Submit CSS Profile for financial aid. 3) Indicate Tata Scholarship interest. 4) Selection by Cornell committee.",link:"https://admissions.cornell.edu/apply/financial-aid",deadline:"Jan 2 (admission)",amount:"Full tuition + living (~$80,000/year)"},
-    {n:"Tata Scholarship — Stanford (USA)",cat:"Indian Trust",intro:"Tata Trusts provide need-based scholarships to Indian students at Stanford for Master's/PhD. Covers tuition + stipend.",eligibility:"Indian citizens admitted to Stanford graduate programme. Need-based. Strong academic record.",procedure:"1) Apply to Stanford. 2) Submit financial aid application. 3) Indicate Tata Trust scholarship.",link:"https://finaid.stanford.edu/",deadline:"Variable per programme",amount:"Up to full tuition + living costs"},
-    {n:"Reliance Foundation Scholarships",cat:"Indian Trust",intro:"Reliance Foundation Scholarship for undergraduate students. Covers full tuition + living + mentorship + leadership development.",eligibility:"Indian students in 1st year UG (Engineering, Medical, Sciences, Law, etc.). Merit + need-based. Income ≤ ₹15 lakh/yr.",procedure:"1) Apply on scholarships.reliancefoundation.org. 2) Submit academic records + income proof. 3) Aptitude test + interview.",link:"https://scholarships.reliancefoundation.org/",deadline:"Variable (Sep-Nov)",amount:"₹2 lakh to ₹6 lakh/year + mentorship"},
-    {n:"Azim Premji Foundation Fellowship",cat:"Indian Trust",intro:"Azim Premji Foundation Fellowship for social sector leaders. 2-year programme with stipend + training. Placed in rural education.",eligibility:"Graduates 2-7 years work experience. Interest in social sector/education. Age 25-35.",procedure:"1) Apply on azimpremjifoundation.org. 2) Written test + interview. 3) 2-year fellowship with ₹30,000+/month.",link:"https://azimpremjifoundation.org/fellowship",deadline:"Variable",amount:"₹30,000-₹35,000/month + training for 2 years"},
-    {n:"Aga Khan Foundation International Scholarship",cat:"International Trust",intro:"Aga Khan Foundation scholarship for outstanding students from developing countries. 50% grant + 50% loan.",eligibility:"Indian citizen, excellent academic record, admission to reputable university, financial need. Age under 30.",procedure:"1) Apply on the.akdn (Jan-Mar). 2) Submit transcripts + admission + financial statement. 3) Interview Apr-May.",link:"https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme",deadline:"Jan-Mar",amount:"Up to US$50,000 (50% grant + 50% loan)"},
-    {n:"Bill & Melinda Gates Foundation",cat:"International Trust",intro:"Bill & Melinda Gates Foundation funds global health + development research. Supports PhD + post-doc at partner universities.",eligibility:"Researchers in public health, agriculture, development economics, gender studies. Apply through partner universities (Cambridge Gates, etc.).",procedure:"1) Apply to partner university PhD. 2) Indicate Gates Foundation funding interest. 3) Selection by university committee.",link:"https://www.gatesfoundation.org/",deadline:"Variable per university",amount:"Full PhD funding (tuition + $35,000-50,000/yr stipend)"},
-    {n:"Tata Trusts — Higher Education Scholarships",cat:"Indian Trust",intro:"Tata Trusts provide means-tested scholarships for Indian students pursuing PG/professional courses in India and abroad. Multiple schemes.",eligibility:"Indian citizens pursuing PG/professional courses. Income ≤ ₹5-8 lakh/yr depending on scheme. Strong academic record.",procedure:"1) Apply on tatatrusts.org. 2) Submit academic records + income proof. 3) Interview.",link:"https://www.tatatrusts.org/",deadline:"Variable (May-Aug)",amount:"₹50,000 to ₹10 lakh/year (varies by scheme)"},
-    {n:"Mahindra All India Talent Scholarship",cat:"Indian Trust",intro:"Mahindra Group scholarship for differently-abled + lower-income students pursuing diploma/degree. Fixed ₹10,000/month.",eligibility:"Indian students from low-income families (income ≤ ₹2 lakh/yr) pursuing diploma/UG. Preference to differently-abled + girl students.",procedure:"1) Apply on mahindrascholarships.com. 2) Submit income proof + admission proof. 3) Selection committee.",link:"https://www.google.com/search?q=mahindra+all+india+talent+scholarship+apply",deadline:"Variable",amount:"₹10,000/month for the duration of course"},
-    {n:"Sitaram Jindal Foundation Scholarship",cat:"Indian Trust",intro:"Sitaram Jindal Foundation provides scholarships to meritorious students from Class 9 to PG. Income-based, covers tuition + maintenance.",eligibility:"Indian students Class 9 to PG. Income ≤ ₹4 lakh/yr (₹2 lakh for some categories). Merit-based minimum marks.",procedure:"1) Apply on sitaramjindalfoundation.org. 2) Submit academic records + income proof. 3) Direct credit to bank.",link:"https://www.sitaramjindalfoundation.org/",deadline:"Variable (Sep-Dec)",amount:"₹500 to ₹3,000/month"},
-    {n:"HDFC Bank Parivartan ECS Scholarship",cat:"Indian Trust",intro:"HDFC Bank's educational crisis scholarship for students facing financial hardship. Covers tuition + books + living.",eligibility:"Indian students from Class 6 to PG facing financial hardship. Income ≤ ₹3 lakh/yr. Min 55% marks.",procedure:"1) Apply on hdfcparivartanecs.org. 2) Submit income proof + academic records. 3) Verification by school/college.",link:"https://www.google.com/search?q=hdfc+bank+parivartan+ecs+scholarship+apply",deadline:"Variable (Oct-Dec)",amount:"₹5,000 to ₹35,000/year (varies by class)"},
-    {n:"Narotam Sekhsaria Foundation Scholarship",cat:"Indian Trust",intro:"Narotam Sekhsaria Foundation provides merit-based interest-free loan scholarships for PG study in India. Covers tuition + living.",eligibility:"Indian citizens ≤ 30 years, pursuing PG in India. Strong academic record (60%+ in UG). Selection through interview.",procedure:"1) Apply on narotamsekhsaria.org. 2) Submit academic records + SOP. 3) Online test + interview.",link:"https://www.google.com/search?q=narotam+sekhsaria+foundation+scholarship",deadline:"Variable (Feb-Mar)",amount:"Up to ₹20 lakh (interest-free loan)"},
-    {n:"Shriram Group Scholarships",cat:"Indian Trust",intro:"Shriram Group provides scholarships for engineering + management students. Covers tuition + living.",eligibility:"Indian students in 2nd-4th year Engineering or 1st-2nd year MBA. Income ≤ ₹6 lakh/yr. Min 60% marks.",procedure:"1) Apply on shriramfoundation.org. 2) Submit academic + income proof. 3) Selection committee.",link:"https://www.google.com/search?q=shriram+group+scholarship+apply",deadline:"Variable",amount:"₹15,000-₹40,000/year"},
-    {n:"Bharti Foundation Scholarship",cat:"Indian Trust",intro:"Bharti Foundation (Airtel) Satya Bharti Scholarship for rural students from low-income families. Covers tuition + living + books.",eligibility:"Indian students from rural backgrounds. Income ≤ ₹3 lakh/yr. Pursuing UG/PG. Strong academic record.",procedure:"1) Apply on bhartifoundation.org. 2) Submit income proof + academic records. 3) Selection committee.",link:"https://www.google.com/search?q=bharti+foundation+scholarship+apply",deadline:"Variable",amount:"₹10,000-₹50,000/year"},
-    {n:"Aditya Birla Group Scholarships",cat:"Indian Trust",intro:"Aditya Birla Scholarships for students at top IITs, IIMs, BITS, and law schools. Merit-based, covers tuition + living.",eligibility:"Students at IITs, IIMs, BITS Pilani, top law schools. Selected from top rankers. Merit-based.",procedure:"1) Application through institution. 2) Selection based on academic + leadership record.",link:"https://www.google.com/search?q=aditya+birla+scholarship+apply",deadline:"Variable",amount:"₹60,000-₹1,80,000/year"},
-    {n:"ICICI Foundation Scholarship",cat:"Indian Trust",intro:"ICICI Academy provides scholarships for skill development + vocational training. Covers course fees + living.",eligibility:"Indian youth from low-income families (income ≤ ₹3 lakh/yr). Class 10 pass minimum. Age 18-30.",procedure:"1) Apply on icicifoundation.org. 2) Submit income proof. 3) Free skill training at ICICI Academy.",link:"https://www.icicifoundation.org/",deadline:"Continuous",amount:"Free training + ₹3,000/month stipend"},
-    {n:"Foundation for Excellence (FFE) Scholarship",cat:"Indian Trust",intro:"FFE provides scholarships to meritorious students from low-income families pursuing Engineering + Medicine. Covers tuition + living.",eligibility:"Indian students in 1st year Engineering/MBBS. Income ≤ ₹3 lakh/yr. Merit + need-based. JEE/NEET qualified.",procedure:"1) Apply on ffe.org. 2) Submit income + academic proof + JEE/NEET score. 3) Mentorship + scholarship.",link:"https://www.ffe.org/",deadline:"Variable (Jul-Sep)",amount:"₹40,000-₹1,00,000/year + mentorship"},
-    {n:"Ramanujan Foundation Scholarship",cat:"Indian Trust",intro:"Ramanujan Foundation supports talented students from underprivileged backgrounds in mathematics and sciences.",eligibility:"Indian students with exceptional talent in mathematics/science. Income-based.",procedure:"Apply through foundation website with academic + income proof.",link:"https://www.google.com/search?q=ramanujan+foundation+scholarship",deadline:"Variable",amount:"₹10,000-₹50,000/year"},
-    {n:"Dharam Hinduja Foundation Scholarship",cat:"Indian Trust",intro:"Hinduja Foundation scholarships for Indian students pursuing higher education in India and abroad. Covers tuition + living.",eligibility:"Indian citizens with strong academic record. Income-based.",procedure:"Apply on hindujafoundation.com with academic + income proof.",link:"https://www.google.com/search?q=hinduja+foundation+scholarship",deadline:"Variable",amount:"₹50,000-₹5 lakh/year"}
+    {n:"Tata Scholarship — Cornell (USA)",cat:"Indian Trust",intro:"Tata Trust funds Indian students at Cornell.",eligibility:"Indian citizens admitted to Cornell UG.",procedure:"Apply to Cornell, submit CSS Profile.",link:"https://www.google.com/search?q=tata+scholarship+cornell+apply",deadline:"Jan 2",amount:"Full tuition + living (~$80,000/yr)"},
+    {n:"Reliance Foundation Scholarships",cat:"Indian Trust",intro:"Reliance Foundation scholarship for UG students.",eligibility:"Indian students 1st year UG, income ≤ ₹15 lakh.",procedure:"Apply on scholarships.reliancefoundation.org.",link:"https://scholarships.reliancefoundation.org/",deadline:"Sep-Nov",amount:"₹2-6 lakh/yr + mentorship"},
+    {n:"Azim Premji Foundation Fellowship",cat:"Indian Trust",intro:"2-year social sector fellowship.",eligibility:"Graduates 2-7 years work experience.",procedure:"Apply on azimpremjifoundation.org.",link:"https://azimpremjifoundation.org/fellowship",deadline:"Variable",amount:"₹30,000-₹35,000/month"},
+    {n:"Aga Khan Foundation Scholarship",cat:"International Trust",intro:"50% grant + 50% loan for study abroad.",eligibility:"Indian citizen, excellent academic record.",procedure:"Apply on the.akdn.",link:"https://www.google.com/search?q=aga+khan+scholarship+apply",deadline:"Jan-Mar",amount:"Up to US$50,000"},
+    {n:"Tata Trusts Higher Education",cat:"Indian Trust",intro:"Tata Trusts scholarships for PG/professional courses.",eligibility:"Indian citizens, income ≤ ₹5-8 lakh.",procedure:"Apply on tatatrusts.org.",link:"https://www.tatatrusts.org/",deadline:"May-Aug",amount:"₹50,000-₹10 lakh/yr"},
+    {n:"Mahindra All India Talent Scholarship",cat:"Indian Trust",intro:"Mahindra scholarship for differently-abled + low-income.",eligibility:"Income ≤ ₹2 lakh/yr.",procedure:"Apply on mahindrascholarships.com.",link:"https://www.google.com/search?q=mahindra+scholarship+apply",deadline:"Variable",amount:"₹10,000/month"},
+    {n:"HDFC Bank Parivartan ECS",cat:"Indian Trust",intro:"Crisis scholarship for financial hardship.",eligibility:"Income ≤ ₹3 lakh/yr, min 55%.",procedure:"Apply on hdfcparivartanecs.org.",link:"https://www.google.com/search?q=hdfc+parivartan+scholarship+apply",deadline:"Oct-Dec",amount:"₹5,000-₹35,000/yr"},
+    {n:"Foundation for Excellence (FFE)",cat:"Indian Trust",intro:"Scholarships for Engineering/Medicine students.",eligibility:"1st year Engineering/MBBS, income ≤ ₹3 lakh.",procedure:"Apply on ffe.org.",link:"https://www.ffe.org/",deadline:"Jul-Sep",amount:"₹40,000-₹1,00,000/yr"},
+    {n:"Sitaram Jindal Foundation",cat:"Indian Trust",intro:"Scholarships from Class 9 to PG.",eligibility:"Income ≤ ₹4 lakh/yr.",procedure:"Apply on sitaramjindalfoundation.org.",link:"https://www.google.com/search?q=sitaram+jindal+scholarship+apply",deadline:"Sep-Dec",amount:"₹500-₹3,000/month"},
+    {n:"Narotam Sekhsaria Foundation",cat:"Indian Trust",intro:"Interest-free loan for PG in India.",eligibility:"Indian citizens ≤ 30 years, 60%+ in UG.",procedure:"Apply on narotamsekhsaria.org.",link:"https://www.google.com/search?q=narotam+sekhsaria+scholarship+apply",deadline:"Feb-Mar",amount:"Up to ₹20 lakh (interest-free loan)"}
   ];
-
-  /* ===== NEW: FREE SKILL-BASED COURSES BY MNCS ===== */
   const FREE_MNC_COURSES=[
     {cat:"Google",icon:"🔍",color:"#4285f4",courses:[
-      {n:"Google Career Certificates",u:"https://grow.google/certificates/",d:"Data Analytics, IT Support, UX Design, Project Management, Digital Marketing — 6 months, free via Coursera"},
-      {n:"Google Digital Garage",u:"https://learndigital.withgoogle.com/digitalgarage/",d:"Free courses in Digital Marketing, Data, Career Development — with certificates"},
-      {n:"Google Cloud Skills Boost",u:"https://www.cloudskillsboost.google/",d:"Free Google Cloud training + hands-on labs + Qwiklabs credits"},
-      {n:"Google for Education — Teacher Center",u:"https://teachercenter.withgoogle.com/",d:"Free training for educators — Classroom, CS First, Applied Digital Skills"},
-      {n:"Google AI/ML Courses",u:"https://ai.google/education/",d:"Free Machine Learning Crash Course, TensorFlow, Deep Learning — taught by Google engineers"}
+      {n:"Google Career Certificates",u:"https://grow.google/certificates/",d:"Data Analytics, IT Support, UX Design, PM, Digital Marketing"},
+      {n:"Google Digital Garage",u:"https://learndigital.withgoogle.com/digitalgarage/",d:"Free Digital Marketing + Data courses"},
+      {n:"Google Cloud Skills Boost",u:"https://www.cloudskillsboost.google/",d:"Free Google Cloud training + labs"},
+      {n:"Google AI/ML Courses",u:"https://ai.google/education/",d:"Free ML Crash Course + TensorFlow"},
+      {n:"Google for Education",u:"https://teachercenter.withgoogle.com/",d:"Free educator training"}
     ]},
     {cat:"Microsoft",icon:"🪟",color:"#00a4ef",courses:[
-      {n:"Microsoft Learn",u:"https://learn.microsoft.com/",d:"Free Azure, .NET, Power BI, Microsoft 365, Dynamics 365 training — with certifications"},
-      {n:"Microsoft 365 Fundamentals",u:"https://learn.microsoft.com/certifications/microsoft-365-fundamentals/",d:"Free M365 fundamentals course + exam discount"},
-      {n:"Azure for Students",u:"https://azure.microsoft.com/free/students/",d:"Free $100 Azure credit + free developer tools + free Azure AI services for students"},
-      {n:"Microsoft Imagine Academy",u:"https://www.microsoft.com/en-us/learning/imagine-academy.aspx",d:"Free IT curriculum for students — Microsoft Office, Windows, Azure, computer science"},
-      {n:"GitHub Student Developer Pack",u:"https://education.github.com/pack",d:"Free developer tools (GitHub Pro, Azure credits, JetBrains, etc.) — worth $200k+ for students"}
+      {n:"Microsoft Learn",u:"https://learn.microsoft.com/",d:"Free Azure, .NET, Power BI training"},
+      {n:"Azure for Students",u:"https://azure.microsoft.com/free/students/",d:"Free $100 Azure credit + tools"},
+      {n:"GitHub Student Pack",u:"https://education.github.com/pack",d:"Free dev tools worth $200k+"},
+      {n:"Microsoft Imagine Academy",u:"https://www.microsoft.com/en-us/learning/imagine-academy.aspx",d:"Free IT curriculum"}
     ]},
     {cat:"IBM",icon:"💻",color:"#0530ad",courses:[
-      {n:"IBM SkillsBuild",u:"https://skillsbuild.org/",d:"Free courses in AI, Cybersecurity, Cloud, Data Science, Web Development — with IBM badges + certificates"},
-      {n:"IBM Data Science Professional",u:"https://www.coursera.org/professional-certificates/ibm-data-science",d:"9-course specialization on Coursera — free audit, $49/month for certificate"},
-      {n:"IBM AI Engineering",u:"https://www.coursera.org/professional-certificates/ai-engineer",d:"Machine Learning, Deep Learning, Computer Vision — IBM certification track"},
-      {n:"IBM Cybersecurity Analyst",u:"https://www.coursera.org/professional-certificates/ibm-cybersecurity-analyst",d:"Free cybersecurity fundamentals + hands-on labs"},
-      {n:"IBM Z — Mainframe Training",u:"https://www.ibm.com/it-infrastructure/z/education",d:"Free Enterprise Computing + COBOL + Mainframe courses"}
+      {n:"IBM SkillsBuild",u:"https://skillsbuild.org/",d:"Free AI, Cyber, Cloud, Data Science"},
+      {n:"IBM Data Science",u:"https://www.coursera.org/professional-certificates/ibm-data-science",d:"9-course specialization"},
+      {n:"IBM AI Engineering",u:"https://www.coursera.org/professional-certificates/ai-engineer",d:"ML, Deep Learning, Computer Vision"},
+      {n:"IBM Cybersecurity",u:"https://www.coursera.org/professional-certificates/ibm-cybersecurity-analyst",d:"Free cybersecurity fundamentals"}
     ]},
     {cat:"Amazon (AWS)",icon:"📦",color:"#ff9900",courses:[
-      {n:"AWS Training",u:"https://aws.amazon.com/training/",d:"Free digital courses on Cloud Computing, DevOps, AI/ML, Security — AWS Certification prep"},
-      {n:"AWS Educate",u:"https://aws.amazon.com/education/awseducate/",d:"Free student membership — Cloud career pathways, $100+ AWS credits, job board"},
-      {n:"AWS re/Start",u:"https://aws.amazon.com/training/restart/",d:"Free 12-week Cloud training program for unemployed/underemployed — with job placement"},
-      {n:"Amazon Machine Learning",u:"https://aws.amazon.com/training/",d:"Free ML/AI courses — SageMaker, DeepRacer, Computer Vision"}
+      {n:"AWS Training",u:"https://aws.amazon.com/training/",d:"Free Cloud, DevOps, AI/ML courses"},
+      {n:"AWS Educate",u:"https://aws.amazon.com/education/awseducate/",d:"Free student membership + $100 credits"},
+      {n:"AWS re/Start",u:"https://aws.amazon.com/training/restart/",d:"Free 12-week Cloud training + job placement"}
     ]},
-    {cat:"Meta (Facebook)",icon:"🌐",color:"#1877f2",courses:[
-      {n:"Meta Blueprint",u:"https://www.facebook.com/business/learn",d:"Free Digital Marketing + Social Media Marketing courses — with Meta certification"},
-      {n:"Meta Front-End Developer",u:"https://www.coursera.org/professional-certificates/meta-front-end-developer",d:"Free Coursera specialization — HTML, CSS, JavaScript, React"},
-      {n:"Meta Back-End Developer",u:"https://www.coursera.org/professional-certificates/meta-back-end-developer",d:"Free Coursera specialization — Django, Python, APIs, version control"},
-      {n:"Meta Data Engineer",u:"https://www.coursera.org/professional-certificates/meta-back-end-developer",d:"Free Coursera specialization — SQL, Python, Big Data, pipelines"}
+    {cat:"Meta",icon:"🌐",color:"#1877f2",courses:[
+      {n:"Meta Blueprint",u:"https://www.facebook.com/business/learn",d:"Free Digital Marketing + Social Media"},
+      {n:"Meta Front-End Developer",u:"https://www.coursera.org/professional-certificates/meta-front-end-developer",d:"HTML, CSS, JavaScript, React"},
+      {n:"Meta Back-End Developer",u:"https://www.coursera.org/professional-certificates/meta-back-end-developer",d:"Django, Python, APIs"}
     ]},
     {cat:"Cisco",icon:"🌐",color:"#1ba0d7",courses:[
-      {n:"Cisco Networking Academy",u:"https://www.netacad.com/",d:"Free Networking, Cybersecurity, IoT, Programming courses — globally recognized"},
-      {n:"CCNA Training",u:"https://www.netacad.com/courses/networking/ccna",d:"Free CCNA course — Routing, Switching, Network fundamentals"},
-      {n:"Cisco Cybersecurity",u:"https://www.netacad.com/courses/cybersecurity",d:"Free Introduction to Cybersecurity + Cybersecurity Essentials"}
-    ]},
-    {cat:"Intel",icon:"💡",color:"#0071c5",courses:[
-      {n:"Intel AI Academy",u:"https://www.intel.com/content/www/us/en/developer/tools/training/overview.html",d:"Free AI/ML courses — Deep Learning, Computer Vision, NLP with Intel tools"},
-      {n:"Intel Edge AI",u:"https://www.intel.com/content/www/us/en/developer/tools/training/overview.html",d:"Free Edge AI + IoT certification — scholarship programme"}
-    ]},
-    {cat:"NVIDIA",icon:"🎮",color:"#76b900",courses:[
-      {n:"NVIDIA Deep Learning Institute",u:"https://www.nvidia.com/en-us/training/",d:"Free AI, Deep Learning, Accelerated Computing courses — with DLI certificates"},
-      {n:"NVIDIA Jetson AI Certification",u:"https://www.nvidia.com/en-us/training/",d:"Free Edge AI + robotics certification programme"}
-    ]},
-    {cat:"SAP",icon:"📊",color:"#0faaff",courses:[
-      {n:"SAP Learning Hub",u:"https://learninghub.sap.com/",d:"Free SAP software training — ERP, S/4HANA, ABAP, Fiori — enterprise skills"},
-      {n:"SAP Young Professionals",u:"https://www.google.com/search?q=sap+university+alliances+free+training",d:"Free SAP training for university students + graduates"}
-    ]},
-    {cat:"Oracle",icon:"🗄️",color:"#f80000",courses:[
-      {n:"Oracle University",u:"https://www.oracle.com/education/",d:"Free Java, Oracle Database, Cloud training — with Oracle certifications"},
-      {n:"Oracle Academy",u:"https://www.oracle.com/education/",d:"Free Java + Database curriculum for students — Oracle certification discounts"}
+      {n:"Cisco Networking Academy",u:"https://www.netacad.com/",d:"Free Networking, Cybersecurity, IoT"},
+      {n:"CCNA Training",u:"https://www.netacad.com/courses/networking/ccna",d:"Free CCNA course"},
+      {n:"Cisco Cybersecurity",u:"https://www.netacad.com/courses/cybersecurity",d:"Free cybersecurity essentials"}
     ]},
     {cat:"Other MNCs",icon:"🎓",color:"#6366f1",courses:[
-      {n:"Salesforce Trailhead",u:"https://trailhead.salesforce.com/",d:"Free Salesforce Admin, Developer, Marketing training — gamified with badges"},
-      {n:"Adobe Creative Cloud",u:"https://www.adobe.com/creativecloud.html",d:"Free tutorials for Photoshop, Illustrator, Premiere Pro, After Effects"},
-      {n:"Samsung Innovation Campus",u:"https://www.samsung.com/in/microsite/samsung-innovation-campus/",d:"Free IoT, AI, Coding, Big Data courses for youth"},
-      {n:"Huawei ICT Academy",u:"https://e.huawei.com/en/talent/",d:"Free Cloud, AI, 5G, Datacom courses with Huawei certification"},
-      {n:"Infosys Springboard",u:"https://infyspringboard.onwingspan.com/",d:"Free digital + coding + life skills courses for students in India"},
-      {n:"TCS iON Career Edge",u:"https://learning.tcsionhub.in/",d:"Free soft skills + interview prep + corporate readiness courses"}
+      {n:"NVIDIA Deep Learning",u:"https://www.nvidia.com/en-us/training/",d:"Free AI, Deep Learning courses"},
+      {n:"Salesforce Trailhead",u:"https://trailhead.salesforce.com/",d:"Free Salesforce Admin, Developer"},
+      {n:"Oracle University",u:"https://www.oracle.com/education/",d:"Free Java, Database training"},
+      {n:"Infosys Springboard",u:"https://infyspringboard.onwingspan.com/",d:"Free digital + coding courses"},
+      {n:"TCS iON Career Edge",u:"https://learning.tcsionhub.in/",d:"Free soft skills + interview prep"},
+      {n:"Samsung Innovation Campus",u:"https://www.samsung.com/in/microsite/samsung-innovation-campus/",d:"Free IoT, AI, Coding courses"}
     ]}
   ];
-
   function sc(s){
-    return `<div class="card" style="border-left:4px solid var(--brand);margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:12px">
-        <h3 style="margin:0;font-size:16px;flex:1">${s.n}</h3>
-        <span class="chip chip-purple" style="white-space:nowrap">${s.cat}</span>
-      </div>
-      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>📖 Intro:</b> ${s.intro}</div>
-      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>✅ Eligibility:</b> ${s.eligibility}</div>
-      <div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>📋 Procedure:</b> ${s.procedure}</div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:10px">
-        <div>📅 <b>Deadline:</b> ${s.deadline}</div><div>💰 <b>Amount:</b> ${s.amount}</div>
-      </div>
-      <a href="${s.link}" target="_blank" rel="noopener" class="btn btn-p btn-s" style="text-decoration:none;display:inline-flex">🔗 Official Website ↗</a>
-    </div>`;
+    return '<div class="card" style="border-left:4px solid var(--brand);margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:12px">' +
+      '<h3 style="margin:0;font-size:16px;flex:1">' + s.n + '</h3>' +
+      '<span class="chip chip-purple" style="white-space:nowrap">' + s.cat + '</span></div>' +
+      '<div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>Intro:</b> ' + s.intro + '</div>' +
+      '<div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>Eligibility:</b> ' + s.eligibility + '</div>' +
+      '<div style="font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:8px"><b>Procedure:</b> ' + s.procedure + '</div>' +
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:10px">' +
+      '<div>Deadline: <b>' + s.deadline + '</b></div><div>Amount: <b>' + s.amount + '</b></div></div>' +
+      '<a href="' + s.link + '" target="_blank" rel="noopener" class="btn btn-p btn-s" style="text-decoration:none;display:inline-flex">Official Website ↗</a></div>';
   }
-
-  function courseCard(c){
-    return `<a href="${c.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px 16px;display:block;border:1px solid var(--line);border-left:4px solid ${c.color||'var(--brand)'}">
-      <div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:4px">${c.n} ↗</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.4">${c.d}</div>
-    </a>`;
-  }
-
   function vScholarships(){
-    const totalSch = NATIONAL_SCHOLARSHIPS.length + INTERNATIONAL_SCHOLARSHIPS.length + UNIVERSITY_SCHOLARSHIPS.length + TRUST_SCHOLARSHIPS.length + MORE_SCHOLARSHIPS.length;
-    const totalCourses = FREE_MNC_COURSES.reduce((s,c)=>s+c.courses.length,0);
-    let h=`<div class="hero"><h1>🎓 Scholarships + Free MNC Courses</h1>
-    <p><b>${totalSch} scholarship schemes</b> (National + International + University + Trust/Foundation) + <b>${totalCourses} free skill-based courses</b> from Google, Microsoft, IBM, Amazon, Meta, Cisco, Intel, NVIDIA, SAP, Oracle, Salesforce, and more.</p></div>`;
-    h+=`<div class="alert alert-info" style="margin-top:14px"><b>💡 Apply early!</b> Most scholarships open Aug-Oct. Keep Aadhaar, income cert, mark sheets ready.</div>`;
-
-    // Sections as accordion
-    const sections=[
-      ["🇮🇳 National Scholarships (India)",NATIONAL_SCHOLARSHIPS],
-      ["🌍 International Scholarships (Govt/Foundation)",INTERNATIONAL_SCHOLARSHIPS],
-      ["🏛️ University Scholarships (Worldwide)",UNIVERSITY_SCHOLARSHIPS],
-      ["🤝 Trust & Foundation Scholarships",TRUST_SCHOLARSHIPS],
-      ["➕ More Scholarships (Minority/State/Women/Special)",MORE_SCHOLARSHIPS]
+    const total = NATIONAL_SCHOLARSHIPS.length + INTERNATIONAL_SCHOLARSHIPS.length + TRUST_SCHOLARSHIPS.length;
+    const totalCourses = FREE_MNC_COURSES.reduce(function(s,c){return s+c.courses.length},0);
+    let h = '<div class="hero"><h1>Scholarships + Free MNC Courses</h1>' +
+      '<p><b>' + total + ' scholarship schemes</b> + <b>' + totalCourses + ' free courses</b> from Google, Microsoft, IBM, Amazon, Meta, Cisco.</p></div>';
+    var sections = [
+      ["National Scholarships (India)", NATIONAL_SCHOLARSHIPS],
+      ["International Scholarships", INTERNATIONAL_SCHOLARSHIPS],
+      ["Trust and Foundation Scholarships", TRUST_SCHOLARSHIPS]
     ];
-
     sections.forEach(function(arr){
-      h+=`<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">${arr[0]} (${arr[1].length})</h2>${arr[1].map(sc).join("")}</div>`;
+      h += '<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">' + arr[0] + ' (' + arr[1].length + ')</h2>' + arr[1].map(sc).join("") + '</div>';
     });
-
-    // Free MNC Courses
-    h+=`<div class="card" style="margin-top:14px;border-left:4px solid #10b981">
-      <h2 style="margin-bottom:4px">🎓 Free Skill-Based Courses by MNCs (World's Best)</h2>
-      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">${totalCourses} free courses from ${FREE_MNC_COURSES.length} top companies — all with industry-recognized certificates. Build job-ready skills at zero cost.</p>
-    </div>`;
-
+    h += '<div class="card" style="margin-top:14px;border-left:4px solid #10b981"><h2>Free Skill-Based Courses by MNCs (' + totalCourses + ')</h2></div>';
     FREE_MNC_COURSES.forEach(function(cat){
-      h+=`<div class="card" style="margin-top:14px;border-left:4px solid ${cat.color}">
-        <h3 style="margin-bottom:10px">${cat.icon} ${cat.cat} — ${cat.courses.length} Free Courses</h3>
-        <div class="grid g3" style="gap:10px">${cat.courses.map(courseCard).join("")}</div>
-      </div>`;
+      h += '<div class="card" style="margin-top:14px;border-left:4px solid ' + cat.color + '">' +
+        '<h3 style="margin-bottom:10px">' + cat.icon + ' ' + cat.cat + ' (' + cat.courses.length + ')</h3>' +
+        '<div class="grid g3" style="gap:10px">' + cat.courses.map(function(c){
+          return '<a href="' + c.u + '" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px;display:block;border:1px solid var(--line);border-left:4px solid ' + cat.color + '">' +
+            '<div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:4px">' + c.n + ' ↗</div>' +
+            '<div style="font-size:12px;color:var(--muted)">' + c.d + '</div></a>';
+        }).join("") + '</div></div>';
     });
-
-    h+=`<div class="card" style="margin-top:14px;border-left:4px solid #10b981">
-      <h2 style="margin-bottom:4px">🧰 Student Resources + Study Tools + Free Services</h2>
-      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Free tools and resources to help you study smarter — note-making apps, free books, practice sites, mental health support, and govt services.</p>
-    </div>
-    ${STUDENT_RESOURCES.map(function(cat){
-      return `<div class="card" style="margin-top:14px;border-left:4px solid ${cat.color}">
-        <h3 style="margin-bottom:10px">${cat.icon} ${cat.cat}</h3>
-        <div class="grid g3" style="gap:10px">${cat.items.map(resourceCard).join("")}</div>
-      </div>`;
-    }).join("")}
-
-    <div class="alert alert-info" style="margin-top:14px">
-      <b>📚 Documents Checklist for Scholarships:</b>
-      <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.7">
-        <li>Aadhaar card (mandatory for Indian govt scholarships)</li>
-        <li>Caste certificate (SC/ST/OBC schemes)</li>
-        <li>Income certificate (Tehsildar)</li>
-        <li>Previous academic mark sheets</li>
-        <li>Bank passbook (DBT-linked)</li>
-        <li>For international: TOEFL/IELTS + GRE/GMAT + SOP + 2-3 LORs</li>
-      </ul>
-    </div>`;
-
-    renderShell("scholarships",h);
+    renderShell("scholarships", h);
     bindHeader();
   }
-
-  
-  /* ===== NEW: MORE SCHOLARSHIPS (NGO + Community + State + Women) ===== */
-  const MORE_SCHOLARSHIPS=[
-    {n:"Post-Matric Scholarship for minorities (Govt of India)",cat:"Minority",intro:"For minority community students (Muslim, Christian, Sikh, Buddhist, Jain, Parsi) studying in Class 11 to PhD.",eligibility:"Minority students, income ≤ ₹2.5 lakh/yr, min 50% marks.",procedure:"1) Apply on scholarships.gov.in. 2) Upload minority + income cert. 3) Institution verifies.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹2,300-₹15,000/year"},
-    {n:"Begum Hazrat Mahal National Scholarship (Minority Girls)",cat:"Minority Girls",intro:"Maulana Azad Education Foundation scholarship for minority girl students Class 9-12.",eligibility:"Minority community girls, Class 9-12, income ≤ ₹2 lakh/yr.",procedure:"1) Apply on maef.org.in or scholarships.gov.in. 2) Upload minority + income cert.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹5,000 (Class 9-10) / ₹6,000 (Class 11-12)"},
-    {n:"Pre-Matric Scholarship for ST Students",cat:"Tribal",intro:"For ST students in Class 9-10 to reduce dropout rates.",eligibility:"ST students Class 9-10, income ≤ ₹2.5 lakh/yr.",procedure:"Apply on scholarships.gov.in.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹4,050-₹5,350/year"},
-    {n:"Post-Matric Scholarship for ST Students",cat:"Tribal",intro:"For ST students from Class 11 to PhD.",eligibility:"ST students, Class 11 to PhD, income ≤ ₹2.5 lakh/yr.",procedure:"Apply on scholarships.gov.in.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹1,600-₹10,000/year"},
-    {n:"Top Class Education Scholarship for SC/ST",cat:"SC/ST",intro:"For SC/ST students admitted to top-rated institutions (IIT, IIM, NIT, AIIMS, etc.).",eligibility:"SC/ST students in top institutions, income ≤ ₹4.5 lakh/yr.",procedure:"Apply on scholarships.gov.in after admission.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹1,50,000/year (tuition + living)"},
-    {n:"Scholarship for Differently-Abled Students (Govt)",cat:"Differently-Abled",intro:"National Overseas Scholarship + Pre-Matric + Post-Matric for PwD students.",eligibility:"40%+ disability certificate. Income varies by scheme.",procedure:"Apply on scholarships.gov.in with disability certificate.",link:"https://scholarships.gov.in/",deadline:"Aug-Oct",amount:"₹800-₹4,000/month"},
-    {n:"Swami Vivekananda Merit-Cum-Means (West Bengal)",cat:"State",intro:"West Bengal govt scholarship for UG/PG students from economically weaker sections.",eligibility:"WB domicile, UG/PG, income ≤ ₹2.5 lakh/yr, min 60% marks.",procedure:"Apply on svmcm.wbhed.gov.in.",link:"https://svmcm.wbhed.gov.in/",deadline:"Variable",amount:"₹12,000-₹60,000/year"},
-    {n:"UP Government Scholarship (Saksham)",cat:"State",intro:"UP government scholarship for UG/PG students from minority communities.",eligibility:"UP domicile, minority, income ≤ ₹2.5 lakh/yr.",procedure:"Apply on scholarship.up.gov.in.",link:"https://scholarship.up.gov.in/",deadline:"Variable",amount:"₹5,000-₹20,000/year"},
-    {n:"MP Scholarship Portal (Madhya Pradesh)",cat:"State",intro:"MP government scholarships for SC/ST/OBC/Minority students.",eligibility:"MP domicile, SC/ST/OBC/Minority, income-based.",procedure:"Apply on scholarshipportal.mp.nic.in.",link:"https://scholarshipportal.mp.nic.in/",deadline:"Variable",amount:"₹5,000-₹25,000/year"},
-    {n:"Karnataka ePASS Scholarship",cat:"State",intro:"Karnataka govt scholarships for SC/ST/OBC/Minority students.",eligibility:"KA domicile, SC/ST/OBC/Minority, income-based.",procedure:"Apply on karepass.cgg.gov.in.",link:"https://karepass.cgg.gov.in/",deadline:"Variable",amount:"₹5,000-₹20,000/year"},
-    {n:"Telangana ePASS Scholarship",cat:"State",intro:"Telangana govt scholarships for SC/ST/OBC/Minority/BC students.",eligibility:"TS domicile, SC/ST/BC/Minority, income-based.",procedure:"Apply on epass.cgg.gov.in.",link:"https://epass.cgg.gov.in/",deadline:"Variable",amount:"₹5,000-₹20,000/year"},
-    {n:"Andhra Pradesh Jnanabhumi Scholarship",cat:"State",intro:"AP government scholarships for SC/ST/OBC/Minority students.",eligibility:"AP domicile, SC/ST/BC/Minority, income-based.",procedure:"Apply on jnanabhumi.ap.gov.in.",link:"https://jnanabhumi.ap.gov.in/",deadline:"Variable",amount:"₹5,000-₹20,000/year"},
-    {n:"Women Scientist Scheme (WOS-A) — DST",cat:"Women",intro:"DST scheme for women scientists to pursue research in science.",eligibility:"Indian women with PhD, age 27-57, unemployed.",procedure:"Apply on online-wosa.gov.in.",link:"https://www.google.com/search?q=women+scientist+scheme+dst+apply",deadline:"Variable",amount:"₹55,000-₹65,000/month for 3 years"},
-    {n:"Pragati Scholarship for Girls (AICTE)",cat:"Women",intro:"AICTE scholarship for girl students in technical education — already listed.",eligibility:"Girl students, AICTE-approved, income ≤ ₹8 lakh/yr.",procedure:"Apply on aicte-india.org.",link:"https://www.google.com/search?q=aicte+pragati+scholarship+girls+apply",deadline:"Sep-Oct",amount:"₹50,000/year"},
-    {n:"CBSE UDAAN Scheme for Girls",cat:"Women",intro:"CBSE mentoring scheme for girl students to prepare for IIT/JEE.",eligibility:"Girl students in Class 11 with Science, CBSE, min 70% in Class 10.",procedure:"Apply on cbse.nic.in when announced.",link:"https://www.cbse.gov.in/",deadline:"Variable",amount:"Free mentoring + online resources + tablets"},
-    {n:"Santoor Women's Scholarship",cat:"Women",intro:"Wipro Consumer Care scholarship for girls from underprivileged backgrounds after Class 10.",eligibility:"Girl students from low-income families in AP, Telangana, Karnataka.",procedure:"Apply on santoor.in/scholarship.",link:"https://www.google.com/search?q=santoor+scholarship+apply",deadline:"Variable",amount:"₹24,000/year for 2 years"},
-    {n:"L'Oréal India For Young Women in Science",cat:"Women",intro:"L'Oréal scholarship for girls pursuing science in Class 12 / UG.",eligibility:"Girl students in Science stream, income ≤ ₹4 lakh/yr.",procedure:"Apply on lorealindia.com.",link:"https://www.google.com/search?q=loreal+india+scholarship+women+science+apply",deadline:"Variable",amount:"₹2,50,000/year"},
-    {n:"Google India Code to Learn Contest",cat:"Student Contest",intro:"Google contest for school students (Class 5-10) to learn coding + AI.",eligibility:"School students Class 5-10, free registration.",procedure:"Register on codetolearn.withgoogle.com.",link:"https://codetolearn.withgoogle.com/",deadline:"Variable",amount:"Tablets + Chromebooks + certificates"},
-    {n:"Vidyalakshmi Portal (Education Loans)",cat:"Education Loan",intro:"Single-window portal for education loans from 40+ banks. Apply online + compare interest rates.",eligibility:"Indian students admitted to recognized institutions in India/abroad.",procedure:"1) Register on vidyalakshmi.co.in. 2) Fill Common Education Loan Application Form. 3) Apply to multiple banks. 4) Track status.",link:"https://www.vidyalakshmi.co.in/",deadline:"Continuous",amount:"Up to ₹20 lakh (India) / ₹40 lakh (abroad)"},
-    {n:"PM CARES for Children Scheme",cat:"Special",intro:"PM CARES scholarship for children orphaned due to COVID-19. Covers education + health.",eligibility:"Children who lost both parents / single parent / legal guardian to COVID.",procedure:"Apply through district child protection officer.",link:"https://www.google.com/search?q=pm+cares+children+scheme+apply",deadline:"Continuous",amount:"Full education + ₹4,000/month stipend + health insurance"}
-  ];
-
-  /* ===== NEW: STUDENT RESOURCES + STUDY TOOLS ===== */
-  const STUDENT_RESOURCES=[
-    {cat:"Free Study Tools",icon:"🛠️",color:"#6366f1",items:[
-      {n:"Notion (Free for Students)",u:"https://www.notion.so/students",d:"Free Pro plan for students — notes, planner, database, templates"},
-      {n:"Google Keep (Free Notes)",u:"https://keep.google.com/",d:"Free quick notes app — color-coded, searchable, syncs across devices"},
-      {n:"Khan Academy (Free)",u:"https://www.khanacademy.org/",d:"Free courses in Maths, Science, Economics, History — video lessons + practice"},
-      {n:"Wolfram Alpha",u:"https://www.wolframalpha.com/",d:"Free computational search engine — solve maths, chemistry, physics problems"},
-      {n:"Grammarly (Free)",u:"https://www.grammarly.com/",d:"Free grammar checker + writing assistant for English"},
-      {n:"QuillBot (Free)",u:"https://quillbot.com/",d:"Free paraphrasing + summarizing tool for English writing"},
-      {n:"Anki (Free Flashcards)",u:"https://apps.ankiweb.net/",d:"Free spaced-repetition flashcards app — proven memory technique"},
-      {n:"MindMup (Free Mind Maps)",u:"https://www.mindmup.com/",d:"Free mind mapping tool — visualize concepts + relationships"}
-    ]},
-    {cat:"Free Books + PDFs",icon:"📚",color:"#10b981",items:[
-      {n:"NCERT Books (Free Download)",u:"https://ncert.nic.in/textbook.php",d:"All NCERT textbooks Class 1-12 — free PDF download in English/Hindi"},
-      {n:"Internet Archive (Free Books)",u:"https://archive.org/",d:"Millions of free books, PDFs, audiobooks — including competitive exam books"},
-      {n:"Project Gutenberg (Free eBooks)",u:"https://www.gutenberg.org/",d:"70,000+ free eBooks — classics, philosophy, history"},
-      {n:"LibreTexts (Free Textbooks)",u:"https://libretexts.org/",d:"Free open-access university textbooks — science, maths, engineering"},
-      {n:"Directory of Open Access Journals",u:"https://doaj.org/",d:"20,000+ free academic journals — research papers for UPSC/PhD"}
-    ]},
-    {cat:"Exam Prep + Practice",icon:"📝",color:"#f59e0b",items:[
-      {n:"IndiaBix (Free Aptitude)",u:"https://www.indiabix.com/",d:"Free aptitude, reasoning, verbal practice — 50,000+ questions with solutions"},
-      {n:"GeeksforGeeks (Free Coding)",u:"https://www.geeksforgeeks.org/",d:"Free coding interview prep — DSA, algorithms, competitive programming"},
-      {n:"HackerRank (Free Coding)",u:"https://www.hackerrank.com/",d:"Free coding practice + certifications — used by TCS, Infosys for hiring"},
-      {n:"Testbook (Free Tests)",u:"https://testbook.com/",d:"Free mock tests for SSC, Banking, Railway, UPSC — some free, some paid"},
-      {n:"Gradeup (BYJU'S Exam Prep)",u:"https://byjusexamprep.com/",d:"Free daily quizzes + exam pattern analysis for all competitive exams"},
-      {n:"Arihant Free PDFs",u:"https://www.google.com/search?q=arihant+free+pdf+competitive+exams",d:"Search for free Arihant study material PDFs online"}
-    ]},
-    {cat:"Career + Job Portals",icon:"💼",color:"#3b82f6",items:[
-      {n:"Naukri.com",u:"https://www.naukri.com/",d:"India's largest job portal — 50,000+ jobs daily"},
-      {n:"LinkedIn Jobs",u:"https://www.linkedin.com/jobs/",d:"Professional networking + job search + referrals"},
-      {n:"Indeed India",u:"https://www.indeed.co.in/",d:"Global job aggregator with salary comparison"},
-      {n:"Glassdoor India",u:"https://www.glassdoor.co.in/",d:"Company reviews + salaries + interview questions + jobs"},
-      {n:"Internshala",u:"https://internshala.com/",d:"Internships + entry-level jobs + free training courses"},
-      {n:"WorkIndia",u:"https://www.workindia.in/",d:"Local jobs for freshers — walk-in interviews"},
-      {n:"National Career Service",u:"https://www.ncs.gov.in/",d:"Govt of India job portal — free registration + counselling"}
-    ]},
-    {cat:"Mental Health + Wellbeing",icon:"🧠",color:"#ec4899",items:[
-      {n:"Tele-MANAS (Free Mental Health)",u:"https://www.google.com/search?q=tele+manas+india+mental+health+helpline",d:"Govt of India free mental health helpline — call 14416 or 1-800-891-4416"},
-      {n:"Headspace (Free Basics)",u:"https://www.headspace.com/",d:"Free meditation + mindfulness basics — reduce exam stress"},
-      {n:"Calm (Free)",u:"https://www.calm.com/",d:"Free sleep stories + breathing exercises + relaxation techniques"},
-      {n:"iCall (Free Counselling)",u:"https://icallhelpline.org/",d:"Free email + phone counselling by TISS — for students facing stress"},
-      {n:"Vandrevala Foundation",u:"https://www.vandrevalafoundation.com/",d:"Free 24/7 mental health helpline — call 1860-2662-345"}
-    ]},
-    {cat:"Government Student Services",icon:"🏛️",color:"#8b5cf6",items:[
-      {n:"Digilocker (Digital Documents)",u:"https://www.digilocker.gov.in/",d:"Free digital locker for academic certificates, Aadhaar, driving licence"},
-      {n:"UMANG App",u:"https://web.umang.gov.in/",d:"Unified govt services app — exam results, scholarships, Aadhaar, PAN, EPFO"},
-      {n:"Aadhaar (UIDAI)",u:"https://uidai.gov.in/",d:"Aadhaar enrollment/update — required for most govt scholarships + exams"},
-      {n:"PAN Card (NSDL)",u:"https://www.onlineservices.nsdl.com/paam/endUserRegisterContact",d:"Apply for PAN card — required for banking + PSU jobs"},
-      {n:"Vidyalakshmi (Education Loans)",u:"https://www.vidyalakshmi.co.in/",d:"Single-window education loan application to 40+ banks"},
-      {n:"National Scholarship Portal",u:"https://scholarships.gov.in/",d:"All central govt scholarships — single application portal"}
-    ]}
-  ];
-
-  function resourceCard(c){
-    return `<a href="${c.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px 16px;display:block;border:1px solid var(--line);border-left:4px solid ${c.color||'var(--brand)'}">
-      <div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:4px">${c.n} ↗</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.4">${c.d}</div>
-    </a>`;
-  }
-
-
-return {vScholarships,NATIONAL_SCHOLARSHIPS,INTERNATIONAL_SCHOLARSHIPS,UNIVERSITY_SCHOLARSHIPS,TRUST_SCHOLARSHIPS,FREE_MNC_COURSES,MORE_SCHOLARSHIPS,STUDENT_RESOURCES};
+  return {vScholarships:vScholarships};
 })();
 
-/* ===== JOBS MODULE ===== */
 window._portalJobs=(function(){
-  const SECTIONS=[
-    {id:"govt",icon:"🏛️",title:"Government Jobs",items:[
+  var SECTIONS=[
+    {icon:"🏛️",title:"Government Jobs",items:[
       {n:"UPSC Official",u:"https://www.upsc.gov.in/",d:"Civil Services, CDS, NDA"},
-      {n:"SSC Online",u:"https://ssc.nic.in/",d:"CGL, CHSL, MTS, GD"},
+      {n:"SSC Online",u:"https://ssc.nic.in/",d:"CGL, CHSL, MTS"},
       {n:"IBPS",u:"https://www.ibps.in/",d:"Bank PO, Clerk, SO"},
-      {n:"SBI Careers",u:"https://sbi.co.in/web/careers",d:"SBI PO, Clerk"},
+      {n:"SBI Careers",u:"https://www.sbi.co.in/web/careers",d:"SBI PO, Clerk"},
       {n:"RBI Careers",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"RBI Grade B"},
       {n:"RRB (Railway)",u:"https://www.rrbcdg.gov.in/",d:"NTPC, Group D"},
       {n:"DRDO",u:"https://drdo.gov.in/careers",d:"Defence Research"},
@@ -16742,26 +16643,25 @@ window._portalJobs=(function(){
       {n:"Sarkari Result",u:"https://www.sarkariresult.com/",d:"Results + admit cards"},
       {n:"National Career Service",u:"https://www.ncs.gov.in/",d:"Govt job portal"}
     ]},
-    {id:"railway",icon:"🚆",title:"Railway Jobs",items:[
+    {icon:"🚆",title:"Railway Jobs",items:[
       {n:"RRB Chandigarh",u:"https://www.rrbcdg.gov.in/",d:"Northern Railway"},
       {n:"RRB Mumbai",u:"https://rrbmumbai.gov.in/",d:"Western Railway"},
       {n:"RRB Chennai",u:"https://rrbchennai.gov.in/",d:"Southern Railway"},
-      {n:"IRCTC Careers",u:"https://www.irctc.com/Careers.html",d:"Catering & Tourism"},
-      {n:"DMRC Careers",u:"https://www.delhimetrorail.com/careers",d:"Delhi Metro"},
-      {n:"Konkan Railway",u:"https://www.konkanrailway.com/careers/",d:"Konkan Railway"}
+      {n:"IRCTC",u:"https://www.irctc.com/Careers.html",d:"Catering & Tourism"},
+      {n:"DMRC",u:"https://www.delhimetrorail.com/careers",d:"Delhi Metro"}
     ]},
-    {id:"banking",icon:"🏦",title:"Banking Jobs",items:[
-      {n:"IBPS Official",u:"https://www.ibps.in/",d:"Bank PO, Clerk, SO"},
-      {n:"SBI Careers",u:"https://sbi.co.in/web/careers",d:"SBI PO, Clerk"},
-      {n:"RBI Careers",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"RBI Grade B"},
-      {n:"NABARD",u:"https://www.nabard.org/careers.asp",d:"Agri & Rural Bank"},
-      {n:"BankExamsToday",u:"https://www.bankexamstoday.com/",d:"Banking prep + alerts"},
-      {n:"Bankers Adda",u:"https://www.bankersadda.com/",d:"Banking prep + vacancies"},
+    {icon:"🏦",title:"Banking Jobs",items:[
+      {n:"IBPS",u:"https://www.ibps.in/",d:"Bank PO, Clerk"},
+      {n:"SBI Careers",u:"https://www.sbi.co.in/web/careers",d:"SBI PO, Clerk"},
+      {n:"RBI",u:"https://www.rbi.org.in/Scripts/Careers.aspx",d:"RBI Grade B"},
+      {n:"NABARD",u:"https://www.nabard.org/careers.asp",d:"Agri Bank"},
+      {n:"BankExamsToday",u:"https://www.bankexamstoday.com/",d:"Banking prep"},
+      {n:"Bankers Adda",u:"https://www.bankersadda.com/",d:"Banking vacancies"},
       {n:"HDFC Bank",u:"https://www.hdfcbank.com/personal/about-us/careers",d:"Private bank"},
       {n:"ICICI Bank",u:"https://www.icicibank.com/personal/career.page",d:"Private bank"}
     ]},
-    {id:"defence",icon:"🪖",title:"Defence & Police",items:[
-      {n:"Indian Army",u:"https://joinindianarmy.nic.in/",d:"Agniveer, SSC, TGC"},
+    {icon:"🪖",title:"Defence & Police",items:[
+      {n:"Indian Army",u:"https://joinindianarmy.nic.in/",d:"Agniveer, SSC"},
       {n:"Indian Navy",u:"https://www.joinindiannavy.gov.in/",d:"SSR, AA, Officer"},
       {n:"Indian Air Force",u:"https://afcat.cdac.in/",d:"AFCAT, Group X/Y"},
       {n:"Coast Guard",u:"https://joinindiancoastguard.cdac.in/",d:"Navik, Yantrik"},
@@ -16770,7 +16670,7 @@ window._portalJobs=(function(){
       {n:"CISF",u:"https://cisfrectt.in/",d:"Industrial Security"},
       {n:"MH Police",u:"https://www.mahapolice.gov.in/",d:"Maharashtra Police"}
     ]},
-    {id:"psu",icon:"🏭",title:"PSU Jobs",items:[
+    {icon:"🏭",title:"PSU Jobs",items:[
       {n:"NTPC",u:"https://www.ntpc.co.in/careers",d:"Thermal Power"},
       {n:"ONGC",u:"https://ongcindia.com/",d:"Oil & Natural Gas"},
       {n:"IOCL",u:"https://iocl.com/careers",d:"Indian Oil"},
@@ -16780,24 +16680,23 @@ window._portalJobs=(function(){
       {n:"Coal India",u:"https://www.coalindia.in/careers/",d:"Coal producer"},
       {n:"HAL",u:"https://hal-india.co.in/",d:"Aeronautics"}
     ]},
-    {id:"teaching",icon:"🎓",title:"Teaching Jobs",items:[
+    {icon:"🎓",title:"Teaching Jobs",items:[
       {n:"CTET",u:"https://ctet.nic.in/",d:"Central Teacher Eligibility"},
       {n:"UGC NET",u:"https://ugcnet.nta.nic.in/",d:"Asst Professor/JRF"},
       {n:"KVS",u:"https://kvsangathan.nic.in/recruitment",d:"Kendriya Vidyalaya"},
       {n:"NVS",u:"https://navodaya.gov.in/nvs/recruitment",d:"Navodaya Vidyalaya"},
-      {n:"DSSSB",u:"https://dsssb.delhi.gov.in/",d:"Delhi Subordinate"},
       {n:"NCERT",u:"https://ncert.nic.in/recruitment.php",d:"NCERT recruitment"}
     ]},
-    {id:"private",icon:"🏢",title:"Private Sector Jobs",items:[
-      {n:"Naukri.com",u:"https://www.naukri.com/",d:"India's #1 portal"},
+    {icon:"🏢",title:"Private Sector",items:[
+      {n:"Naukri.com",u:"https://www.naukri.com/",d:"India #1 portal"},
       {n:"LinkedIn Jobs",u:"https://www.linkedin.com/jobs/",d:"Network + referrals"},
       {n:"Indeed India",u:"https://www.indeed.co.in/",d:"Global aggregator"},
       {n:"Glassdoor India",u:"https://www.glassdoor.co.in/",d:"Reviews + jobs"},
       {n:"Freshersworld",u:"https://www.freshersworld.com/",d:"Fresher-focused"},
       {n:"Internshala",u:"https://internshala.com/",d:"Internships + fresher"}
     ]},
-    {id:"it",icon:"💻",title:"IT Companies",items:[
-      {n:"TCS Careers",u:"https://www.tcs.com/careers",d:"Tata Consultancy"},
+    {icon:"💻",title:"IT Companies",items:[
+      {n:"TCS",u:"https://www.tcs.com/careers",d:"Tata Consultancy"},
       {n:"Infosys",u:"https://www.infosys.com/careers/",d:"Infosys"},
       {n:"Wipro",u:"https://careers.wipro.com/",d:"Wipro"},
       {n:"Accenture",u:"https://www.accenture.com/in-en/careers",d:"Accenture"},
@@ -16806,27 +16705,26 @@ window._portalJobs=(function(){
       {n:"Amazon India",u:"https://www.amazon.jobs/",d:"Amazon"},
       {n:"Flipkart",u:"https://www.flipkartcareers.com/",d:"Flipkart"}
     ]},
-    {id:"international",icon:"🌍",title:"International Jobs",items:[
+    {icon:"🌍",title:"International Jobs",items:[
       {n:"UN Careers",u:"https://careers.un.org/",d:"United Nations"},
       {n:"UNDP",u:"https://www.undp.org/careers",d:"Development Programme"},
-      {n:"UNICEF",u:"https://www.unicef.org/careers",d:"Children's Fund"},
       {n:"WHO",u:"https://www.who.int/careers",d:"World Health Org"},
       {n:"World Bank",u:"https://www.worldbank.org/en/about/careers",d:"World Bank"},
       {n:"IMF",u:"https://www.imf.org/en/About/Careers/recruitment",d:"Monetary Fund"},
       {n:"UN Volunteers",u:"https://www.unv.org/",d:"Volunteers programme"},
       {n:"DevNetJobs",u:"https://www.devnetjobs.org/",d:"Development jobs"}
     ]},
-    {id:"exam-calendar",icon:"📅",title:"Exam Calendar",items:[
+    {icon:"📅",title:"Exam Calendar",items:[
       {n:"UPSC Prelims",u:"https://upsc.gov.in/",d:"May-Jun"},
       {n:"SSC CGL",u:"https://ssc.nic.in/",d:"Jul"},
       {n:"IBPS PO",u:"https://www.ibps.in/",d:"Oct"},
       {n:"IBPS Clerk",u:"https://www.ibps.in/",d:"Aug-Sep"},
-      {n:"SBI PO",u:"https://sbi.co.in/web/careers",d:"Jun-Jul"},
+      {n:"SBI PO",u:"https://www.sbi.co.in/web/careers",d:"Jun-Jul"},
       {n:"RRB NTPC",u:"https://www.rrbcdg.gov.in/",d:"Dec-Feb"},
       {n:"MPSC Prelims",u:"https://mpsc.gov.in/",d:"Apr-May"},
-      {n:"CTET",u:"https://ctet.nic.in/",d:"Dec & Jul"}
+      {n:"CTET",u:"https://ctet.nic.in/",d:"Dec and Jul"}
     ]},
-    {id:"resources",icon:"📚",title:"Career Resources",items:[
+    {icon:"📚",title:"Career Resources",items:[
       {n:"SWAYAM",u:"https://swayam.gov.in/",d:"Govt MOOCs — free"},
       {n:"NPTEL",u:"https://nptel.ac.in/",d:"IIT/IISc — free"},
       {n:"AICTE Internship",u:"https://internship.aicte-india.org/",d:"Internships"},
@@ -16837,21 +16735,21 @@ window._portalJobs=(function(){
     ]}
   ];
   function vJobs(){
-    const total=SECTIONS.reduce((s,x)=>s+x.items.length,0);
-    let h=`<div class="hero"><h1>💼 Jobs & Careers — Auto Job Finder</h1>
-    <p><b>${total} verified links</b> across <b>${SECTIONS.length} categories</b>.</p></div>`;
-    h+=`<div class="alert alert-info" style="margin-top:14px"><b>💡 Visit 3-4 portals daily. Apply within 7 days of notification.</b></div>`;
+    var total = SECTIONS.reduce(function(s,x){return s+x.items.length},0);
+    var h = '<div class="hero"><h1>Jobs and Careers</h1><p><b>' + total + ' verified links</b> across <b>' + SECTIONS.length + ' categories</b>.</p></div>';
+    h += '<div class="alert alert-info" style="margin-top:14px"><b>Visit 3-4 portals daily. Apply within 7 days of notification.</b></div>';
     SECTIONS.forEach(function(s){
-      h+=`<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">${s.icon} ${s.title} (${s.items.length})</h2>
-      <div class="grid g3" style="gap:10px">${s.items.map(function(it){
-        return `<a href="${it.u}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px;display:block;border:1px solid var(--line);border-left:4px solid var(--brand)">
-          <div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:3px">${it.n} ↗</div>
-          <div style="font-size:12px;color:var(--muted)">${it.d}</div></a>`;
-      }).join("")}</div></div>`;
+      h += '<div class="card" style="margin-top:14px"><h2 style="margin-bottom:10px">' + s.icon + ' ' + s.title + ' (' + s.items.length + ')</h2>' +
+        '<div class="grid g3" style="gap:10px">' + s.items.map(function(it){
+          return '<a href="' + it.u + '" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:14px;display:block;border:1px solid var(--line);border-left:4px solid var(--brand)">' +
+            '<div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:3px">' + it.n + ' ↗</div>' +
+            '<div style="font-size:12px;color:var(--muted)">' + it.d + '</div></a>';
+        }).join("") + '</div></div>';
     });
-    renderShell("jobs",h);bindHeader();
+    renderShell("jobs", h);
+    bindHeader();
   }
-  return {vJobs,SECTIONS};
+  return {vJobs:vJobs};
 })();
 
 </script>
