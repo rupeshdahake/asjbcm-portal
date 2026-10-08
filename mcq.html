@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASJBCM MCQ Bank — 19 Subjects · 163 Chapters · 10517 MCQs</title>
+<style>
+:root{
+  --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
+  --brand:#4a6fdc;--brand2:#7b9bf0;--brandsoft:#eef3fe;
+  --green:#31b573;--greensoft:#e7f8ef;--red:#e35d5d;--redsoft:#fdeaea;
+  --amber:#f0a63a;--shadow:0 6px 24px rgba(90,110,160,.10);
+  --r:16px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans','Noto Sans Devanagari',Roboto,Arial,sans-serif;
+  background:linear-gradient(160deg,#f4f8fd 0%,#eef3fb 45%,#f6f2fa 100%);color:var(--ink);min-height:100vh;
+  font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#c3d0e6;border-radius:8px;border:2px solid #eef2f9}
+::-webkit-scrollbar-track{background:#eef2f9}
+
+header.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#4a6fdc,#7b9bf0);color:#fff;
+  box-shadow:0 4px 14px rgba(74,111,220,.35)}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap}
+.hbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;
+  padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;display:inline-block}
+.hbtn:hover{background:rgba(255,255,255,.28)}
+.hspacer{flex:1}
+.htitle{font-weight:800;font-size:14px;letter-spacing:.3px}
+.searchbox{background:rgba(255,255,255,.95);border:none;border-radius:12px;padding:8px 14px;font-size:13px;
+  width:min(280px,42vw);font-family:inherit;color:#2b3a55}
+
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+main{padding:20px 0 90px}
+.hero{position:relative;overflow:hidden;border-radius:24px;color:#fff;padding:34px 28px;
+  background:linear-gradient(120deg,#4a6fdc 0%,#7b5fe8 55%,#2fb7a5 100%);box-shadow:0 14px 34px rgba(74,111,220,.35)}
+.hero h1{font-size:clamp(24px,4.2vw,40px);font-weight:800;line-height:1.15}
+.hero .sub{font-size:15px;opacity:.92;margin-top:6px;font-weight:700}
+.hero p.desc{margin-top:12px;max-width:780px;font-size:14.5px;line-height:1.7;opacity:.95}
+.badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;backdrop-filter:blur(4px)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:520px;margin-top:22px}
+.stat{background:rgba(255,255,255,.15);border-radius:18px;padding:12px;text-align:center;backdrop-filter:blur(4px)}
+.stat .v{font-size:23px;font-weight:800}
+.stat .l{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+
+h2.sec{font-size:21px;font-weight:800;margin:26px 0 4px;color:#22345c}
+p.secdesc{color:#64748b;font-size:13.5px;margin-bottom:14px}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{border-radius:20px;background:#fff;border:1px solid #e3eaf4;padding:16px;cursor:pointer;transition:.18s;
+  box-shadow:0 2px 8px rgba(15,23,42,.05);position:relative;overflow:hidden}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(74,111,220,.18);border-color:#c9d8f7}
+.band{position:absolute;left:0;top:0;bottom:0;width:6px}
+.card h3{font-size:15.5px;font-weight:800;color:#22345c;margin-bottom:3px;padding-left:8px}
+.card .tg{color:#64748b;font-size:12.5px;padding-left:8px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-left:8px}
+.chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800}
+.chip.soft{background:#eef3fe;color:#4a6fdc}
+.pbar{height:6px;border-radius:999px;background:#e8eefb;margin-top:12px;margin-left:8px;overflow:hidden}
+.pbar>div{height:100%;border-radius:999px;background:linear-gradient(90deg,#31b573,#4ad694)}
+
+.crumb{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.crumb button{background:#fff;border:1px solid #e3eaf4;border-radius:999px;padding:6px 13px;font-weight:700;
+  font-size:12.5px;color:#5b6b85;cursor:pointer;font-family:inherit}
+.crumb button:hover{border-color:#4a6fdc;color:#4a6fdc}
+.crumb b{font-size:12.5px;color:#4a6fdc}
+
+.chhead{border-radius:20px;color:#fff;padding:24px;margin-bottom:6px;box-shadow:var(--shadow)}
+.chhead h1{font-size:clamp(20px,3.4vw,30px);font-weight:800}
+
+.scorebar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #e3eaf4;
+  border-radius:14px;padding:10px 14px;margin:14px 0;flex-wrap:wrap;font-size:13.5px;font-weight:700;color:#334155;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.scorebar .ok{color:#31b573}
+.qcard{background:#fff;border:1px solid #e3eaf4;border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.qnum{color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:4px 11px}
+.pyq{background:#fee2e2;color:#b91c1c;font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 9px}
+.qtext{font-weight:700;font-size:15px;color:#1e293b;line-height:1.6;margin-bottom:12px}
+.opts{display:grid;gap:8px}
+@media(min-width:700px){.opts{grid-template-columns:1fr 1fr}}
+.opt{display:flex;align-items:flex-start;gap:9px;background:#f8fafc;border:1.5px solid #e3eaf4;border-radius:12px;
+  padding:10px 13px;cursor:pointer;font-size:14px;transition:.15s;text-align:left;font-family:inherit;color:#334155;width:100%}
+.opt:hover{border-color:#9db4f0;background:#f2f6ff}
+.opt .let{flex:none;width:24px;height:24px;border-radius:50%;background:#e8eefb;color:#4a6fdc;font-weight:800;font-size:12px;
+  display:flex;align-items:center;justify-content:center;margin-top:1px}
+.opt.correct{background:var(--greensoft);border-color:var(--green)}
+.opt.correct .let{background:var(--green);color:#fff}
+.opt.wrong{background:var(--redsoft);border-color:var(--red)}
+.opt.wrong .let{background:var(--red);color:#fff}
+.opt.dim{opacity:.62;cursor:default}
+.opt:disabled{cursor:default}
+.expl{margin-top:12px;background:#f0f7ff;border:1px solid #d7e6fb;border-left:4px solid #4a6fdc;border-radius:10px;
+  padding:11px 13px;font-size:13.5px;color:#33475e;line-height:1.65}
+.expl b{color:#22345c}
+.loadmore{display:block;margin:6px auto 0;background:linear-gradient(135deg,#4a6fdc,#7b9bf0);color:#fff;border:none;
+  border-radius:999px;padding:11px 26px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(74,111,220,.35)}
+.loadmore:hover{filter:brightness(1.07)}
+
+.qqprog{background:#fff;border:1px solid #e3eaf4;border-radius:14px;padding:12px 16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.qqprog .bar{height:8px;border-radius:999px;background:#e8eefb;overflow:hidden;margin-top:9px}
+.qqprog .bar>div{height:100%;background:linear-gradient(90deg,#4a6fdc,#7b9bf0);transition:width .3s}
+.bigscore{text-align:center;background:#fff;border:1px solid #e3eaf4;border-radius:22px;padding:34px 22px;box-shadow:var(--shadow)}
+.bigscore .pct{font-size:52px;font-weight:800;background:linear-gradient(120deg,#4a6fdc,#2fb7a5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rev{background:#fff;border:1px solid #e3eaf4;border-radius:var(--r);padding:16px;margin-bottom:12px}
+.rev .tag{font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;margin-right:6px}
+.tag.bad{background:var(--redsoft);color:#b91c1c}
+.tag.good{background:var(--greensoft);color:#15803d}
+.errbox{background:#fff;border:1px solid #f1c9c9;border-left:5px solid #e35d5d;border-radius:14px;padding:18px;margin:20px 0;color:#7f2b2b;line-height:1.7}
+footer.bot{background:#fff;border-top:1px solid #e3eaf4;padding:22px 16px;text-align:center;color:#64748b;font-size:12.5px;line-height:1.8}
+footer.bot b{color:#334155}
+@media(max-width:640px){
+  .hero{padding:24px 18px}
+  header.top .wrap{padding:8px 10px}
+  .searchbox{width:100%;order:5}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ============ ASJBCM MCQ Bank — loads 10000.json ============ */
+var DATA=null, PAGE=20, page=0;
+var answers={};          /* chapter practice: "si_ci" -> {qi: chosenOption} */
+var qq=null;             /* quick quiz session */
+var EMOJI={english:"📘",quant:"🔢",reasoning:"🧩","current-affairs":"📰",science:"🔬",polity:"🏛️",history:"🏺",geography:"🌍",computer:"💻",banking:"🏦",gk:"🌐",marathi:"📕",mba:"🎓",mp2:"📝",mpi:"🎤",ibp:"💳",cdp:"👶",ta:"🍎",mpm:"📔"};
+var GRADS=["linear-gradient(135deg,#4a6fdc,#7b9bf0)","linear-gradient(135deg,#2fb7a5,#4ad6c0)","linear-gradient(135deg,#8b6fe8,#b39df2)","linear-gradient(135deg,#e5618f,#f090b4)","linear-gradient(135deg,#f0a63a,#f6c470)","linear-gradient(135deg,#31b573,#5fd49a)","linear-gradient(135deg,#e35d5d,#ef8f8f)","linear-gradient(135deg,#38a2d8,#6cc3ec)"];
+function G(i){return GRADS[i%GRADS.length]}
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;")}
+function emoji(s){return EMOJI[s.subject]||"📚"}
+function LET(i){return "ABCD"[i]||String(i+1)}
+function totalMcqs(){return DATA.subjects.reduce(function(n,s){return n+s.chapters.reduce(function(m,c){return m+c.mcqs.length},0)},0)}
+
+/* ---------- progress (localStorage) ---------- */
+var PKEY="asjbcm_mcq_v1";
+function loadProg(){try{answers=JSON.parse(localStorage.getItem(PKEY)||"{}")}catch(e){answers={}}}
+function saveProg(){try{localStorage.setItem(PKEY,JSON.stringify(answers))}catch(e){}}
+function chapStats(si,ci){var st=answers[si+"_"+ci]||{},a=Object.keys(st).length,c=0;for(var k in st){if(+st[k]===DATA.subjects[si].chapters[ci].mcqs[+k].answer)c++}return{a:a,c:c}}
+function subjProg(si){var s=DATA.subjects[si],a=0,c=0,tot=0;s.chapters.forEach(function(ch,ci){var st=chapStats(si,ci);a+=st.a;c+=st.c;tot+=ch.mcqs.length});return{a:a,c:c,tot:tot}}
+
+/* ---------- header ---------- */
+function header(title){
+  return '<header class="top"><div class="wrap">'
+    +'<a class="hbtn" href="index.html" target="_top">🏠 Portal</a>'
+    +'<a class="hbtn" href="book.html" target="_top">📚 Book</a>'
+    +'<span class="htitle">🧠 MCQ Bank</span>'
+    +(title?'<b style="font-size:13px;opacity:.95">'+esc(title)+'</b>':'')
+    +'<span class="hspacer"></span><input class="searchbox" id="qsearch" placeholder="🔍 Search chapters…" oninput="render()"></div></header>';
+}
+
+/* ---------- home ---------- */
+function matchChapters(term){
+  if(!term)return null;
+  var t=term.toLowerCase(),out=[];
+  DATA.subjects.forEach(function(s,si){s.chapters.forEach(function(c,ci){
+    if((c.title+" "+s.name).toLowerCase().indexOf(t)>=0)out.push({si:si,ci:ci});
+  })});
+  return out;
+}
+function renderHome(){
+  var term=($("#qsearch")||{}).value?$("#qsearch").value.trim():"";
+  var matches=matchChapters(term);
+  var h='<div class="wrap">';
+  h+='<div class="hero"><span class="badge">🧠 Question Bank Practice · प्रश्न सराव</span>';
+  h+='<h1>MCQ Bank — Practice Engine</h1><div class="sub">Adarsha Science J.B.Arts &amp; Birla Commerce Mahavidyalaya, Dhamangaon Rly.</div>';
+  h+='<p class="desc">'+DATA.subjects.length+' subjects · '+DATA.subjects.reduce(function(n,s){return n+s.chapters.length},0)+' chapters · '+totalMcqs()+' MCQs with instant answers, explanations &amp; previous-year tags. Your progress is saved on this device.</p>';
+  h+='<div class="stats"><div class="stat"><div class="v">🗂️ '+DATA.subjects.length+'</div><div class="l">Subjects</div></div><div class="stat"><div class="v">📖 '+DATA.subjects.reduce(function(n,s){return n+s.chapters.length},0)+'</div><div class="l">Chapters</div></div><div class="stat"><div class="v">❓ '+totalMcqs()+'</div><div class="l">MCQs</div></div></div></div>';
+  h+='<h2 class="sec">'+(matches?"🔍 Search results ("+matches.length+")":"🗂️ Subjects — tap to practice")+'</h2>';
+  h+='<p class="secdesc">'+(matches?"":"Choose a subject to open its chapters, or practice a random quick quiz")+'</p>';
+  if(matches){
+    h+=matches.length?'<div class="grid">'+matches.map(function(m){
+      var s=DATA.subjects[m.si],c=s.chapters[m.ci],st=chapStats(m.si,m.ci);
+      return '<div class="card" onclick="go(\'#\/s/'+m.si+'\/c/'+m.ci+'\')"><div class="band" style="background:'+G(m.si)+'"></div><h3>'+emoji(s)+' '+esc(c.title)+'</h3><div class="tg">'+esc(s.name)+' · ✅ '+st.c+'/'+c.mcqs.length+' correct</div><div class="meta"><span class="chip soft">❓ '+c.mcqs.length+' MCQs</span></div></div>';
+    }).join("")+'</div>':'<p class="secdesc">No chapters matched “'+esc(term)+'”.</p>';
+  } else {
+    h+='<div class="grid">'+DATA.subjects.map(function(s,si){
+      var p=subjProg(si),pct=p.tot?Math.round(p.a/p.tot*100):0;
+      return '<div class="card" onclick="go(\'#\/s/'+si+'\')"><div class="band" style="background:'+G(si)+'"></div>'
+        +'<h3>'+emoji(s)+' '+esc(s.name)+'</h3><div class="tg">✅ '+p.c+' correct · ✍️ '+p.a+'/'+p.tot+' attempted</div>'
+        +'<div class="meta"><span class="chip soft">📖 '+s.chapters.length+' chapters</span><span class="chip soft">❓ '+p.tot+' MCQs</span></div>'
+        +'<div class="pbar"><div style="width:'+pct+'%"></div></div></div>';
+    }).join("")+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+/* ---------- subject ---------- */
+function renderSubject(si){
+  var s=DATA.subjects[si],p=subjProg(si);
+  var h='<div class="wrap"><div class="crumb"><button onclick="go(\'#home\')">🏠 Home</button><span style="color:#94a3b8;font-weight:700">›</span><b>'+emoji(s)+' '+esc(s.name)+'</b></div>';
+  h+='<div class="chhead" style="background:'+G(si)+'"><h1>'+emoji(s)+' '+esc(s.name)+'</h1><p style="font-size:13.5px;margin-top:8px;opacity:.93">'+s.chapters.length+' chapters · '+p.tot+' MCQs · ✅ '+p.c+' correct · ✍️ '+p.a+' attempted</p></div>';
+  h+='<div style="margin:14px 0"><button class="loadmore" onclick="startQQ('+si+')">🎲 Quick Quiz — 20 random questions from this subject</button></div>';
+  h+='<h2 class="sec">📑 Chapters — tap to practice</h2><div class="grid">';
+  h+=s.chapters.map(function(c,ci){
+    var st=chapStats(si,ci),pct=c.mcqs.length?Math.round(st.a/c.mcqs.length*100):0;
+    return '<div class="card" onclick="go(\'#\/s/'+si+'\/c/'+ci+'\')"><div class="band" style="background:'+G(si)+'"></div>'
+      +'<h3>'+esc(c.title)+'</h3><div class="tg">✅ '+st.c+' correct · ✍️ '+st.a+' answered</div>'
+      +'<div class="meta"><span class="chip soft">❓ '+c.mcqs.length+' MCQs</span></div>'
+      +'<div class="pbar"><div style="width:'+pct+'%"></div></div></div>';
+  }).join("");
+  h+='</div></div>';
+  return h;
+}
+
+/* ---------- chapter practice ---------- */
+function optionHtml(si,ci,qi,oi,m,sel){
+  var rev=sel!==undefined,cls="opt",dis=rev?" disabled":"";
+  if(rev){if(oi===m.answer)cls+=" correct";else if(sel===oi)cls+=" wrong";else cls+=" dim";}
+  return '<button class="'+cls+'"'+dis+' onclick="pick('+si+','+ci+','+qi+','+oi+')"><span class="let">'+LET(oi)+'</span><span>'+esc(m.options[oi])+'</span></button>';
+}
+function quizHtml(si,ci){
+  var s=DATA.subjects[si],c=s.chapters[ci],key=si+"_"+ci,st=answers[key]||{};
+  var answered=Object.keys(st).length,correct=0;
+  for(var k in st){if(+st[k]===c.mcqs[+k].answer)correct++}
+  page=Math.min(page,Math.floor((c.mcqs.length-1)/PAGE));
+  var end=Math.min((page+1)*PAGE,c.mcqs.length);
+  var h='<div class="scorebar"><span>📊 Score: <span class="ok">'+correct+' correct</span> / '+answered+' answered of '+c.mcqs.length+'</span>'
+    +'<button class="hbtn" style="background:#f1f5f9;color:#475569;border-color:#e2e8f0" onclick="resetQuiz('+si+','+ci+')">↺ Reset Quiz</button></div>';
+  for(var qi=0;qi<end;qi++){
+    var m=c.mcqs[qi],sel=st[qi];
+    h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:'+G(si)+'">Q'+(qi+1)+'</span>'
+      +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
+      +'<div class="qtext">'+esc(m.q)+'</div><div class="opts">';
+    for(var oi=0;oi<m.options.length;oi++)h+=optionHtml(si,ci,qi,oi,m,sel);
+    h+='</div>';
+    if(sel!==undefined)h+='<div class="expl"><b>'+(sel===m.answer?"✅ Correct!":"❌ Incorrect — answer is "+LET(m.answer)+".")+'</b> '+esc(m.explanation||"")+'</div>';
+    h+='</div>';
+  }
+  if(end<c.mcqs.length)h+='<button class="loadmore" onclick="loadMore()">⬇️ Load '+(Math.min(PAGE,c.mcqs.length-end))+' more questions ('+(c.mcqs.length-end)+' left)</button>';
+  return h;
+}
+function renderChapter(si,ci){
+  var s=DATA.subjects[si],c=s.chapters[ci];
+  var h='<div class="wrap"><div class="crumb"><button onclick="go(\'#home\')">🏠 Home</button><span style="color:#94a3b8;font-weight:700">›</span>'
+    +'<button onclick="go(\'#\/s/'+si+'\')">'+emoji(s)+' '+esc(s.name)+'</button><span style="color:#94a3b8;font-weight:700">›</span><b>'+esc(c.title)+'</b></div>';
+  h+='<div class="chhead" style="background:'+G(si)+'"><h1>✍️ '+esc(c.title)+'</h1><p style="font-size:13.5px;margin-top:8px;opacity:.93">'+esc(s.name)+' · '+c.mcqs.length+' practice MCQs</p></div>';
+  h+='<div id="quizpanel"><h2 class="sec">✍️ Practice MCQs ('+c.mcqs.length+')</h2>'+quizHtml(si,ci)+'</div></div>';
+  return h;
+}
+function pick(si,ci,qi,oi){
+  var key=si+"_"+ci;
+  if(!answers[key])answers[key]={};
+  answers[key][qi]=oi;
+  saveProg();
+  var panel=$("#quizpanel");
+  if(panel)panel.innerHTML='<h2 class="sec">✍️ Practice MCQs ('+DATA.subjects[si].chapters[ci].mcqs.length+')</h2>'+quizHtml(si,ci);
+}
+function loadMore(){page++;rerenderChapter()}
+function resetQuiz(si,ci){answers[si+"_"+ci]={};page=0;saveProg();rerenderChapter()}
+function rerenderChapter(){if(cur&&cur.c!==null){var panel=$("#quizpanel");if(panel)panel.innerHTML='<h2 class="sec">✍️ Practice MCQs ('+DATA.subjects[cur.s].chapters[cur.c].mcqs.length+')</h2>'+quizHtml(cur.s,cur.c)}}
+
+/* ---------- quick quiz (20 random per subject) ---------- */
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function startQQ(si){
+  var pool=[];
+  DATA.subjects[si].chapters.forEach(function(c,ci){c.mcqs.forEach(function(m,qi){pool.push({m:m,ct:c.title,ci:ci,qi:qi})})});
+  shuffle(pool);
+  qq={si:si,qs:pool.slice(0,Math.min(20,pool.length)),i:0,sels:{},done:false};
+  go("#qq");
+}
+function renderQQ(){
+  var s=DATA.subjects[qq.si],n=qq.qs.length;
+  var h='<div class="wrap"><div class="crumb"><button onclick="go(\'#\/s/'+qq.si+'\')">← '+emoji(s)+' '+esc(s.name)+'</button><b>🎲 Quick Quiz</b></div>';
+  if(!qq.done){
+    var m=qq.qs[qq.i].m,sel=qq.sels[qq.i],rev=sel!==undefined;
+    h+='<div class="qqprog"><b>Question '+(qq.i+1)+' of '+n+'</b> · '+esc(qq.qs[qq.i].ct)+'<div class="bar"><div style="width:'+((qq.i+(rev?1:0))/n*100)+'%"></div></div></div>';
+    h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:'+G(qq.si)+'">Q'+(qq.i+1)+'</span>'
+      +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
+      +'<div class="qtext">'+esc(m.q)+'</div><div class="opts">';
+    for(var oi=0;oi<m.options.length;oi++){
+      var cls="opt",dis="";
+      if(rev){if(oi===m.answer)cls+=" correct";else if(sel===oi)cls+=" wrong";else cls+=" dim";dis=" disabled";}
+      h+='<button class="'+cls+'"'+dis+' onclick="pickQQ('+oi+')"><span class="let">'+LET(oi)+'</span><span>'+esc(m.options[oi])+'</span></button>';
+    }
+    h+='</div>';
+    if(rev)h+='<div class="expl"><b>'+(sel===m.answer?"✅ Correct!":"❌ Incorrect — answer is "+LET(m.answer)+".")+'</b> '+esc(m.explanation||"")+'</div>';
+    h+='</div>';
+    if(rev)h+=(qq.i+1<n)?'<button class="loadmore" onclick="nextQQ()">Next question →</button>':'<button class="loadmore" onclick="finishQQ()">🏁 See my result</button>';
+    h+='</div>';
+  } else {
+    var correct=0,wrong=[];
+    qq.qs.forEach(function(item,i){if(qq.sels[i]===item.m.answer)correct++;else wrong.push({i:i,item:item,sel:qq.sels[i]})});
+    var pct=Math.round(correct/n*100);
+    var msg=pct>=80?"🏆 Outstanding!":pct>=60?"💪 Good going!":pct>=40?"📚 Keep practicing!":"🔄 Revise and retry!";
+    h+='<div class="bigscore"><div style="font-size:15px;font-weight:800;color:#64748b;letter-spacing:1px">QUICK QUIZ RESULT</div>';
+    h+='<div class="pct">'+pct+'%</div><div style="font-weight:800;font-size:17px;color:#22345c">'+correct+' / '+n+' correct</div>';
+    h+='<div style="margin-top:6px;color:#64748b;font-weight:700">'+msg+'</div>';
+    h+='<div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">'
+      +'<button class="loadmore" onclick="startQQ('+qq.si+')">🔄 Retry new quiz</button>'
+      +'<button class="loadmore" style="background:#f1f5f9;color:#475569;box-shadow:none" onclick="go(\'#\/s/'+qq.si+'\')">📑 Chapters</button></div></div>';
+    if(wrong.length){
+      h+='<h2 class="sec">📝 Review — '+wrong.length+' to revisit</h2>';
+      wrong.forEach(function(w){
+        var m=w.item.m;
+        h+='<div class="rev"><span class="tag bad">❌ '+(w.sel!==undefined?"Your answer: "+LET(w.sel):"Skipped")+'</span><span class="tag good">✅ Correct: '+LET(m.answer)+'</span>';
+        h+='<div class="qtext" style="margin-top:9px">'+esc(m.q)+'</div>';
+        h+='<div style="font-size:13.5px;color:#33475e"><b>'+LET(m.answer)+'. '+esc(m.options[m.answer])+'</b></div>';
+        if(m.explanation)h+='<div class="expl">'+esc(m.explanation)+'</div>';
+        h+='</div>';
+      });
+    }
+    h+='</div>';
+  }
+  return h;
+}
+function pickQQ(oi){qq.sels[qq.i]=oi;rerenderQQ()}
+function nextQQ(){qq.i++;rerenderQQ()}
+function finishQQ(){qq.done=true;rerenderQQ()}
+function rerenderQQ(){$("#app").innerHTML=header("🎲 Quick Quiz")+renderQQ();window.scrollTo(0,0)}
+
+/* ---------- router ---------- */
+var cur=null;
+function parseHash(){
+  var h=location.hash||"#/";
+  var m;
+  if(h==="#/"||h==="#home"||h==="#"){cur=null;return}
+  if((m=h.match(/^#\/s\/(\d+)\/c\/(\d+)$/))){cur={s:+m[1],c:+m[2]};return}
+  if((m=h.match(/^#\/s\/(\d+)$/))){cur={s:+m[1],c:null};return}
+  cur=null;
+}
+function go(hash){location.hash=hash}
+function render(){
+  if(!DATA)return;
+  parseHash();
+  var term=null,html="";
+  var qs=$("#qsearch");if(qs)term=qs.value;
+  if(location.hash==="#qq"&&qq){$("#app").innerHTML=header("🎲 Quick Quiz")+renderQQ();return}
+  if(!cur){html=header("")+renderHome()}
+  else if(cur.c===null){var s=DATA.subjects[cur.s];html=header(s?s.name:"")+renderSubject(cur.s)}
+  else{var s2=DATA.subjects[cur.s],c=s2&&s2.chapters[cur.c];html=header(c?c.title:"")+renderChapter(cur.s,cur.c)}
+  html+='<footer class="bot">🧠 <b>ASJBCM MCQ Bank</b> — Adarsha Science J.B.Arts &amp; Birla Commerce Mahavidyalaya, Dhamangaon Rly.<br>'+DATA.subjects.length+' Subjects · '+DATA.subjects.reduce(function(n,s){return n+s.chapters.length},0)+' Chapters · '+totalMcqs()+' Practice MCQs · Progress saved on this device</footer>';
+  $("#app").innerHTML=html;
+  if(term!==null&&term!==""){var nb=$("#qsearch");if(nb){nb.value=term;nb.focus();var L=term.length;nb.setSelectionRange(L,L)}}
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",function(){page=0;render()});
+
+/* ---------- boot ---------- */
+loadProg();
+fetch("10000.json").then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(d){
+  DATA=d;render();
+}).catch(function(e){
+  $("#app").innerHTML='<header class="top"><div class="wrap"><span class="htitle">🧠 MCQ Bank</span></div></header>'
+    +'<main><div class="wrap"><div class="errbox"><b>⚠️ Could not load the question bank (10000.json).</b><br>'
+    +'Reason: '+esc(e.message)+'<br><br>'
+    +'If you opened this file directly from disk, please open it through the portal (<a href="index.html">index.html</a>) '
+    +'or via a local web server — e.g. run <code>python -m http.server</code> in this folder and visit '
+    +'<code>http://localhost:8000/mcq.html</code>. On the live website it loads automatically.</div></div></main>';
+});
+</script>
+</body>
+</html>

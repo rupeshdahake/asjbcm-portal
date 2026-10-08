@@ -32,6 +32,9 @@
 :root.dark ::-webkit-scrollbar-thumb{background:#475569;border-color:#1e293b}
 :root.dark ::-webkit-scrollbar-track{background:#1e293b}
 :root.dark .auth-card{background:rgba(30,41,59,.97)}
+/* Embedded full-height frames (Book / MCQ Bank) */
+.embed-frame{display:block;width:100%;height:calc(100vh - 76px)!important;border:none;background:var(--card)}
+@supports (height:100dvh){.embed-frame{height:calc(100dvh - 76px)!important}}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
@@ -11306,7 +11309,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["careerguide","🎓 Career"],["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["book","📚 Book"],["mcqbank","🧠 MCQ Bank"],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11322,6 +11325,8 @@ function headerHTML(active){
 }
 function renderShell(active,body){$("#app").innerHTML=headerHTML(active)+`<div class="wrap">${body}</div>`;bindHeader()}
 function renderShellFull(active,body){$("#app").innerHTML=headerHTML(active)+body;bindHeader()}
+function vBook(){$("#app").innerHTML=headerHTML("book")+`<iframe class="embed-frame" src="book.html" title="ASJBCM Exam Prep Book"></iframe>`;bindHeader()}
+function vMCQBank(){$("#app").innerHTML=headerHTML("mcqbank")+`<iframe class="embed-frame" src="mcq.html" title="ASJBCM MCQ Bank"></iframe>`;bindHeader()}
 function bindHeader(){
   document.querySelectorAll("[data-go]").forEach(a=>a.onclick=()=>{
     const v=a.dataset.go;
@@ -11359,7 +11364,7 @@ function go(view,arg,keep){
   try{
     if(view==="exam"){renderExam();return}
   }catch(e){console.error(e);toast("Render error: "+e.message)}
-  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
+  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,book:vBook,mcqbank:vMCQBank,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
     dailyquiz:()=>window._portalExtras&&window._portalExtras.dailyQuiz(),
     bookmarks:()=>window._portalExtras&&window._portalExtras.vBookmarks(),
     analytics:()=>{if(!window._portalExtras){go("dashboard");return}renderShell("",window._portalExtras.subjectProgressHTML())},
