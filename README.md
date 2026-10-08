@@ -6,7 +6,7 @@ Your complete exam preparation portal — main portal, exam prep book and a 10,5
 
 | File | Purpose |
 |------|---------|
-| `index.html` | **Main portal** (login, dashboard, daily quiz, analytics, mock tests, admin panel…). Now includes **📚 Book** and **🧠 MCQ Bank** in the top navigation. |
+| `index.html` | **Main portal** (login, dashboard, daily quiz, analytics, mock tests, admin panel…). The **Dashboard** shows the **Exam Prep Book** directly (no separate Book tab needed); the original subject pages live under the **📖 Other Subjects** tab; **🧠 MCQ Bank** sits right next to Dashboard in the top navigation. |
 | `book.html` | Complete Exam Prep Book — 19 subjects, 163 chapters, bilingual notes + practice MCQs. Works fully offline. |
 | `mcq.html` | MCQ Bank practice engine — browse subjects/chapters, instant answer feedback, explanations, PYQ tags, random 20-question Quick Quiz, progress saved per device. |
 | `10000.json` | The question bank data (10,517 MCQs across 19 subjects) — loaded by `mcq.html`. |
@@ -74,11 +74,12 @@ git push
 
 ```
 index.html  (main portal)
-   ├── nav "📚 Book"      → book.html   (iframe view inside the portal)
-   │        └── "🏠 Portal" button → back to index.html
-   └── nav "🧠 MCQ Bank"  → mcq.html    (iframe view inside the portal)
-            ├── loads 10000.json (question data)
-            └── "🏠 Portal" / "📚 Book" buttons in its header
+   ├── nav "Dashboard"        → book.html shown inside the portal (landing view)
+   ├── nav "🧠 MCQ Bank"      → mcq.html    (iframe view inside the portal)
+   │        ├── loads 10000.json (question data)
+   │        └── "🏠 Portal" / "📚 Book" buttons in its header
+   └── nav "📖 Other Subjects" → the portal's own subject pages
+            └── breadcrumbs: Other Subjects › Subject › Chapter
 ```
 
 - Both book and MCQ bank also work as **standalone pages** (shareable direct links: `/book.html`, `/mcq.html`).

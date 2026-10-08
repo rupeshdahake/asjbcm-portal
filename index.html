@@ -11309,7 +11309,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["careerguide","🎓 Career"],["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["book","📚 Book"],["mcqbank","🧠 MCQ Bank"],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["mcqbank","🧠 MCQ Bank"],["othersubjects","📖 Other Subjects"],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11327,6 +11327,7 @@ function renderShell(active,body){$("#app").innerHTML=headerHTML(active)+`<div c
 function renderShellFull(active,body){$("#app").innerHTML=headerHTML(active)+body;bindHeader()}
 function vBook(){$("#app").innerHTML=headerHTML("book")+`<iframe class="embed-frame" src="book.html" title="ASJBCM Exam Prep Book"></iframe>`;bindHeader()}
 function vMCQBank(){$("#app").innerHTML=headerHTML("mcqbank")+`<iframe class="embed-frame" src="mcq.html" title="ASJBCM MCQ Bank"></iframe>`;bindHeader()}
+function vDashboard(){$("#app").innerHTML=headerHTML("dashboard")+`<iframe class="embed-frame" src="book.html" title="ASJBCM Exam Prep Book"></iframe>`;bindHeader()}
 function bindHeader(){
   document.querySelectorAll("[data-go]").forEach(a=>a.onclick=()=>{
     const v=a.dataset.go;
@@ -11364,7 +11365,7 @@ function go(view,arg,keep){
   try{
     if(view==="exam"){renderExam();return}
   }catch(e){console.error(e);toast("Render error: "+e.message)}
-  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,book:vBook,mcqbank:vMCQBank,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
+  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,book:vBook,mcqbank:vMCQBank,othersubjects:vOtherSubjects,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
     dailyquiz:()=>window._portalExtras&&window._portalExtras.dailyQuiz(),
     bookmarks:()=>window._portalExtras&&window._portalExtras.vBookmarks(),
     analytics:()=>{if(!window._portalExtras){go("dashboard");return}renderShell("",window._portalExtras.subjectProgressHTML())},
@@ -13238,7 +13239,7 @@ function vRegister(){
 
 <script>
 /* ================= STUDENT VIEWS ================= */
-function vDashboard(){
+function vOtherSubjects(){
   const u=state.user;const s=settings();
   const myResults=DB.get("results",[]).filter(r=>r.uid===u.id);
   const best=myResults.length?Math.max(...myResults.map(r=>r.pct)):null;
@@ -13290,7 +13291,7 @@ function vDashboard(){
   const todayFact = FUN_FACTS[dayOfYear % FUN_FACTS.length];
   const today = new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 
-  renderShell("dashboard",`
+  renderShell("othersubjects",`
     ${window._portalExtras?window._portalExtras.examCountdownHTML():""}
     <div class="hero">
       <h1>${esc(t("welcome"))}, ${esc(u.name)} 👋</h1>
@@ -13344,9 +13345,9 @@ function vSubject(){
       <div class="tags"><span class="tag">📝 ${qs} ${esc(t("questionCount"))}</span><span class="tag">📖 ${esc(t("studyMaterial"))}</span><span class="tag">💡 ${esc(t("guidance"))}</span></div>
     </div>`;
   }).join("");
-  renderShell("dashboard",`
+  renderShell("othersubjects",`
     <div class="sect-h"><div>
-      <div class="crumb"><b data-cgo="dashboard">${esc(t("dashboard"))}</b> › ${esc(sub.name)}</div>
+      <div class="crumb"><b data-cgo="othersubjects">📖 Other Subjects</b> › ${esc(sub.name)}</div>
       <h2>${sub.icon} ${esc(sub.name)} <span style="font-size:14px;color:var(--muted);font-weight:600">— ${esc(sub.src)}</span></h2></div>
       <button class="btn btn-t btn-s" id="subjMock">⏱️ ${esc(t("mockTest"))} · ${esc(sub.nameH||"")}</button>
     </div>
@@ -13369,9 +13370,9 @@ function vChapter(){
   else if(tab==="guide")body=guideBody(ch);
   else if(tab==="practice")body=practiceBody(ch);
   else body=testIntro(ch,qn,sub);
-  renderShell("dashboard",`
+  renderShell("othersubjects",`
     <div class="sect-h"><div>
-      <div class="crumb"><b data-cgo="dashboard">${esc(t("dashboard"))}</b> › <b data-cgo="subject" data-arg="${ch.s}">${esc(sub?sub.name:"")}</b> › ${esc(ch.t)}</div>
+      <div class="crumb"><b data-cgo="othersubjects">📖 Other Subjects</b> › <b data-cgo="subject" data-arg="${ch.s}">${esc(sub?sub.name:"")}</b> › ${esc(ch.t)}</div>
       <h2>${ch.icon||"📘"} ${esc(ch.t)} <span style="font-size:14px;color:var(--muted);font-weight:600">${esc(ch.th||"")}</span></h2></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         ${idx>0?`<button class="btn btn-g btn-s" id="chPrev">← ${esc(chaptersOf(ch.s)[idx-1].t)}</button>`:""}
