@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASJBCM Unique Mock Test — Strict Exam Environment</title>
+<style>
+:root{
+  --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
+  --brand:#4a6fdc;--brand2:#7b9bf0;--brandsoft:#eef3fe;
+  --green:#31b573;--greensoft:#e7f8ef;--red:#e35d5d;--redsoft:#fdeaea;
+  --amber:#f0a63a;--ambersoft:#fdf3e3;--purple:#8b5cf6;--purplesoft:#f3ecfe;
+  --shadow:0 6px 24px rgba(90,110,160,.10);--r:16px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans','Noto Sans Devanagari',Roboto,Arial,sans-serif;
+  background:linear-gradient(160deg,#f4f8fd 0%,#eef3fb 45%,#f6f2fa 100%);color:var(--ink);min-height:100vh;
+  font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#c3d0e6;border-radius:8px;border:2px solid #eef2f9}
+::-webkit-scrollbar-track{background:#eef2f9}
+.noselect,.noselect *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+header.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#4a6fdc,#7b9bf0);color:#fff;
+  box-shadow:0 4px 14px rgba(74,111,220,.35)}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap}
+.hbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;
+  padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;display:inline-block}
+.hbtn:hover{background:rgba(255,255,255,.28)}
+.hspacer{flex:1}
+.htitle{font-weight:800;font-size:14px;letter-spacing:.3px}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+main{padding:20px 0 90px}
+.hero{position:relative;overflow:hidden;border-radius:24px;color:#fff;padding:30px 26px;
+  background:linear-gradient(120deg,#e0457b 0%,#8b5cf6 55%,#4a6fdc 100%);box-shadow:0 14px 34px rgba(139,92,246,.32)}
+.hero h1{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.15}
+.hero .sub{font-size:15px;opacity:.92;margin-top:6px;font-weight:700}
+.badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;backdrop-filter:blur(4px)}
+
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1.25fr .85fr;gap:18px;margin-top:18px}
+@media(max-width:920px){.grid2{grid-template-columns:1fr}}
+h2.sect{font-size:19px;font-weight:800;margin-bottom:6px}
+p.desc{color:var(--ink2);font-size:14px}
+
+.field{margin:14px 0}
+.field label{display:block;font-weight:800;font-size:13px;color:var(--ink2);margin-bottom:6px;letter-spacing:.2px}
+.field input[type=text],.field input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;
+  font-size:15px;font-family:inherit;color:var(--ink);background:#fbfdff}
+.field input:focus{outline:none;border-color:var(--brand);background:#fff}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{border:1.5px solid var(--line);background:#fbfdff;color:var(--ink2);border-radius:12px;padding:9px 16px;
+  font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s}
+.seg button:hover{border-color:var(--brand2)}
+.seg button.on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(74,111,220,.35)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--line);background:#fbfdff;border-radius:999px;padding:6px 12px;font-size:12.5px;
+  font-weight:700;color:var(--ink2);cursor:pointer;user-select:none}
+.chip.on{background:var(--brandsoft);border-color:var(--brand);color:var(--brand)}
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.toggle .sw{width:46px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;transition:.2s;flex:none}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.toggle.on .sw{background:var(--green)}
+.toggle.on .sw::after{left:23px}
+.rules{background:var(--redsoft);border:1px solid #f6cfcf;border-radius:var(--r2);padding:14px 16px;font-size:13.5px;color:#8c3a3a;margin-top:6px}
+.rules b{display:block;margin-bottom:4px;color:#b03030}
+.rules ul{margin:6px 0 0 18px}
+.rules li{margin:3px 0}
+.bigbtn{display:block;width:100%;margin-top:18px;border:none;border-radius:14px;padding:15px 20px;font-size:16px;font-weight:800;
+  cursor:pointer;font-family:inherit;color:#fff;background:linear-gradient(135deg,#e0457b,#8b5cf6);box-shadow:0 8px 22px rgba(139,92,246,.4);transition:.15s}
+.bigbtn:hover{transform:translateY(-1px)}
+.bigbtn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.mini{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+table.hist{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+table.hist th{background:var(--brandsoft);color:var(--brand);text-align:left;padding:8px 10px;font-size:12px;letter-spacing:.4px}
+table.hist td{padding:8px 10px;border-top:1px solid var(--line);color:var(--ink2)}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800}
+.pill.ok{background:var(--greensoft);color:var(--green)}
+.pill.bad{background:var(--redsoft);color:var(--red)}
+.pill.warn{background:var(--ambersoft);color:#b97a1c}
+.empty{color:var(--muted);font-size:13.5px;padding:10px 0}
+
+/* ---------- test screen ---------- */
+.testbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.timer{font-variant-numeric:tabular-nums;background:#fff;color:var(--brand);border:2px solid var(--brand);border-radius:12px;
+  padding:7px 14px;font-weight:800;font-size:16px}
+.timer.low{color:var(--red);border-color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.55}}
+.vcount{background:var(--redsoft);color:var(--red);border-radius:12px;padding:7px 12px;font-weight:800;font-size:12.5px}
+.pcode{background:var(--purplesoft);color:var(--purple);border-radius:12px;padding:7px 12px;font-weight:800;font-size:12.5px}
+.testgrid{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:16px;align-items:start}
+@media(max-width:980px){.testgrid{grid-template-columns:1fr}}
+.qmeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.qnum{background:var(--brand);color:#fff;border-radius:10px;padding:5px 12px;font-weight:800;font-size:13px}
+.qtag{background:var(--brandsoft);color:var(--brand);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700}
+.qtext{font-size:17px;font-weight:700;line-height:1.6;margin:10px 0 18px;white-space:pre-wrap}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;
+  cursor:pointer;background:#fbfdff;transition:.15s;font-size:15px}
+.opt:hover{border-color:var(--brand2);background:#f6f9ff}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;background:var(--brandsoft);color:var(--brand);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.opt.sel{border-color:var(--brand);background:var(--brandsoft);box-shadow:0 3px 10px rgba(74,111,220,.18)}
+.opt.sel .k{background:var(--brand);color:#fff}
+.tactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.btn{border:1.5px solid var(--line);background:#fff;color:var(--ink2);border-radius:12px;padding:10px 16px;
+  font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--brand2);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.warn{background:var(--ambersoft);border-color:#f2d5a8;color:#b97a1c}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.palette{position:sticky;top:76px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:7px;margin:10px 0}
+.pq{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink2);
+  font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.pq.cur{outline:3px solid var(--brand);outline-offset:1px}
+.pq.done{background:var(--green);border-color:var(--green);color:#fff}
+.pq.mark{background:var(--purple);border-color:var(--purple);color:#fff}
+.pq.seen{background:#f1f5f9;color:#64748b}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.prog{height:8px;border-radius:99px;background:#e8eefb;overflow:hidden;margin-top:12px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#2fb7a5);border-radius:99px;transition:.3s}
+
+/* ---------- modal / overlays ---------- */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:#fff;border-radius:18px;max-width:480px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.3);text-align:center}
+.modal h3{font-size:18px;margin-bottom:8px}
+.modal p{color:var(--ink2);font-size:14px}
+.modal .row{display:flex;gap:10px;margin-top:16px}
+.modal .row .btn{flex:1}
+.vtoast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:120;background:var(--red);color:#fff;
+  border-radius:14px;padding:12px 20px;font-weight:800;font-size:14px;box-shadow:0 10px 30px rgba(227,93,93,.5);text-align:center}
+.vtoast small{display:block;font-weight:600;opacity:.9;font-size:12px}
+
+/* ---------- result ---------- */
+.scorehero{border-radius:24px;color:#fff;padding:30px 26px;background:linear-gradient(120deg,#31b573,#2fb7a5 60%,#4a6fdc);box-shadow:0 14px 34px rgba(49,181,115,.3)}
+.scorehero.bad{background:linear-gradient(120deg,#e0457b,#e35d5d 60%,#f0a63a);box-shadow:0 14px 34px rgba(227,93,93,.3)}
+.scorehero h1{font-size:clamp(26px,5vw,44px);font-weight:800}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:14px;text-align:center}
+.stat b{display:block;font-size:22px;font-weight:800}
+.stat span{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+table.brk{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+table.brk th{background:var(--brandsoft);color:var(--brand);text-align:left;padding:9px 10px;font-size:12px}
+table.brk td{padding:9px 10px;border-top:1px solid var(--line)}
+.rev{border:1px solid var(--line);border-radius:var(--r2);padding:16px;margin-top:12px;background:#fbfdff}
+.rev .rq{font-weight:700;margin-bottom:8px}
+.rev .ro{padding:7px 12px;border-radius:10px;margin:4px 0;font-size:14px;border:1.5px solid transparent}
+.rev .ro.correct{background:var(--greensoft);border-color:var(--green);color:#1d7a4c;font-weight:700}
+.rev .ro.wrong{background:var(--redsoft);border-color:var(--red);color:#b03030}
+.rev .rex{margin-top:8px;font-size:13px;color:var(--ink2);background:var(--brandsoft);border-radius:10px;padding:9px 12px}
+.errbox{background:var(--redsoft);border:1px solid #f6cfcf;color:#b03030;border-radius:14px;padding:16px;margin-top:14px;font-size:14px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="hbtn" href="index.html" target="_top">🏠 Portal</a>
+  <a class="hbtn" href="book.html" target="_top">📚 Book</a>
+  <a class="hbtn" href="mcq.html" target="_top">🧠 MCQ Bank</a>
+  <div class="hspacer"></div>
+  <span class="htitle">🎯 UNIQUE MOCK TEST · STRICT MODE</span>
+</div></header>
+
+<div class="wrap"><main id="app"></main></div>
+
+<div id="modalhost"></div>
+<script>
+/* ============ Unique Mock Test — strict CBT engine ============ */
+const $=s=>document.querySelector(s);
+const BANK_URL="10000.json";
+const LS_KEY="asjbcm_mock_v1";
+let BANK=null;
+const state={student:"",count:50,mins:0,neg:true,subjects:new Set(),paper:[],answers:[],marked:[],visited:[],
+  idx:0,timeLeft:0,totalTime:0,timer:null,violations:[],code:"",status:"",startedAt:0,testing:false,finished:false};
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr,rnd){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+function newCode(){const a=new Uint32Array(2);crypto.getRandomValues(a);
+  return ("UMT-"+(a[0].toString(36)+a[1].toString(36)).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7).padEnd(7,"X"))}
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+
+function histAll(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}")}catch(e){return{}}}
+function histFor(st){return histAll()[st]||[]}
+function saveHist(st,rec){const all=histAll();const arr=all[st]||[];arr.unshift(rec);all[st]=arr.slice(0,20);
+  try{localStorage.setItem(LS_KEY,JSON.stringify(all))}catch(e){}}
+
+/* ---------- routing ---------- */
+window.addEventListener("hashchange",route);
+function route(){if(!BANK){return}const h=location.hash||"#/";
+  if(h==="#test"&&state.paper.length)renderTest();
+  else if(h==="#result"&&state.finished)renderResult();
+  else renderSetup()}
+
+/* ---------- setup ---------- */
+function renderSetup(){
+  const subs=BANK.subjects;
+  if(!state.subjects.size)subs.forEach(s=>state.subjects.add(s.subject));
+  const hist=histFor(state.student||"__anon");
+  const app=$("#app");
+  app.innerHTML=`
+  <section class="hero">
+    <span class="badge">🛡️ STRICT EXAM ENVIRONMENT</span>
+    <h1>Unique Mock Test Generator</h1>
+    <div class="sub">Every attempt builds a brand-new paper from a bank of ${BANK.total.toLocaleString()} MCQs across ${subs.length} subjects</div>
+  </section>
+  <div class="grid2">
+    <div class="card">
+      <h2 class="sect">🧾 Configure your paper</h2>
+      <p class="desc">Each paper is randomly composed and option-shuffled — no two students, and no two attempts, get the same set.</p>
+      <div class="field"><label>STUDENT NAME</label>
+        <input type="text" id="fStudent" placeholder="Enter your name" value="${esc(state.student)}"></div>
+      <div class="field"><label>NUMBER OF QUESTIONS</label>
+        <div class="seg" id="fCount">${[25,50,75,100].map(n=>`<button data-n="${n}" class="${state.count===n?"on":""}">${n}</button>`).join("")}</div></div>
+      <div class="field"><label>DURATION (MINUTES) — leave 0 for auto: 1 min per question</label>
+        <input type="number" id="fMins" min="0" max="300" value="${state.mins}"></div>
+      <div class="field"><label>NEGATIVE MARKING — 0.25 deducted per wrong answer</label>
+        <div class="toggle ${state.neg?"on":""}" id="fNeg"><div class="sw"></div><b>${state.neg?"ON":"OFF"}</b></div></div>
+      <div class="field"><label>SUBJECT SCOPE — tap to include / exclude</label>
+        <div class="chips" id="fChips">${subs.map(s=>`<span class="chip ${state.subjects.has(s.subject)?"on":""}" data-s="${esc(s.subject)}">${esc(s.name)} (${s.chapters.reduce((a,c)=>a+c.mcqCount,0)})</span>`).join("")}</div></div>
+      <div class="rules"><b>⚠️ STRICT ENVIRONMENT RULES</b>
+        The paper runs in enforced full-screen with a locked-down interface:
+        <ul>
+          <li>Tab switching or leaving the window is recorded as a violation</li>
+          <li>Exiting full-screen is recorded as a violation</li>
+          <li>Copy, cut, paste, right-click, print and developer tools are blocked</li>
+          <li>The timer keeps running during warnings — it never pauses</li>
+          <li><b>3 violations = automatic submission with TERMINATED status</b></li>
+          <li>Auto-submit when the timer reaches 00:00</li>
+        </ul></div>
+      <button class="bigbtn" id="fStart">🔒 Start Strict Test — Generate My Unique Paper</button>
+      <div class="mini">Your paper code will be shown on the test screen. Attempt history is saved on this device.</div>
+    </div>
+    <div class="card">
+      <h2 class="sect">📊 Previous attempts ${state.student?`— ${esc(state.student)}`:""}</h2>
+      ${hist.length?`<table class="hist"><tr><th>Paper</th><th>Score</th><th>Acc.</th><th>⚠</th><th>Status</th></tr>
+        ${hist.slice(0,8).map(r=>`<tr><td><b>${esc(r.code)}</b><br><small>${new Date(r.date).toLocaleString()}</small></td>
+        <td>${r.score}/${r.total}</td><td>${r.acc}%</td><td>${r.violations}</td>
+        <td><span class="pill ${r.status==="COMPLETED"?"ok":r.status==="TERMINATED"?"bad":"warn"}">${esc(r.status)}</span></td></tr>`).join("")}</table>`
+        :`<p class="empty">No attempts yet on this device. Your first unique paper is one click away.</p>`}
+      <div class="prog" style="margin-top:16px"><i style="width:${Math.min(100,hist.length*10)}%"></i></div>
+      <p class="desc" style="margin-top:8px;font-size:12.5px">Practice progress: ${hist.length} attempt(s) taken. Aim for a new personal best each time!</p>
+    </div>
+  </div>`;
+
+  $("#fStudent").addEventListener("input",e=>{state.student=e.target.value.trim();
+    const h=histFor(state.student);renderHistInto(h)});
+  $("#fCount").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    state.count=+b.dataset.n;[...$("#fCount").children].forEach(x=>x.classList.toggle("on",x===b))});
+  $("#fMins").addEventListener("input",e=>{state.mins=Math.max(0,Math.min(300,+e.target.value||0))});
+  $("#fNeg").addEventListener("click",()=>{state.neg=!state.neg;$("#fNeg").classList.toggle("on",state.neg);
+    $("#fNeg").querySelector("b").textContent=state.neg?"ON":"OFF"});
+  $("#fChips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
+    const k=c.dataset.s;state.subjects.has(k)?state.subjects.delete(k):state.subjects.add(k);
+    c.classList.toggle("on")});
+  $("#fStart").addEventListener("click",startTest);
+}
+function renderHistInto(h){/* re-render right card only */}
+function renderHist(){renderSetup()}
+
+/* ---------- paper generation ---------- */
+function buildPaper(){
+  if(!state.subjects.size)state.subjects.add(BANK.subjects[0].subject);
+  const subs=BANK.subjects.filter(s=>state.subjects.has(s.subject));
+  const pools=subs.map(s=>({name:s.name,key:s.subject,
+    qs:s.chapters.flatMap(c=>c.mcqs.map(m=>({m,subj:s.name})))}));
+  const totalW=pools.reduce((a,p)=>a+Math.sqrt(p.qs.length),0);
+  let alloc=pools.map(p=>Math.floor(state.count*Math.sqrt(p.qs.length)/totalW));
+  // redistribute rounding remainder
+  let rem=state.count-alloc.reduce((a,b)=>a+b,0);
+  const order=pools.map((p,i)=>i).sort((a,b)=>pools[b].qs.length-pools[a].qs.length);
+  let oi=0;while(rem>0){alloc[order[oi%order.length]]++;rem--;oi++}
+  // respect pool capacity, push overflow to pools with room
+  let deficit=0;
+  alloc.forEach((n,i)=>{if(n>pools[i].qs.length){deficit+=n-pools[i].qs.length;alloc[i]=pools[i].qs.length}});
+  while(deficit>0){const i=order[oi++%order.length];
+    if(alloc[i]<pools[i].qs.length){alloc[i]++;deficit--}}
+  // unique seed per attempt
+  const seedArr=new Uint32Array(1);crypto.getRandomValues(seedArr);
+  let code=newCode();
+  const hist=histFor(state.student||"__anon");
+  let guard=0;while(hist.some(r=>r.code===code)&&guard++<10)code=newCode();
+  const rnd=mulberry32(seedArr[0]);
+  const paper=[];
+  pools.forEach((p,i)=>{
+    const idx=shuffle([...p.qs.keys()],rnd).slice(0,alloc[i]);
+    idx.forEach(k=>{const src=p.qs[k];
+      const map=shuffle([0,1,2,3],rnd);
+      const m=src.m;
+      paper.push({q:m.q,options:map.map(j=>m.options[j]),answer:map.indexOf(m.answer),
+        explanation:m.explanation||"",pyq:m.pyqTag||"",subj:src.subj})});
+  });
+  shuffle(paper,rnd);
+  state.paper=paper;state.code=code;
+  state.answers=new Array(paper.length).fill(null);
+  state.marked=new Array(paper.length).fill(false);
+  state.visited=new Array(paper.length).fill(false);
+  state.idx=0;state.violations=[];state.finished=false;
+  state.totalTime=(state.mins>0?state.mins:paper.length)*60;
+  state.timeLeft=state.totalTime;state.startedAt=Date.now();
+}
+
+/* ---------- strict proctoring ---------- */
+let lastVio=0;
+function vion(type,msg){
+  if(!state.testing)return;
+  const now=Date.now();
+  if(now-lastVio<1500)return;               // coalesce blur+visibility double-fire
+  lastVio=now;
+  state.violations.push({t:Math.floor((now-state.startedAt)/1000),type});
+  toast(`⚠️ VIOLATION ${state.violations.length}/3 — ${msg}`,"A record has been added to your test log. The timer is still running.");
+  renderVioCount();
+  if(state.violations.length>=3)finish("TERMINATED");
+}
+function onVis(){if(document.hidden)vion("TAB_SWITCH","Tab switch / window hidden detected")}
+function onBlur(){vion("WINDOW_BLUR","Window focus lost — stay on the test window")}
+function onFs(){if(!document.fullscreenElement)vion("FULLSCREEN_EXIT","Full-screen exited — the test must stay in full-screen")}
+function onKey(e){
+  const k=(e.key||"").toLowerCase();
+  if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&["i","j","c"].includes(k))){e.preventDefault();vion("DEVTOOLS","Developer tools shortcut blocked");return}
+  if((e.ctrlKey||e.metaKey)&&["c","x","v","p","s","u"].includes(k)){e.preventDefault();vion("CLIPBOARD","Copy / paste / print shortcut blocked");return}
+  if(e.key==="PrintScreen"){vion("SCREENSHOT","Screenshot key detected")}
+}
+function onCtx(e){e.preventDefault();if(!matchMedia("(pointer:coarse)").matches)vion("RIGHT_CLICK","Right-click is disabled in strict mode")}
+function onCopy(e){e.preventDefault();vion("COPY","Copy attempt blocked")}
+function onBefore(e){e.preventDefault();e.returnValue=""}
+function armStrict(on){
+  const A=on?"addEventListener":"removeEventListener";
+  document[A]("visibilitychange",onVis);
+  window[A]("blur",onBlur);
+  document[A]("fullscreenchange",onFs);
+  document[A]("keydown",onKey,true);
+  document[A]("contextmenu",onCtx,true);
+  document[A]("copy",onCopy,true);document[A]("cut",onCopy,true);document[A]("paste",onCopy,true);
+  window[A]("beforeunload",onBefore);
+}
+
+/* ---------- start ---------- */
+async function startTest(){
+  state.student=($("#fStudent")?.value||"").trim();
+  if(!state.student){alert("Please enter the student name to personalise the unique paper.");return}
+  const sel=BANK.subjects.filter(s=>state.subjects.has(s.subject));
+  const avail=sel.reduce((a,s)=>a+s.chapters.reduce((x,c)=>x+c.mcqCount,0),0);
+  if(avail<5){alert("Select at least one subject with questions.");return}
+  state.count=Math.min(state.count,avail);
+  buildPaper();
+  let fsMsg="";
+  try{await document.documentElement.requestFullscreen()}catch(e){fsMsg=" (Full-screen unavailable in this browser — violations may still be recorded)"}
+  location.hash="#test";
+  renderTest();
+  if(fsMsg)setTimeout(()=>toast("ℹ️ Strict mode active"+fsMsg,""),2600);
+}
+
+/* ---------- test screen ---------- */
+function renderTest(){
+  state.testing=true;
+  armStrict(true);
+  const app=$("#app");
+  app.innerHTML=`
+  <section class="card testbar noselect">
+    <span class="pcode">📄 ${esc(state.code)}</span>
+    <span class="qtag">👤 ${esc(state.student)}</span>
+    <div class="hspacer" style="flex:1"></div>
+    <span class="vcount" id="vio">⚠️ Violations: 0/3</span>
+    <span class="timer" id="timer">--:--</span>
+  </section>
+  <div class="testgrid noselect">
+    <div class="card" id="qbox"></div>
+    <div class="card palette" id="pbox"></div>
+  </div>`;
+  renderVioCount();renderQ();renderPalette();
+  state.timer=setInterval(tick,1000);tick();
+}
+function renderVioCount(){const el=$("#vio");if(el)el.textContent=`⚠️ Violations: ${state.violations.length}/3`}
+function tick(){
+  const el=$("#timer");if(!el)return;
+  if(state.timeLeft<=0){finish("TIME UP");return}
+  el.textContent=fmt(state.timeLeft);
+  el.classList.toggle("low",state.timeLeft<300);
+  state.timeLeft--;
+}
+function renderQ(){
+  const i=state.idx,q=state.paper[i];
+  state.visited[i]=true;
+  $("#qbox").innerHTML=`
+    <div class="qmeta"><span class="qnum">Q ${i+1} / ${state.paper.length}</span>
+      <span class="qtag">${esc(q.subj)}</span>
+      ${q.pyq?`<span class="qtag" style="background:var(--redsoft);color:var(--red)">📌 PYQ</span>`:""}
+      ${state.marked[i]?`<span class="qtag" style="background:var(--purplesoft);color:var(--purple)">🚩 Marked</span>`:""}</div>
+    <div class="qtext">${esc(q.q)}</div>
+    <div class="opts">${q.options.map((o,j)=>`<div class="opt ${state.answers[i]===j?"sel":""}" data-j="${j}">
+      <span class="k">${"ABCD"[j]}</span><span>${esc(o)}</span></div>`).join("")}</div>
+    <div class="tactions">
+      <button class="btn" id="bPrev" ${i===0?"disabled":""}>← Previous</button>
+      <button class="btn warn" id="bMark">${state.marked[i]?"Unmark 🚩":"Mark for review 🚩"}</button>
+      <button class="btn" id="bClear">Clear response</button>
+      <button class="btn primary" id="bNext">${i===state.paper.length-1?"Last question →":"Save & Next →"}</button>
+    </div>`;
+  $("#qbox").querySelectorAll(".opt").forEach(o=>o.addEventListener("click",()=>{
+    state.answers[i]=+o.dataset.j;renderQ();renderPalette()}));
+  $("#bPrev").addEventListener("click",()=>{if(state.idx>0){state.idx--;renderQ();renderPalette()}});
+  $("#bNext").addEventListener("click",()=>{if(state.idx<state.paper.length-1){state.idx++;renderQ();renderPalette()}else submitAsk()});
+  $("#bMark").addEventListener("click",()=>{state.marked[i]=!state.marked[i];renderQ();renderPalette()});
+  $("#bClear").addEventListener("click",()=>{state.answers[i]=null;renderQ();renderPalette()});
+}
+function renderPalette(){
+  const done=state.answers.filter(a=>a!==null).length;
+  $("#pbox").innerHTML=`
+    <h2 class="sect" style="font-size:15px">🗂️ Question palette</h2>
+    <div class="pgrid">${state.paper.map((_,j)=>{
+      const cls=state.answers[j]!==null?"done":state.marked[j]?"mark":state.visited[j]?"seen":"";
+      return `<button class="pq ${cls} ${j===state.idx?"cur":""}" data-j="${j}">${j+1}</button>`}).join("")}</div>
+    <div class="legend">
+      <span><i style="background:var(--green)"></i>Answered (${state.answers.filter(a=>a!==null).length})</span>
+      <span><i style="background:var(--purple)"></i>Marked (${state.marked.filter(Boolean).length})</span>
+      <span><i style="background:#f1f5f9"></i>Seen, not answered</span>
+      <span><i style="background:#fff;border:1.5px solid var(--line)"></i>Not visited</span>
+    </div>
+    <div class="prog"><i style="width:${Math.round(done/state.paper.length*100)}%"></i></div>
+    <button class="btn danger" style="width:100%;margin-top:14px" id="bSubmit">✅ Submit Final Paper</button>`;
+  $("#pbox").querySelectorAll(".pq").forEach(b=>b.addEventListener("click",()=>{
+    state.idx=+b.dataset.j;renderQ();renderPalette()}));
+  $("#bSubmit").addEventListener("click",submitAsk);
+}
+function submitAsk(){
+  const a=state.answers.filter(x=>x!==null).length,u=state.paper.length-a;
+  showModal(`<h3>Submit the paper?</h3>
+    <p>Answered: <b>${a}</b> · Not answered: <b>${u}</b> · Marked: <b>${state.marked.filter(Boolean).length}</b><br>
+    Time remaining: <b>${fmt(state.timeLeft)}</b><br>Once submitted, the paper cannot be reopened.</p>
+    <div class="row"><button class="btn" id="mNo">Continue test</button>
+    <button class="btn primary" id="mYes">Submit now</button></div>`);
+  $("#mNo").addEventListener("click",closeModal);
+  $("#mYes").addEventListener("click",()=>{closeModal();finish("SUBMITTED")});
+}
+
+/* ---------- finish & result ---------- */
+function finish(status){
+  if(state.finished)return;
+  state.finished=true;state.testing=false;
+  clearInterval(state.timer);armStrict(false);
+  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}
+  state.status=status;
+  const neg=state.neg?0.25:0;
+  let correct=0,wrong=0;
+  state.paper.forEach((q,i)=>{if(state.answers[i]===null)return;
+    state.answers[i]===q.answer?correct++:wrong++});
+  const unatt=state.paper.length-correct-wrong;
+  const score=Math.max(0,correct-wrong*neg);
+  const att=correct+wrong;
+  const rec={code:state.code,date:new Date().toISOString(),total:state.paper.length,
+    score:Math.round(score*100)/100,correct,wrong,unatt,
+    acc:att?Math.round(correct/att*100):0,status,
+    violations:state.violations.length,dur:state.totalTime-state.timeLeft,
+    student:state.student};
+  saveHist(state.student||"__anon",rec);
+  state._result=rec;
+  location.hash="#result";
+  renderResult();
+}
+function renderResult(){
+  const r=state._result;
+  const good=r.score/r.total>=0.4;
+  const neg=state.neg?0.25:0;
+  const per={};
+  state.paper.forEach((q,i)=>{const s=q.subj;per[s]=per[s]||{c:0,w:0,u:0};
+    if(state.answers[i]===null)per[s].u++;
+    else state.answers[i]===q.answer?per[s].c++:per[s].w++});
+  $("#app").innerHTML=`
+  <section class="scorehero ${good?"":"bad"}">
+    <span class="badge">${r.status==="TERMINATED"?"⛔ TERMINATED — 3 VIOLATIONS":r.status==="TIME UP"?"⏰ TIME UP — AUTO SUBMITTED":"✅ SUBMITTED"}</span>
+    <h1>${Math.round(r.score*100)/100} / ${r.total} marks</h1>
+    <div class="sub">Paper ${esc(r.code)} · ${esc(state.student)} · ${new Date(r.date).toLocaleString()}</div>
+  </section>
+  <div class="statgrid">
+    <div class="stat"><b style="color:var(--green)">${r.correct}</b><span>CORRECT</span></div>
+    <div class="stat"><b style="color:var(--red)">${r.wrong}</b><span>WRONG ${neg?`(−${Math.round(r.wrong*neg*100)/100})`:""}</span></div>
+    <div class="stat"><b>${r.unatt}</b><span>UNATTEMPTED</span></div>
+    <div class="stat"><b>${r.acc}%</b><span>ACCURACY</span></div>
+    <div class="stat"><b>${fmt(r.dur)}</b><span>TIME USED</span></div>
+    <div class="stat"><b style="color:${r.violations?"var(--red)":"var(--green)"}">${r.violations}</b><span>VIOLATIONS</span></div>
+  </div>
+  ${r.status==="TERMINATED"?`<div class="errbox">⛔ <b>Strict-mode termination:</b> three environment violations were recorded, so the paper was force-submitted. Violation log: ${state.violations.map(v=>`${v.type} @ ${fmt(v.t)}`).join(", ")}.</div>`:""}
+  <div class="grid2">
+    <div class="card">
+      <h2 class="sect">📚 Subject-wise breakdown</h2>
+      <table class="brk"><tr><th>Subject</th><th>✓</th><th>✗</th><th>—</th></tr>
+      ${Object.entries(per).map(([s,v])=>`<tr><td>${esc(s)}</td><td>${v.c}</td><td>${v.w}</td><td>${v.u}</td></tr>`).join("")}</table>
+      ${state.violations.length?`<h2 class="sect" style="margin-top:18px">⚠️ Violation log</h2>
+        <table class="brk"><tr><th>Time</th><th>Type</th></tr>
+        ${state.violations.map(v=>`<tr><td>${fmt(v.t)}</td><td>${esc(v.type)}</td></tr>`).join("")}</table>`:""}
+      <button class="bigbtn" onclick="location.hash='#/'">🎲 Generate a NEW unique paper</button>
+    </div>
+    <div class="card">
+      <h2 class="sect">📖 Answer review</h2>
+      <p class="desc">Every question with the correct answer and explanation.</p>
+      ${state.paper.map((q,i)=>{
+        const mine=state.answers[i];
+        return `<div class="rev"><div class="rq">Q${i+1}. ${esc(q.q)}</div>
+        ${q.options.map((o,j)=>`<div class="ro ${j===q.answer?"correct":j===mine?"wrong":""}">
+          <b>${"ABCD"[j]}.</b> ${esc(o)}${j===mine&&j!==q.answer?" ← your answer":""}</div>`).join("")}
+        ${mine===null?`<div class="ro" style="background:#f1f5f9">— not attempted —</div>`:""}
+        <div class="rex">💡 ${esc(q.explanation)}</div></div>`}).join("")}
+    </div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- modal & toast ---------- */
+function showModal(html){$("#modalhost").innerHTML=`<div class="overlay"><div class="modal">${html}</div></div>`}
+function closeModal(){$("#modalhost").innerHTML=""}
+let toastTimer=null;
+function toast(big,small){
+  const host=$("#modalhost");
+  const old=host.querySelector(".vtoast");if(old)old.remove();
+  const d=document.createElement("div");d.className="vtoast";
+  d.innerHTML=`${esc(big)}${small?`<small>${esc(small)}</small>`:""}`;
+  host.appendChild(d);
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>d.remove(),3400);
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  try{
+    const p=new URLSearchParams(location.search);
+    state.student=(p.get("student")||"").trim();
+    const res=await fetch(BANK_URL);
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    BANK=await res.json();
+    route();
+  }catch(e){
+    $("#app").innerHTML=`<div class="errbox">⚠️ Could not load the question bank (<code>10000.json</code>).<br>
+    If you opened this file directly from disk, please serve the folder over HTTP — e.g. run <code>python -m http.server 8000</code> and open <code>http://localhost:8000/mock.html</code>.<br><small>${esc(e.message)}</small></div>`;
+  }
+})();
+</script>
+</body>
+</html>
