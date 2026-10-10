@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASJBCM Admin — Set Mock Test Papers</title>
+<style>
+:root{
+  --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
+  --brand:#4a6fdc;--brand2:#7b9bf0;--brandsoft:#eef3fe;
+  --green:#31b573;--greensoft:#e7f8ef;--red:#e35d5d;--redsoft:#fdeaea;
+  --amber:#f0a63a;--ambersoft:#fdf3e3;--purple:#8b5cf6;--purplesoft:#f3ecfe;
+  --shadow:0 6px 24px rgba(90,110,160,.10);--r:16px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans','Noto Sans Devanagari',Roboto,Arial,sans-serif;
+  background:linear-gradient(160deg,#f4f8fd 0%,#eef3fb 45%,#f6f2fa 100%);color:var(--ink);min-height:100vh;
+  font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#c3d0e6;border-radius:8px;border:2px solid #eef2f9}
+::-webkit-scrollbar-track{background:#eef2f9}
+header.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#8b5cf6,#4a6fdc);color:#fff;
+  box-shadow:0 4px 14px rgba(74,111,220,.35)}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap}
+.hbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;
+  padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;display:inline-block}
+.hbtn:hover{background:rgba(255,255,255,.28)}
+.hspacer{flex:1}
+.htitle{font-weight:800;font-size:14px;letter-spacing:.3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+main{padding:20px 0 90px}
+.hero{position:relative;overflow:hidden;border-radius:24px;color:#fff;padding:28px 26px;
+  background:linear-gradient(120deg,#8b5cf6 0%,#4a6fdc 60%,#2fb7a5 100%);box-shadow:0 14px 34px rgba(74,111,220,.32)}
+.hero h1{font-size:clamp(21px,4vw,34px);font-weight:800;line-height:1.15}
+.hero .sub{font-size:14.5px;opacity:.92;margin-top:6px;font-weight:700}
+.badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;backdrop-filter:blur(4px)}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;border:1px solid var(--line);margin-top:18px}
+h2.sect{font-size:19px;font-weight:800;margin-bottom:6px}
+p.desc{color:var(--ink2);font-size:14px}
+.field{margin:14px 0}
+.field label{display:block;font-weight:800;font-size:13px;color:var(--ink2);margin-bottom:6px;letter-spacing:.2px}
+.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;
+  font-size:15px;font-family:inherit;color:var(--ink);background:#fbfdff}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.row2{grid-template-columns:1fr}}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{border:1.5px solid var(--line);background:#fbfdff;color:var(--ink2);border-radius:12px;padding:9px 16px;
+  font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s}
+.seg button:hover{border-color:var(--brand2)}
+.seg button.on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(74,111,220,.35)}
+.bigbtn{display:block;width:100%;margin-top:18px;border:none;border-radius:14px;padding:15px 20px;font-size:16px;font-weight:800;
+  cursor:pointer;font-family:inherit;color:#fff;background:linear-gradient(135deg,#8b5cf6,#4a6fdc);box-shadow:0 8px 22px rgba(74,111,220,.4);transition:.15s}
+.bigbtn:hover{transform:translateY(-1px)}
+.btn{border:1.5px solid var(--line);background:#fff;color:var(--ink2);border-radius:12px;padding:10px 16px;
+  font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--brand2);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:14px;text-align:center}
+.stat b{display:block;font-size:21px;font-weight:800}
+.stat span{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+.paper{border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;background:#fbfdff}
+.paper h3{font-size:15.5px;margin-bottom:4px}
+.paper .meta{font-size:12.5px;color:var(--ink2)}
+.paper .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.codebox{width:100%;border:1.5px dashed var(--brand2);border-radius:10px;padding:9px 11px;font-family:ui-monospace,Consolas,monospace;
+  font-size:11.5px;color:var(--ink2);background:#f6f9ff;word-break:break-all;margin-top:8px;display:none}
+.codebox.show{display:block}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800}
+.pill.ok{background:var(--greensoft);color:var(--green)}
+.pill.info{background:var(--brandsoft);color:var(--brand)}
+.pill.warn{background:var(--ambersoft);color:#b97a1c}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.tabs button{border:1.5px solid var(--line);background:#fff;color:var(--ink2);border-radius:12px;padding:10px 18px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.errbox{background:var(--redsoft);border:1px solid #f6cfcf;color:#b03030;border-radius:14px;padding:16px;margin-top:14px;font-size:14px}
+.okbox{background:var(--greensoft);border:1px solid #bfe8d2;color:#1d7a4c;border-radius:14px;padding:14px 16px;margin-top:14px;font-size:14px}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="hbtn" href="index.html" target="_top">🏠 Portal</a>
+  <a class="hbtn" href="mock.html" target="_top">🧪 Mock Test</a>
+  <div class="hspacer"></div>
+  <span class="htitle">🛠️ ADMIN · MOCK PAPER SETTER</span>
+</div></header>
+
+<div class="wrap"><main id="app"></main></div>
+
+<script>
+/* ============ Admin-only Mock Paper Setter ============ */
+const $=s=>document.querySelector(s);
+const BANK_URL="10000.json";
+const LS_PAPERS="asjbcm_papers_v1";
+const BUILTIN_PAPERS=[
+ {id:"asj_full_1",title:"Full Mock Test — All Subjects",dur:60,neg:0.25,lang:"en",
+  instr:"Full-length mixed-subject paper set by the Admin. English medium.",
+  fill:{subject:"*",count:44},fig:4,essay:2},
+ {id:"asj_rapid_1",title:"Rapid Revision Mock — 25 Questions",dur:25,neg:0.25,lang:"en",
+  instr:"Short quick-fire paper across all subjects.",
+  fill:{subject:"*",count:23},fig:1,essay:1},
+ {id:"asj_visual_1",title:"Diagram · Chart · Data Special",dur:35,neg:0,lang:"en",
+  instr:"Extra weight on charts, tables, diagrams and essay/passage questions.",
+  fill:{subject:"*",count:14},fig:12,essay:4},
+ {id:"asj_essay_1",title:"Essay & Comprehension Test",dur:30,neg:0,lang:"en",
+  instr:"Essay-passage comprehension sets with mixed-subject fillers.",
+  fill:{subject:"*",count:17},fig:0,essay:8},
+ {id:"asj_hi_1",title:"हिंदी माध्यम मॉक टेस्ट — 25 प्रश्न",dur:30,neg:0.25,lang:"hi",
+  instr:"हिंदी/मराठी माध्यम के प्रश्नों का अभ्यास पेपर।",
+  fill:{subject:"*",count:25},fig:0,essay:0}
+];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let BANK=null,TAB="list",creating=false;
+const form={title:"",dur:45,neg:0.25,lang:"en",subject:"*",count:30,fig:2,essay:2,instr:""};
+
+function currentAdmin(){
+  try{
+    let sid=localStorage.getItem("asjbc_session");if(!sid)return null;try{sid=JSON.parse(sid)}catch(e){}
+    const us=JSON.parse(localStorage.getItem("asjbc_users")||"[]");
+    const u=us.find(x=>x.id===sid);
+    return (u&&(u.role==="admin"||u.role==="teacher"))?u:null;
+  }catch(e){return null}
+}
+function loadCustom(){try{const l=JSON.parse(localStorage.getItem(LS_PAPERS)||"[]");return Array.isArray(l)?l:[]}catch(e){return[]}}
+function saveCustom(list){try{localStorage.setItem(LS_PAPERS,JSON.stringify(list.slice(0,30)))}catch(e){alert("Storage full — could not save paper")}}
+function paperTotal(p){return (p.fill&&p.fill.count?p.fill.count:0)+(p.fig||0)+(p.essay||0)}
+function paperToCode(p){const j=JSON.stringify({v:1,t:p.title,d:p.dur,n:p.neg,l:p.lang,i:p.instr||"",s:p.fill,c:p.fig||0,e:p.essay||0});
+  const b=btoa(unescape(encodeURIComponent(j))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  return "ASJP1-"+b}
+function codeToPaper(code){try{let s=String(code).trim();if(!s.startsWith("ASJP1-"))return null;
+  let b=s.slice(6).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";
+  const o=JSON.parse(decodeURIComponent(escape(atob(b))));if(!o||o.v!==1||!o.t||!o.s)return null;
+  return {id:"imp_"+Date.now().toString(36),title:String(o.t).slice(0,80),dur:Math.max(5,Math.min(300,+o.d||30)),
+    neg:[0,0.25,0.33,0.5].includes(+o.n)?+o.n:0.25,lang:o.l==="hi"||o.l==="all"?o.l:"en",
+    instr:String(o.i||"").slice(0,300),
+    fill:{subject:o.s&&o.s.subject?String(o.s.subject):"*",count:Math.max(1,Math.min(150,+o.s.count||25))},
+    fig:Math.max(0,Math.min(20,+o.c||0)),essay:Math.max(0,Math.min(20,+o.e||0)),imported:true,at:Date.now()}}catch(e){return null}}
+
+function subName(key){if(key==="*")return "All Subjects";
+  const s=BANK&&BANK.subjects.find(x=>x.subject===key);return s?s.name:key}
+function subCount(key){if(!BANK)return 0;
+  if(key==="*")return BANK.total;
+  const s=BANK.subjects.find(x=>x.subject===key);return s?s.chapters.reduce((a,c)=>a+c.mcqCount,0):0}
+
+/* ---------- render ---------- */
+function render(){
+  const admin=currentAdmin();
+  const app=$("#app");
+  if(!admin){
+    app.innerHTML=`<section class="hero"><span class="badge">🔒 RESTRICTED AREA</span>
+      <h1>Admin access only</h1>
+      <div class="sub">Students cannot set question papers. Sign in through the Portal as the Administrator account to use the Mock Paper Setter.</div></section>
+      <div class="card"><p class="desc">Signed-in admin not detected on this device.</p>
+      <p class="desc" style="margin-top:8px">Open the Portal → sign in as <b>administrator@asjbcm.edu</b> → Admin Panel → <b>📝 Mock Papers</b>.</p></div>`;
+    return;
+  }
+  const stats=BANK?`<div class="statgrid">
+      <div class="stat"><b>${BANK.total.toLocaleString()}</b><span>QUESTIONS IN BANK</span></div>
+      <div class="stat"><b>${BANK.subjects.length}</b><span>SUBJECTS</span></div>
+      <div class="stat"><b>${figCount()}</b><span>📊 DIAGRAM / CHART</span></div>
+      <div class="stat"><b>${essayCount()}</b><span>📝 ESSAY / PASSAGE</span></div>
+      <div class="stat"><b>${hiCount().toLocaleString()}</b><span>हिंदी / मराठी</span></div>
+    </div>`:`<div class="card"><p class="desc">⚠️ Question bank not loaded — open this page over HTTP (served from the portal folder) to see live availability counts.</p></div>`;
+  app.innerHTML=`
+  <section class="hero">
+    <span class="badge">🛠️ ADMIN ONLY</span>
+    <h1>Set Mock Test Papers</h1>
+    <div class="sub">Signed in as ${esc(admin.name)} (${esc(admin.role)}) — only admins can compose and assign papers. Students see the papers you set and cannot self-generate.</div>
+  </section>
+  ${stats}
+  <div class="tabs">
+    <button data-t="list" class="${TAB==="list"?"on":""}">📋 Papers (${loadCustom().length} custom · ${BUILTIN_PAPERS.length} official)</button>
+    <button data-t="new" class="${TAB==="new"?"on":""}">➕ Set New Paper</button>
+  </div>
+  <div id="body">${TAB==="list"?viewList():viewNew()}</div>`;
+  document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render()});
+  if(TAB==="list")bindList(); else bindNew();
+}
+function figCount(){let n=0;BANK.subjects.forEach(s=>s.chapters.forEach(c=>c.mcqs.forEach(m=>{if(m.fig)n++})));return n}
+function essayCount(){let n=0;BANK.subjects.forEach(s=>s.chapters.forEach(c=>c.mcqs.forEach(m=>{if(m.passage)n++})));return n}
+function hiCount(){let n=0;BANK.subjects.forEach(s=>s.chapters.forEach(c=>c.mcqs.forEach(m=>{if((m.lang||"")==="hi")n++})));return n}
+
+/* ---------- papers list ---------- */
+function viewList(){
+  const custom=loadCustom();
+  const card=(p,customFlag)=>`
+    <div class="paper">
+      <h3>${esc(p.title)} ${p.imported?`<span class="pill warn">IMPORTED</span>`:customFlag?`<span class="pill info">CUSTOM</span>`:`<span class="pill ok">OFFICIAL</span>`}</h3>
+      <div class="meta">📝 ${paperTotal(p)} Q · ⏱️ ${p.dur} min · ${p.neg>0?"−"+p.neg+" negative":"no negative"} ·
+        ${p.lang==="en"?"🇬🇧 English":p.lang==="hi"?"हिंदी/मराठी":"🌐 All"} · Scope: ${esc(subName(p.fill.subject))} (${subCount(p.fill.subject)} in bank)
+        ${p.fig?` · 📊 ${p.fig} fig`:""}${p.essay?` · 📝 ${p.essay} essay`:""}</div>
+      ${p.instr?`<div class="meta" style="margin-top:4px">📌 ${esc(p.instr)}</div>`:""}
+      <div class="acts">
+        <button class="btn primary" data-copy="${esc(paperToCode(p))}">📋 Copy Paper Code</button>
+        <button class="btn" data-show="${esc(paperToCode(p))}">👁 Show Code</button>
+        ${customFlag?`<button class="btn danger" data-del="${esc(p.id)}">🗑 Delete</button>`:""}
+      </div>
+      <div class="codebox">${esc(paperToCode(p))}</div>
+    </div>`;
+  return `<div class="card">
+      <h2 class="sect">📋 Papers students can see</h2>
+      <p class="desc">Every paper below appears in the student's Mock Test tab. Share a paper with students on other devices by sending them its code — the student pastes it in Mock Test → "Have a paper code?" to unlock.</p>
+      ${BUILTIN_PAPERS.map(p=>card(p,false)).join("")}
+      <h2 class="sect" style="margin-top:20px">🛠️ Papers you set</h2>
+      ${custom.length?custom.map(p=>card(p,true)).join(""):`<p class="desc">No custom papers yet — click <b>➕ Set New Paper</b> to compose one.</p>`}
+      <h2 class="sect" style="margin-top:20px">🔑 Import a paper code</h2>
+      <p class="desc">Paste a code from another admin device to add its paper here.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <input type="text" id="impCode" placeholder="ASJP1-…" style="flex:1;min-width:220px;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;font-family:ui-monospace,monospace;background:#fbfdff">
+        <button class="btn primary" id="bImp">Import</button>
+      </div>
+      <div id="impMsg"></div>
+    </div>`;
+}
+function bindList(){
+  document.querySelectorAll("[data-show]").forEach(b=>b.onclick=()=>b.closest(".paper").querySelector(".codebox").classList.toggle("show"));
+  document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{
+    const code=b.dataset.copy;
+    const done=()=>{b.textContent="✅ Copied!";setTimeout(()=>b.textContent="📋 Copy Paper Code",1600)};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(done).catch(()=>fallbackCopy(code,done));
+    else fallbackCopy(code,done);
+  });
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    if(!confirm("Delete this paper? Students will no longer see it."))return;
+    saveCustom(loadCustom().filter(p=>p.id!==b.dataset.del));render();
+  });
+  $("#bImp").onclick=()=>{
+    const p=codeToPaper($("#impCode").value);
+    const msg=$("#impMsg");
+    if(!p){msg.innerHTML=`<div class="errbox">❌ Invalid code — codes look like <b>ASJP1-…</b></div>`;return}
+    const list=loadCustom();
+    if(list.some(x=>x.title===p.title&&paperTotal(x)===paperTotal(p))){msg.innerHTML=`<div class="okbox">ℹ️ Paper "${esc(p.title)}" is already in the list.</div>`;return}
+    list.unshift(p);saveCustom(list);
+    msg.innerHTML=`<div class="okbox">✅ Imported: <b>${esc(p.title)}</b> (${paperTotal(p)} Q · ${p.dur} min)</div>`;
+    setTimeout(render,900);
+  };
+}
+function fallbackCopy(text,done){
+  const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);
+  ta.select();try{document.execCommand("copy");done()}catch(e){prompt("Copy this paper code:",text)}
+  ta.remove();
+}
+
+/* ---------- set new paper ---------- */
+function viewNew(){
+  const opts=["*"].concat(BANK?BANK.subjects.map(s=>s.subject):[]).map(k=>
+    `<option value="${esc(k)}" ${form.subject===k?"selected":""}>${esc(subName(k))}${k!=="*"?` (${subCount(k)})`:""}</option>`).join("");
+  return `<div class="card">
+    <h2 class="sect">➕ Set a new question paper</h2>
+    <p class="desc">Compose a paper from the ${BANK?BANK.total.toLocaleString():""} question bank. Every student gets the same paper structure, but question order and option order are freshly shuffled per attempt.</p>
+    <div class="field"><label>PAPER TITLE *</label>
+      <input type="text" id="nPTitle" placeholder="e.g. Weekly Mock Test 1 — Batch A" value="${esc(form.title)}"></div>
+    <div class="row2">
+      <div class="field"><label>DURATION (MINUTES) *</label>
+        <input type="number" id="nPDur" min="5" max="300" value="${form.dur}"></div>
+      <div class="field"><label>NEGATIVE MARKING (PER WRONG ANSWER)</label>
+        <select id="nPNeg">
+          <option value="0" ${form.neg===0?"selected":""}>No negative marking</option>
+          <option value="0.25" ${form.neg===0.25?"selected":""}>−0.25 (standard)</option>
+          <option value="0.33" ${form.neg===0.33?"selected":""}>−0.33</option>
+          <option value="0.5" ${form.neg===0.5?"selected":""}>−0.5</option>
+        </select></div>
+    </div>
+    <div class="field"><label>QUESTION LANGUAGE</label>
+      <div class="seg" id="nPLang">
+        <button data-l="en" class="${form.lang==="en"?"on":""}">🇬🇧 English</button>
+        <button data-l="hi" class="${form.lang==="hi"?"on":""}">हिंदी / मराठी</button>
+        <button data-l="all" class="${form.lang==="all"?"on":""}">🌐 All languages</button>
+      </div></div>
+    <div class="row2">
+      <div class="field"><label>MAIN SECTION — SUBJECT SCOPE</label>
+        <select id="nPSubj">${opts}</select></div>
+      <div class="field"><label>MAIN SECTION — NUMBER OF QUESTIONS (1–150)</label>
+        <input type="number" id="nPCount" min="1" max="150" value="${form.count}"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>📊 ADD DIAGRAM / CHART / TABLE QUESTIONS (0–20) — ${BANK?figCount():"?"} available</label>
+        <input type="number" id="nPFig" min="0" max="20" value="${form.fig}"></div>
+      <div class="field"><label>📝 ADD ESSAY / PASSAGE QUESTIONS (0–20) — ${BANK?essayCount():"?"} available</label>
+        <input type="number" id="nPEssay" min="0" max="20" value="${form.essay}"></div>
+    </div>
+    <div class="field"><label>INSTRUCTIONS FOR STUDENTS (optional)</label>
+      <textarea id="nPInstr" rows="2" placeholder="e.g. Attempt all questions. Mobile phones are not allowed." >${esc(form.instr)}</textarea></div>
+    <div class="okbox" id="nSummary"></div>
+    <button class="bigbtn" id="nCreate">🗂️ Create Paper &amp; Get Share Code</button>
+    <p class="note">The paper is saved on this device and instantly appears in students' Mock Test tab on this installation. To share with students on other devices, send them the paper code (ASJP1-…) — they unlock it in Mock Test → "Have a paper code?".</p>
+  </div>`;
+}
+function bindNew(){
+  const upd=()=>{
+    form.title=$("#nPTitle").value.trim();form.dur=+$("#nPDur").value||30;form.neg=+$("#nPNeg").value;
+    form.subject=$("#nPSubj").value;form.count=+$("#nPCount").value||0;form.fig=+$("#nPFig").value||0;
+    form.essay=+$("#nPEssay").value||0;form.instr=$("#nPInstr").value.trim();
+    const total=form.count+form.fig+form.essay;
+    $("#nSummary").innerHTML=`📄 <b>${form.title?esc(form.title):"(untitled paper)"}</b> — ${total} questions
+      (${form.count} main${form.fig?` + ${form.fig} 📊 fig`:``}${form.essay?` + ${form.essay} 📝 essay`:``}) ·
+      ⏱️ ${form.dur} min · ${form.neg>0?"−"+form.neg+" negative":"no negative"} ·
+      ${form.lang==="en"?"🇬🇧 English":form.lang==="hi"?"हिंदी/मराठी":"🌐 All"} · ${esc(subName(form.subject))}`;
+  };
+  ["nPTitle","nPDur","nPNeg","nPSubj","nPCount","nPFig","nPEssay","nPInstr"].forEach(id=>{
+    $("#"+id).addEventListener("input",upd);$("#"+id).addEventListener("change",upd)});
+  $("#nPLang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    form.lang=b.dataset.l;document.querySelectorAll("#nPLang button").forEach(x=>x.classList.toggle("on",x.dataset.l===form.lang));upd()});
+  $("#nCreate").onclick=()=>{
+    upd();
+    if(!form.title){alert("Please give the paper a title.");return}
+    if(!form.count&&!form.fig&&!form.essay){alert("Paper is empty — add at least one question.");return}
+    if(form.count>0&&!BANK&&form.subject!=="*"){/* bank not loaded; allow but warn */}
+    const p={id:"pap_"+Date.now().toString(36),title:form.title,dur:Math.max(5,Math.min(300,form.dur||30)),
+      neg:form.neg,lang:form.lang,instr:form.instr,fill:{subject:form.subject,count:Math.max(0,Math.min(150,form.count))},
+      fig:Math.max(0,Math.min(20,form.fig)),essay:Math.max(0,Math.min(20,form.essay)),
+      by:currentAdmin()?currentAdmin().name:"admin",at:Date.now()};
+    const list=loadCustom();list.unshift(p);saveCustom(list);
+    TAB="list";render();
+    setTimeout(()=>{const first=document.querySelector(".paper .codebox");if(first)first.classList.add("show");
+      window.scrollTo({top:document.body.scrollHeight*0.35,behavior:"smooth"})},60);
+  };
+  upd();
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  try{
+    const res=await fetch(BANK_URL);
+    if(res.ok)BANK=await res.json();
+  }catch(e){BANK=null}
+  render();
+})();
+</script>
+</body>
+</html>

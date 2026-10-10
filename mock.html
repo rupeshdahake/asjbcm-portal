@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASJBCM Unique Mock Test — Strict Exam Environment</title>
+<title>ASJBCM Mock Test — Papers Set by Admin · Strict Mode</title>
 <style>
 :root{
   --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
@@ -97,6 +97,15 @@ table.hist td{padding:8px 10px;border-top:1px solid var(--line);color:var(--ink2
 .qnum{background:var(--brand);color:#fff;border-radius:10px;padding:5px 12px;font-weight:800;font-size:13px}
 .qtag{background:var(--brandsoft);color:var(--brand);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700}
 .qtext{font-size:17px;font-weight:700;line-height:1.6;margin:10px 0 18px;white-space:pre-wrap}
+.qfig{margin:0 0 16px;padding:12px;background:#fff;border:1px solid #dbe4f3;border-radius:12px;overflow-x:auto;text-align:center}
+.qfig svg{max-width:100%;height:auto}
+.qfig table{border-collapse:collapse;margin:0 auto;font-size:12.5px}
+.qfig td,.qfig th{border:1px solid #c7d2e5;padding:5px 10px;white-space:nowrap}
+.qfig .note{font-size:11px;color:#64748b;margin-top:5px}
+.qpass{margin:0 0 14px;padding:13px 16px;background:var(--brandsoft);border:1px solid #d8e2f7;border-radius:12px;
+  font-size:14px;line-height:1.65;color:#33456b;max-height:300px;overflow-y:auto}
+.qpass p{margin:0 0 9px}.qpass p:last-child{margin:0}
+.qpass b{color:var(--brand)}
 .opts{display:grid;gap:10px}
 .opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;
   cursor:pointer;background:#fbfdff;transition:.15s;font-size:15px}
@@ -161,9 +170,8 @@ table.brk td{padding:9px 10px;border-top:1px solid var(--line)}
 <header class="top"><div class="wrap">
   <a class="hbtn" href="index.html" target="_top">🏠 Portal</a>
   <a class="hbtn" href="book.html" target="_top">📚 Book</a>
-  <a class="hbtn" href="mcq.html" target="_top">🧠 MCQ Bank</a>
   <div class="hspacer"></div>
-  <span class="htitle">🎯 UNIQUE MOCK TEST · STRICT MODE</span>
+  <span class="htitle">🎯 MOCK TEST · ADMIN-SET PAPERS · STRICT MODE</span>
 </div></header>
 
 <div class="wrap"><main id="app"></main></div>
@@ -175,8 +183,29 @@ const $=s=>document.querySelector(s);
 const BANK_URL="10000.json";
 const LS_KEY="asjbcm_mock_v1";
 let BANK=null;
-const state={student:"",count:50,mins:0,neg:true,subjects:new Set(),paper:[],answers:[],marked:[],visited:[],
-  idx:0,timeLeft:0,totalTime:0,timer:null,violations:[],code:"",status:"",startedAt:0,testing:false,finished:false};
+const LS_PAPERS="asjbcm_papers_v1";
+const state={student:"",lang:"all",paper:[],answers:[],marked:[],visited:[],
+  idx:0,timeLeft:0,totalTime:0,timer:null,violations:[],code:"",status:"",startedAt:0,testing:false,finished:false,
+  spec:null,customPapers:[]};
+/* Papers are set by the ADMIN only. Built-in official papers + custom papers created
+   in the Admin Panel (same device) or unlocked by students via ASJP1- paper codes. */
+const BUILTIN_PAPERS=[
+ {id:"asj_full_1",title:"Full Mock Test — All Subjects",dur:60,neg:0.25,lang:"en",
+  instr:"Full-length mixed-subject paper set by the Admin. English medium.",
+  fill:{subject:"*",count:44},fig:4,essay:2},
+ {id:"asj_rapid_1",title:"Rapid Revision Mock — 25 Questions",dur:25,neg:0.25,lang:"en",
+  instr:"Short quick-fire paper across all subjects.",
+  fill:{subject:"*",count:23},fig:1,essay:1},
+ {id:"asj_visual_1",title:"Diagram · Chart · Data Special",dur:35,neg:0,lang:"en",
+  instr:"Extra weight on charts, tables, diagrams and essay/passage questions.",
+  fill:{subject:"*",count:14},fig:12,essay:4},
+ {id:"asj_essay_1",title:"Essay & Comprehension Test",dur:30,neg:0,lang:"en",
+  instr:"Essay-passage comprehension sets with mixed-subject fillers.",
+  fill:{subject:"*",count:17},fig:0,essay:8},
+ {id:"asj_hi_1",title:"हिंदी माध्यम मॉक टेस्ट — 25 प्रश्न",dur:30,neg:0.25,lang:"hi",
+  instr:"हिंदी/मराठी माध्यम के प्रश्नों का अभ्यास पेपर।",
+  fill:{subject:"*",count:25},fig:0,essay:0}
+];
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -195,36 +224,59 @@ window.addEventListener("hashchange",route);
 function route(){if(!BANK){return}const h=location.hash||"#/";
   if(h==="#test"&&state.paper.length)renderTest();
   else if(h==="#result"&&state.finished)renderResult();
-  else renderSetup()}
+  else renderPapers()}
 
-/* ---------- setup ---------- */
-function renderSetup(){
-  const subs=BANK.subjects;
-  if(!state.subjects.size)subs.forEach(s=>state.subjects.add(s.subject));
+/* ---------- papers (set by admin only) ---------- */
+function isAdmin(){try{let sid=localStorage.getItem("asjbc_session");if(!sid)return false;try{sid=JSON.parse(sid)}catch(e){}
+  const us=JSON.parse(localStorage.getItem("asjbc_users")||"[]");const u=us.find(x=>x.id===sid);
+  return !!(u&&(u.role==="admin"||u.role==="teacher"))}catch(e){return false}}
+function loadCustom(){try{const l=JSON.parse(localStorage.getItem(LS_PAPERS)||"[]");state.customPapers=Array.isArray(l)?l:[]}catch(e){state.customPapers=[]}return state.customPapers}
+function saveCustom(list){state.customPapers=list.slice(0,30);try{localStorage.setItem(LS_PAPERS,JSON.stringify(state.customPapers))}catch(e){}}
+function allPapers(){return BUILTIN_PAPERS.concat(loadCustom())}
+/* paper code: ASJP1-<b64url(json)> */
+function paperToCode(p){const j=JSON.stringify({v:1,t:p.title,d:p.dur,n:p.neg,l:p.lang,i:p.instr||"",s:p.fill,c:p.fig||0,e:p.essay||0});
+  const b=btoa(unescape(encodeURIComponent(j))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  return "ASJP1-"+b}
+function codeToPaper(code){try{let s=String(code).trim();if(!s.startsWith("ASJP1-"))return null;
+  let b=s.slice(6).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";
+  const o=JSON.parse(decodeURIComponent(escape(atob(b))));if(!o||o.v!==1||!o.t||!o.s)return null;
+  return {id:"imp_"+Date.now().toString(36),title:String(o.t).slice(0,80),dur:Math.max(5,Math.min(300,+o.d||30)),
+    neg:[0,0.25,0.33,0.5].includes(+o.n)?+o.n:0.25,lang:o.l==="hi"||o.l==="all"?o.l:"en",
+    instr:String(o.i||"").slice(0,300),
+    fill:{subject:o.s&&o.s.subject?String(o.s.subject):"*",count:Math.max(1,Math.min(150,+o.s.count||25))},
+    fig:Math.max(0,Math.min(20,+o.c||0)),essay:Math.max(0,Math.min(20,+o.e||0)),imported:true,at:Date.now()}}catch(e){return null}}
+function paperTotal(p){return (p.fill&&p.fill.count?p.fill.count:0)+(p.fig||0)+(p.essay||0)}
+
+function renderPapers(){
   const hist=histFor(state.student||"__anon");
+  const admin=isAdmin();
+  const papers=allPapers();
   const app=$("#app");
   app.innerHTML=`
   <section class="hero">
     <span class="badge">🛡️ STRICT EXAM ENVIRONMENT</span>
-    <h1>Unique Mock Test Generator</h1>
-    <div class="sub">Every attempt builds a brand-new paper from a bank of ${BANK.total.toLocaleString()} MCQs across ${subs.length} subjects</div>
+    <h1>Mock Tests — Papers Set by Admin</h1>
+    <div class="sub">Question papers are prepared and assigned by the Admin only. Pick your assigned paper and enter the strict exam hall.</div>
   </section>
   <div class="grid2">
     <div class="card">
-      <h2 class="sect">🧾 Configure your paper</h2>
-      <p class="desc">Each paper is randomly composed and option-shuffled — no two students, and no two attempts, get the same set.</p>
+      <h2 class="sect">📋 My Assigned Papers</h2>
+      <p class="desc">${BUILTIN_PAPERS.length} official paper(s) + ${loadCustom().length} unlocked / admin-shared paper(s).</p>
       <div class="field"><label>STUDENT NAME</label>
         <input type="text" id="fStudent" placeholder="Enter your name" value="${esc(state.student)}"></div>
-      <div class="field"><label>NUMBER OF QUESTIONS</label>
-        <div class="seg" id="fCount">${[25,50,75,100].map(n=>`<button data-n="${n}" class="${state.count===n?"on":""}">${n}</button>`).join("")}</div></div>
-      <div class="field"><label>DURATION (MINUTES) — leave 0 for auto: 1 min per question</label>
-        <input type="number" id="fMins" min="0" max="300" value="${state.mins}"></div>
-      <div class="field"><label>NEGATIVE MARKING — 0.25 deducted per wrong answer</label>
-        <div class="toggle ${state.neg?"on":""}" id="fNeg"><div class="sw"></div><b>${state.neg?"ON":"OFF"}</b></div></div>
-      <div class="field"><label>SUBJECT SCOPE — tap to include / exclude</label>
-        <div class="chips" id="fChips">${subs.map(s=>`<span class="chip ${state.subjects.has(s.subject)?"on":""}" data-s="${esc(s.subject)}">${esc(s.name)} (${s.chapters.reduce((a,c)=>a+c.mcqCount,0)})</span>`).join("")}</div></div>
+      ${admin?`<div class="desc" style="background:var(--greensoft);border:1px solid #bfe8d2;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+        🛠️ You are signed in as <b>Admin</b>. Set new papers from <b>Admin Panel → 📝 Mock Papers</b>, or
+        <button class="btn" style="padding:6px 10px;margin-left:4px" onclick="window.open('admin.html','_blank')">Open Paper Setter ↗</button></div>`:""}
+      <div class="field"><label>HAVE A PAPER CODE? — paste the Admin's ASJP1- code to unlock a paper</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="fCode" placeholder="ASJP1-…" style="flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;font-family:inherit;background:#fbfdff">
+          <button class="btn primary" id="bUnlock">🔓 Unlock</button>
+        </div></div>
+      <div id="paperList">
+      ${papers.map((p,i)=>paperCard(p,i)).join("")}
+      </div>
       <div class="rules"><b>⚠️ STRICT ENVIRONMENT RULES</b>
-        The paper runs in enforced full-screen with a locked-down interface:
+        Every paper runs in enforced full-screen with a locked-down interface:
         <ul>
           <li>Tab switching or leaving the window is recorded as a violation</li>
           <li>Exiting full-screen is recorded as a violation</li>
@@ -233,76 +285,100 @@ function renderSetup(){
           <li><b>3 violations = automatic submission with TERMINATED status</b></li>
           <li>Auto-submit when the timer reaches 00:00</li>
         </ul></div>
-      <button class="bigbtn" id="fStart">🔒 Start Strict Test — Generate My Unique Paper</button>
-      <div class="mini">Your paper code will be shown on the test screen. Attempt history is saved on this device.</div>
     </div>
     <div class="card">
       <h2 class="sect">📊 Previous attempts ${state.student?`— ${esc(state.student)}`:""}</h2>
       ${hist.length?`<table class="hist"><tr><th>Paper</th><th>Score</th><th>Acc.</th><th>⚠</th><th>Status</th></tr>
-        ${hist.slice(0,8).map(r=>`<tr><td><b>${esc(r.code)}</b><br><small>${new Date(r.date).toLocaleString()}</small></td>
+        ${hist.slice(0,8).map(r=>`<tr><td><b>${esc(r.paper||r.code)}</b><br><small>${esc(r.code)} · ${new Date(r.date).toLocaleString()}</small></td>
         <td>${r.score}/${r.total}</td><td>${r.acc}%</td><td>${r.violations}</td>
         <td><span class="pill ${r.status==="COMPLETED"?"ok":r.status==="TERMINATED"?"bad":"warn"}">${esc(r.status)}</span></td></tr>`).join("")}</table>`
-        :`<p class="empty">No attempts yet on this device. Your first unique paper is one click away.</p>`}
+        :`<p class="empty">No attempts yet on this device. Your assigned papers are listed on the left.</p>`}
       <div class="prog" style="margin-top:16px"><i style="width:${Math.min(100,hist.length*10)}%"></i></div>
       <p class="desc" style="margin-top:8px;font-size:12.5px">Practice progress: ${hist.length} attempt(s) taken. Aim for a new personal best each time!</p>
     </div>
   </div>`;
-
-  $("#fStudent").addEventListener("input",e=>{state.student=e.target.value.trim();
-    const h=histFor(state.student);renderHistInto(h)});
-  $("#fCount").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-    state.count=+b.dataset.n;[...$("#fCount").children].forEach(x=>x.classList.toggle("on",x===b))});
-  $("#fMins").addEventListener("input",e=>{state.mins=Math.max(0,Math.min(300,+e.target.value||0))});
-  $("#fNeg").addEventListener("click",()=>{state.neg=!state.neg;$("#fNeg").classList.toggle("on",state.neg);
-    $("#fNeg").querySelector("b").textContent=state.neg?"ON":"OFF"});
-  $("#fChips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
-    const k=c.dataset.s;state.subjects.has(k)?state.subjects.delete(k):state.subjects.add(k);
-    c.classList.toggle("on")});
-  $("#fStart").addEventListener("click",startTest);
+  $("#fStudent").addEventListener("input",e=>{state.student=e.target.value.trim()});
+  document.querySelectorAll("[data-start]").forEach(b=>b.addEventListener("click",()=>{
+    const p=allPapers()[+b.dataset.start];if(p)startPaper(p)}));
+  $("#bUnlock").addEventListener("click",()=>{
+    const p=codeToPaper($("#fCode").value);
+    if(!p){toast("❌ Invalid paper code","Ask the Admin for a code starting with ASJP1-");return}
+    const list=loadCustom();
+    if(list.some(x=>x.title===p.title&&paperTotal(x)===paperTotal(p))){toast("ℹ️ This paper is already in your list","");return}
+    list.unshift(p);saveCustom(list);
+    toast("✅ Paper unlocked: "+p.title,"It now appears in your assigned papers list.");
+    renderPapers();
+  });
 }
-function renderHistInto(h){/* re-render right card only */}
-function renderHist(){renderSetup()}
+function paperCard(p,i){
+  const total=paperTotal(p);
+  const flags=[p.fig?`📊 ${p.fig} diagram/chart`:"",p.essay?`📝 ${p.essay} essay/passage`:""].filter(Boolean).join(" · ");
+  const langB=p.lang==="en"?"🇬🇧 English":p.lang==="hi"?"हिंदी/मराठी":"🌐 All languages";
+  return `<div style="border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;background:#fbfdff">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px"><b style="font-size:15.5px">${esc(p.title)}</b>
+        <div style="font-size:12.5px;color:var(--ink2);margin-top:3px">
+          📝 ${total} questions · ⏱️ ${p.dur} min · ${p.neg>0?`⚠️ −${p.neg} negative`:"no negative marking"} · ${langB}${flags?`<br>${flags}`:""}</div>
+        ${p.instr?`<div style="font-size:12px;color:var(--ink2);margin-top:5px;background:var(--brandsoft);border-radius:8px;padding:6px 9px">📌 ${esc(p.instr)}</div>`:""}
+      </div>
+      <button class="btn primary" data-start="${i}" style="flex:none">▶ Start</button>
+    </div></div>`;
+}
 
-/* ---------- paper generation ---------- */
-function buildPaper(){
-  if(!state.subjects.size)state.subjects.add(BANK.subjects[0].subject);
-  const subs=BANK.subjects.filter(s=>state.subjects.has(s.subject));
-  const pools=subs.map(s=>({name:s.name,key:s.subject,
-    qs:s.chapters.flatMap(c=>c.mcqs.map(m=>({m,subj:s.name})))}));
-  const totalW=pools.reduce((a,p)=>a+Math.sqrt(p.qs.length),0);
-  let alloc=pools.map(p=>Math.floor(state.count*Math.sqrt(p.qs.length)/totalW));
-  // redistribute rounding remainder
-  let rem=state.count-alloc.reduce((a,b)=>a+b,0);
-  const order=pools.map((p,i)=>i).sort((a,b)=>pools[b].qs.length-pools[a].qs.length);
-  let oi=0;while(rem>0){alloc[order[oi%order.length]]++;rem--;oi++}
-  // respect pool capacity, push overflow to pools with room
-  let deficit=0;
-  alloc.forEach((n,i)=>{if(n>pools[i].qs.length){deficit+=n-pools[i].qs.length;alloc[i]=pools[i].qs.length}});
-  while(deficit>0){const i=order[oi++%order.length];
-    if(alloc[i]<pools[i].qs.length){alloc[i]++;deficit--}}
-  // unique seed per attempt
+/* ---------- paper resolution (unique per attempt, seeded) ---------- */
+function langOK(m){const l=m.lang||(m.q&&/[\u0900-\u097F]/.test(m.q)?"hi":"en");return state.lang==="all"||l===state.lang}
+function flattenBank(){
+  const out=[];
+  BANK.subjects.forEach(s=>s.chapters.forEach(c=>c.mcqs.forEach(m=>out.push({m,subj:s.name,key:s.subject}))));
+  return out;
+}
+function mkItem(src,map){const m=src.m;
+  return{q:m.q,options:map.map(j=>m.options[j]),answer:map.indexOf(m.answer),
+    explanation:m.explanation||"",pyq:m.pyqTag||"",subj:src.subj,fig:m.fig||"",passage:m.passage||"",
+    lang:m.lang||(m.q&&/[\u0900-\u097F]/.test(m.q)?"hi":"en")};}
+function sample(pool,n,rnd){const idx=shuffle([...pool.keys()],rnd).slice(0,n);return idx.map(k=>pool[k])}
+function resolvePaper(spec){
+  state.lang=spec.lang||"all";
   const seedArr=new Uint32Array(1);crypto.getRandomValues(seedArr);
   let code=newCode();
   const hist=histFor(state.student||"__anon");
   let guard=0;while(hist.some(r=>r.code===code)&&guard++<10)code=newCode();
   const rnd=mulberry32(seedArr[0]);
-  const paper=[];
-  pools.forEach((p,i)=>{
-    const idx=shuffle([...p.qs.keys()],rnd).slice(0,alloc[i]);
-    idx.forEach(k=>{const src=p.qs[k];
-      const map=shuffle([0,1,2,3],rnd);
-      const m=src.m;
-      paper.push({q:m.q,options:map.map(j=>m.options[j]),answer:map.indexOf(m.answer),
-        explanation:m.explanation||"",pyq:m.pyqTag||"",subj:src.subj})});
-  });
+  const all=flattenBank().filter(e=>langOK(e.m));
+  const used=new Set();
+  const take=(pool,n)=>{if(!n)return[];const fresh=pool.filter(e=>!used.has(e.m));
+    const got=sample(fresh,Math.min(n,fresh.length),rnd);got.forEach(e=>used.add(e.m));return got};
+  const figs=take(all.filter(e=>e.m.fig),spec.fig||0);
+  const essays=take(all.filter(e=>e.m.passage),spec.essay||0);
+  const subjOK=e=>!spec.fill.subject||spec.fill.subject==="*"||e.key===spec.fill.subject;
+  const plain=all.filter(e=>subjOK(e)&&!e.m.fig&&!e.m.passage);
+  const restPool=plain.length>=spec.fill.count?plain:plain.concat(all.filter(e=>subjOK(e)&&(e.m.fig||e.m.passage)));
+  const fill=take(restPool,spec.fill.count);
+  const picked=figs.concat(essays,fill);
+  if(!picked.length)return 0;
+  const paper=picked.map(e=>mkItem(e,shuffle([0,1,2,3],rnd)));
   shuffle(paper,rnd);
-  state.paper=paper;state.code=code;
+  state.paper=paper;state.code=code;state.spec=spec;
   state.answers=new Array(paper.length).fill(null);
   state.marked=new Array(paper.length).fill(false);
   state.visited=new Array(paper.length).fill(false);
   state.idx=0;state.violations=[];state.finished=false;
-  state.totalTime=(state.mins>0?state.mins:paper.length)*60;
+  state.totalTime=(spec.dur>0?spec.dur:paper.length)*60;
   state.timeLeft=state.totalTime;state.startedAt=Date.now();
+  return paper.length;
+}
+
+/* ---------- start ---------- */
+async function startPaper(spec){
+  state.student=($("#fStudent")?.value||"").trim();
+  if(!state.student){alert("Please enter the student name to personalise your attempt.");return}
+  const n=resolvePaper(spec);
+  if(!n||n<5){alert("This paper could not be composed — not enough questions in the bank for its language / subject scope. Please contact the Admin.");return}
+  let fsMsg="";
+  try{await document.documentElement.requestFullscreen()}catch(e){fsMsg=" (Full-screen unavailable in this browser — violations may still be recorded)"}
+  location.hash="#test";
+  renderTest();
+  if(fsMsg)setTimeout(()=>toast("ℹ️ Strict mode active"+fsMsg,""),2600);
 }
 
 /* ---------- strict proctoring ---------- */
@@ -340,22 +416,6 @@ function armStrict(on){
   window[A]("beforeunload",onBefore);
 }
 
-/* ---------- start ---------- */
-async function startTest(){
-  state.student=($("#fStudent")?.value||"").trim();
-  if(!state.student){alert("Please enter the student name to personalise the unique paper.");return}
-  const sel=BANK.subjects.filter(s=>state.subjects.has(s.subject));
-  const avail=sel.reduce((a,s)=>a+s.chapters.reduce((x,c)=>x+c.mcqCount,0),0);
-  if(avail<5){alert("Select at least one subject with questions.");return}
-  state.count=Math.min(state.count,avail);
-  buildPaper();
-  let fsMsg="";
-  try{await document.documentElement.requestFullscreen()}catch(e){fsMsg=" (Full-screen unavailable in this browser — violations may still be recorded)"}
-  location.hash="#test";
-  renderTest();
-  if(fsMsg)setTimeout(()=>toast("ℹ️ Strict mode active"+fsMsg,""),2600);
-}
-
 /* ---------- test screen ---------- */
 function renderTest(){
   state.testing=true;
@@ -364,6 +424,7 @@ function renderTest(){
   app.innerHTML=`
   <section class="card testbar noselect">
     <span class="pcode">📄 ${esc(state.code)}</span>
+    <span class="qtag">📋 ${esc(state.spec?state.spec.title:"")}</span>
     <span class="qtag">👤 ${esc(state.student)}</span>
     <div class="hspacer" style="flex:1"></div>
     <span class="vcount" id="vio">⚠️ Violations: 0/3</span>
@@ -390,9 +451,13 @@ function renderQ(){
   $("#qbox").innerHTML=`
     <div class="qmeta"><span class="qnum">Q ${i+1} / ${state.paper.length}</span>
       <span class="qtag">${esc(q.subj)}</span>
+      ${state.lang==="all"&&q.lang==="hi"?`<span class="qtag">हिंदी/मराठी</span>`:""}
       ${q.pyq?`<span class="qtag" style="background:var(--redsoft);color:var(--red)">📌 PYQ</span>`:""}
+      ${q.passage?`<span class="qtag" style="background:var(--greensoft);color:var(--green)">📝 Essay / Passage</span>`:""}
       ${state.marked[i]?`<span class="qtag" style="background:var(--purplesoft);color:var(--purple)">🚩 Marked</span>`:""}</div>
+    ${q.passage?`<div class="qpass">${q.passage}</div>`:""}
     <div class="qtext">${esc(q.q)}</div>
+    ${q.fig?`<div class="qfig">${q.fig}</div>`:""}
     <div class="opts">${q.options.map((o,j)=>`<div class="opt ${state.answers[i]===j?"sel":""}" data-j="${j}">
       <span class="k">${"ABCD"[j]}</span><span>${esc(o)}</span></div>`).join("")}</div>
     <div class="tactions">
@@ -445,14 +510,14 @@ function finish(status){
   clearInterval(state.timer);armStrict(false);
   try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}
   state.status=status;
-  const neg=state.neg?0.25:0;
+  const neg=state.spec?state.spec.neg:0;
   let correct=0,wrong=0;
   state.paper.forEach((q,i)=>{if(state.answers[i]===null)return;
     state.answers[i]===q.answer?correct++:wrong++});
   const unatt=state.paper.length-correct-wrong;
   const score=Math.max(0,correct-wrong*neg);
   const att=correct+wrong;
-  const rec={code:state.code,date:new Date().toISOString(),total:state.paper.length,
+  const rec={code:state.code,paper:state.spec?state.spec.title:"",date:new Date().toISOString(),total:state.paper.length,
     score:Math.round(score*100)/100,correct,wrong,unatt,
     acc:att?Math.round(correct/att*100):0,status,
     violations:state.violations.length,dur:state.totalTime-state.timeLeft,
@@ -465,7 +530,7 @@ function finish(status){
 function renderResult(){
   const r=state._result;
   const good=r.score/r.total>=0.4;
-  const neg=state.neg?0.25:0;
+  const neg=state.spec?state.spec.neg:0;
   const per={};
   state.paper.forEach((q,i)=>{const s=q.subj;per[s]=per[s]||{c:0,w:0,u:0};
     if(state.answers[i]===null)per[s].u++;
@@ -474,7 +539,7 @@ function renderResult(){
   <section class="scorehero ${good?"":"bad"}">
     <span class="badge">${r.status==="TERMINATED"?"⛔ TERMINATED — 3 VIOLATIONS":r.status==="TIME UP"?"⏰ TIME UP — AUTO SUBMITTED":"✅ SUBMITTED"}</span>
     <h1>${Math.round(r.score*100)/100} / ${r.total} marks</h1>
-    <div class="sub">Paper ${esc(r.code)} · ${esc(state.student)} · ${new Date(r.date).toLocaleString()}</div>
+    <div class="sub">${esc(state.spec?state.spec.title:"Mock Paper")} · Paper ${esc(r.code)} · ${esc(state.student)} · ${new Date(r.date).toLocaleString()}</div>
   </section>
   <div class="statgrid">
     <div class="stat"><b style="color:var(--green)">${r.correct}</b><span>CORRECT</span></div>
@@ -493,7 +558,7 @@ function renderResult(){
       ${state.violations.length?`<h2 class="sect" style="margin-top:18px">⚠️ Violation log</h2>
         <table class="brk"><tr><th>Time</th><th>Type</th></tr>
         ${state.violations.map(v=>`<tr><td>${fmt(v.t)}</td><td>${esc(v.type)}</td></tr>`).join("")}</table>`:""}
-      <button class="bigbtn" onclick="location.hash='#/'">🎲 Generate a NEW unique paper</button>
+      <button class="bigbtn" onclick="location.hash='#/'">📋 Back to My Assigned Papers</button>
     </div>
     <div class="card">
       <h2 class="sect">📖 Answer review</h2>
@@ -501,6 +566,8 @@ function renderResult(){
       ${state.paper.map((q,i)=>{
         const mine=state.answers[i];
         return `<div class="rev"><div class="rq">Q${i+1}. ${esc(q.q)}</div>
+        ${q.passage?`<div class="qpass">${q.passage}</div>`:""}
+        ${q.fig?`<div class="qfig">${q.fig}</div>`:""}
         ${q.options.map((o,j)=>`<div class="ro ${j===q.answer?"correct":j===mine?"wrong":""}">
           <b>${"ABCD"[j]}.</b> ${esc(o)}${j===mine&&j!==q.answer?" ← your answer":""}</div>`).join("")}
         ${mine===null?`<div class="ro" style="background:#f1f5f9">— not attempted —</div>`:""}

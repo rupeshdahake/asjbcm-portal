@@ -193,7 +193,7 @@ function renderHome(){
   html += '<h1>Competitive Exam Prep Book</h1><div class="sub">Adarsha Science J.B.Arts &amp; Birla Commerce Mahavidyalaya, Dhamangaon Rly.</div>';
   html += '<p class="desc">'+DATA.subjects.length+' subjects, '+DATA.subjects.reduce((n,s)=>n+s.chapters.length,0)+' chapters and '+10517+'+ practice MCQs — bilingual notes, mind maps, exam tips, mnemonics, PYQs and quizzes. Works fully offline!</p>';
   html += '<div class="stats"><div class="stat"><div class="v">📚 '+DATA.subjects.length+'</div><div class="l">Subjects</div></div><div class="stat"><div class="v">📖 '+DATA.subjects.reduce((n,s)=>n+s.chapters.length,0)+'</div><div class="l">Chapters</div></div><div class="stat"><div class="v">❓ '+10517+'+</div><div class="l">Practice MCQs</div></div></div>';
-  html += '<div class="dlbox">💾 <b>Offline copy:</b> save this page (Ctrl/Cmd+S) and open it anywhere — no internet needed. You can also open the <a href="mcq.html" target="_top" style="color:#fff;text-decoration:underline">🧠 MCQ Bank</a> or <a href="index.html" target="_top" style="color:#fff;text-decoration:underline">🏠 Portal</a>.</div></div>';
+  html += '<div class="dlbox">💾 <b>Offline copy:</b> save this page (Ctrl/Cmd+S) and open it anywhere — no internet needed. You can also open the <a href="mock.html" target="_top" style="color:#fff;text-decoration:underline">🧪 Mock Test</a> or <a href="index.html" target="_top" style="color:#fff;text-decoration:underline">🏠 Portal</a>.</div></div>';
   html += '<h2 class="sec">🗂️ Subject-wise Chapters ('+DATA.subjects.length+')</h2><p class="secdesc">विषय चुनें और अध्याय पढ़ें — Choose a subject to open its chapters</p>';
   if(matches){
     html += matches.length ? '<div class="grid">' + matches.map(({si,ci})=>{

@@ -11309,7 +11309,7 @@ function headerHTML(active){
     if(state.examMode){
       nav.push(["careerguide","🎓 Career"],["examselect","📝 Exam Center"]);
     } else {
-      nav.push(["dashboard",t("dashboard")],["mcqbank","🧠 MCQ Bank"],["mocktest","🧪 Mock Test"],["othersubjects","📖 Other Subjects"],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
+      nav.push(["dashboard",t("dashboard")],["mocktest","🧪 Mock Test"],["othersubjects","📖 Other Subjects"],["dailyquiz","🎯 Daily"],["results",t("myResults")],["analytics","📊 Analytics"],["scheduledExams","🗓️ Scheduled"],["vocab","📖 Vocab"],["flashcards","🃏 Flashcards"],["pyqs","📄 PYQs"],["videos","📺 Videos"],["currentaffairs","📰 Affairs"],["pomodoro","⏰ Timer"],["examchecklist","🎯 Checklist"],["scholarships","🎓 Scholarships"],["careerguide","🎓 Career"],["jobs","💼 Jobs & Career"],["examselect","📝 Exam Center"]);
       if(u.role==="admin"||u.role==="teacher")nav.push(["admin",t("adminPanel")]);
     }
   }
@@ -11327,7 +11327,7 @@ function renderShell(active,body){$("#app").innerHTML=headerHTML(active)+`<div c
 function renderShellFull(active,body){$("#app").innerHTML=headerHTML(active)+body;bindHeader()}
 function vBook(){$("#app").innerHTML=headerHTML("book")+`<iframe class="embed-frame" src="book.html" title="ASJBCM Exam Prep Book"></iframe>`;bindHeader()}
 function vMCQBank(){$("#app").innerHTML=headerHTML("mcqbank")+`<iframe class="embed-frame" src="mcq.html" title="ASJBCM MCQ Bank"></iframe>`;bindHeader()}
-function vMockTest(){const _u=state.user;$("#app").innerHTML=headerHTML("mocktest")+'<iframe class="embed-frame" src="mock.html?student='+encodeURIComponent(_u?_u.name:"")+'" title="ASJBCM Unique Mock Test" allow="fullscreen"></iframe>';bindHeader()}
+function vMockTest(){const _u=state.user;$("#app").innerHTML=headerHTML("mocktest")+'<iframe class="embed-frame" src="mock.html?student='+encodeURIComponent(_u?_u.name:"")+'" title="ASJBCM Mock Test (Admin-Set Papers)" allow="fullscreen"></iframe>';bindHeader()}
 function vDashboard(){$("#app").innerHTML=headerHTML("dashboard")+`<iframe class="embed-frame" src="book.html" title="ASJBCM Exam Prep Book"></iframe>`;bindHeader()}
 function bindHeader(){
   document.querySelectorAll("[data-go]").forEach(a=>a.onclick=()=>{
@@ -11366,7 +11366,7 @@ function go(view,arg,keep){
   try{
     if(view==="exam"){renderExam();return}
   }catch(e){console.error(e);toast("Render error: "+e.message)}
-  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,book:vBook,mcqbank:vMCQBank,mocktest:vMockTest,othersubjects:vOtherSubjects,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
+  const V={firstRun:vFirstRun,login:vLogin,register:vRegister,dashboard:vDashboard,book:vBook,mocktest:vMockTest,othersubjects:vOtherSubjects,subject:vSubject,chapter:vChapter,results:vResults,leaderboard:vLeaderboard,certs:vCerts,profile:vProfile,admin:vAdmin,result:vResult,
     dailyquiz:()=>window._portalExtras&&window._portalExtras.dailyQuiz(),
     bookmarks:()=>window._portalExtras&&window._portalExtras.vBookmarks(),
     analytics:()=>{if(!window._portalExtras){go("dashboard");return}renderShell("",window._portalExtras.subjectProgressHTML())},
@@ -13829,14 +13829,14 @@ function vResult(){
 /* ================= ADMIN PANEL (part 1) ================= */
 function vAdmin(){
   if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher"))){toast(t("needAdmin"));go("dashboard");return}
-  const tabs=[["overview","📈 "+t("overview")],["students","👥 "+t("students")],["chapters","📚 "+t("chaptersTab")],["questions","❓ "+t("questionsTab")],["results","🏆 "+t("resultsTab")],["scheduled","📅 Scheduled"],["logs","📜 "+t("logsTab")],["settings","⚙️ "+t("settingsTab")],["deploy","🚀 "+t("deployTab")]];
+  const tabs=[["overview","📈 "+t("overview")],["students","👥 "+t("students")],["chapters","📚 "+t("chaptersTab")],["questions","❓ "+t("questionsTab")],["results","🏆 "+t("resultsTab")],["scheduled","📅 Scheduled"],["mockpapers","📝 Mock Papers"],["logs","📜 "+t("logsTab")],["settings","⚙️ "+t("settingsTab")],["deploy","🚀 "+t("deployTab")]];
   renderShell("admin",`
     <div class="sect-h"><h2>🛠️ ${esc(t("adminPanel"))}</h2>
       <span class="badge b-info">${esc(state.user.name)} · ${esc(state.user.role)}</span></div>
     <div class="admin-nav">${tabs.map(([id,lb])=>`<button class="tab ${state.adminTab===id?"on":""}" data-atab="${id}">${lb}</button>`).join("")}</div>
     <div id="adminBody"></div>`);
   document.querySelectorAll("[data-atab]").forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.atab;vAdmin()});
-  const B={overview:admOverview,students:admStudents,chapters:admChapters,questions:admQuestions,results:admResults,scheduled:vScheduledExamsAdmin,logs:admLogs,settings:admSettings,deploy:admDeploy};
+  const B={overview:admOverview,students:admStudents,chapters:admChapters,questions:admQuestions,results:admResults,scheduled:vScheduledExamsAdmin,mockpapers:vAdminMockPapers,logs:admLogs,settings:admSettings,deploy:admDeploy};
   (B[state.adminTab]||admOverview)();
 }
 
@@ -14357,6 +14357,17 @@ function verifyDialog(prefill){
   };
   $("#vCertId").onkeydown=e=>{if(e.key==="Enter")$("#vGo").click()};
 }
+
+/* Admin-only Mock Paper Setter (iframe -> admin.html). Students cannot set papers. */
+function vAdminMockPapers(){
+  if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher"))){toast(t("needAdmin"));go("dashboard");return}
+  $("#app").innerHTML=headerHTML("admin")+`
+    <div style="max-width:1180px;margin:14px auto 0;padding:0 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2 style="font-size:18px">📝 Mock Papers — Admin Paper Setter</h2>
+      <button class="btn btn-g btn-s" onclick="state.adminTab='overview';go('admin')">← Admin Panel</button>
+    </div>
+    <iframe class="embed-frame" src="admin.html" title="ASJBCM Mock Paper Setter (Admin Only)"></iframe>`;
+  bindHeader()}
 
 /* ================= SCHEDULED EXAM FEATURE =================
    Admin creates scheduled tests with start/end time.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASJBCM MCQ Bank — 19 Subjects · 163 Chapters · 11782 MCQs</title>
+<title>ASJBCM MCQ Bank — 19 Subjects · 174 Chapters · 11898 MCQs</title>
 <style>
 :root{
   --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
@@ -79,6 +79,15 @@ p.secdesc{color:#64748b;font-size:13.5px;margin-bottom:14px}
 .qnum{color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:4px 11px}
 .pyq{background:#fee2e2;color:#b91c1c;font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 9px}
 .qtext{font-weight:700;font-size:15px;color:#1e293b;line-height:1.6;margin-bottom:12px}
+.qfig{margin:0 0 12px;padding:10px;background:#fff;border:1px solid #e3eaf4;border-radius:12px;overflow-x:auto;text-align:center}
+.qfig svg{max-width:100%;height:auto}
+.qfig table{border-collapse:collapse;margin:0 auto;font-size:12px}
+.qfig td,.qfig th{border:1px solid #c7d2e5;padding:4px 9px;white-space:nowrap}
+.qfig .note{font-size:11px;color:#64748b;margin-top:4px}
+.qpass{margin:0 0 12px;padding:12px 15px;background:#eef3fe;border:1px solid #d8e2f7;border-radius:12px;
+  font-size:13.5px;line-height:1.6;color:#33456b;max-height:280px;overflow-y:auto;text-align:left}
+.qpass p{margin:0 0 8px}.qpass p:last-child{margin:0}
+.qpass b{color:#4a6fdc}
 .opts{display:grid;gap:8px}
 @media(min-width:700px){.opts{grid-template-columns:1fr 1fr}}
 .opt{display:flex;align-items:flex-start;gap:9px;background:#f8fafc;border:1.5px solid #e3eaf4;border-radius:12px;
@@ -224,7 +233,7 @@ function quizHtml(si,ci){
     var m=c.mcqs[qi],sel=st[qi];
     h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:'+G(si)+'">Q'+(qi+1)+'</span>'
       +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
-      +'<div class="qtext">'+esc(m.q)+'</div><div class="opts">';
+      +(m.passage?'<div class="qpass">'+m.passage+'</div>':'')+'<div class="qtext">'+esc(m.q)+'</div>'+(m.fig?'<div class="qfig">'+m.fig+'</div>':'')+'<div class="opts">';
     for(var oi=0;oi<m.options.length;oi++)h+=optionHtml(si,ci,qi,oi,m,sel);
     h+='</div>';
     if(sel!==undefined)h+='<div class="expl"><b>'+(sel===m.answer?"✅ Correct!":"❌ Incorrect — answer is "+LET(m.answer)+".")+'</b> '+esc(m.explanation||"")+'</div>';
@@ -270,7 +279,7 @@ function renderQQ(){
     h+='<div class="qqprog"><b>Question '+(qq.i+1)+' of '+n+'</b> · '+esc(qq.qs[qq.i].ct)+'<div class="bar"><div style="width:'+((qq.i+(rev?1:0))/n*100)+'%"></div></div></div>';
     h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:'+G(qq.si)+'">Q'+(qq.i+1)+'</span>'
       +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
-      +'<div class="qtext">'+esc(m.q)+'</div><div class="opts">';
+      +(m.passage?'<div class="qpass">'+m.passage+'</div>':'')+'<div class="qtext">'+esc(m.q)+'</div>'+(m.fig?'<div class="qfig">'+m.fig+'</div>':'')+'<div class="opts">';
     for(var oi=0;oi<m.options.length;oi++){
       var cls="opt",dis="";
       if(rev){if(oi===m.answer)cls+=" correct";else if(sel===oi)cls+=" wrong";else cls+=" dim";dis=" disabled";}
@@ -297,7 +306,7 @@ function renderQQ(){
       wrong.forEach(function(w){
         var m=w.item.m;
         h+='<div class="rev"><span class="tag bad">❌ '+(w.sel!==undefined?"Your answer: "+LET(w.sel):"Skipped")+'</span><span class="tag good">✅ Correct: '+LET(m.answer)+'</span>';
-        h+='<div class="qtext" style="margin-top:9px">'+esc(m.q)+'</div>';
+        h+=(m.passage?'<div class="qpass">'+m.passage+'</div>':'')+'<div class="qtext" style="margin-top:9px">'+esc(m.q)+'</div>'+(m.fig?'<div class="qfig">'+m.fig+'</div>':'');
         h+='<div style="font-size:13.5px;color:#33475e"><b>'+LET(m.answer)+'. '+esc(m.options[m.answer])+'</b></div>';
         if(m.explanation)h+='<div class="expl">'+esc(m.explanation)+'</div>';
         h+='</div>';
