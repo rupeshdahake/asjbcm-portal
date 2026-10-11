@@ -203,11 +203,12 @@ function viewList(){
       <div class="codebox">${esc(paperToCode(p))}</div>
     </div>`;
   return `<div class="card">
-      <h2 class="sect">📋 Papers students can see</h2>
-      <p class="desc">Every paper below appears in the student's Mock Test tab. Share a paper with students on other devices by sending them its code — the student pastes it in Mock Test → "Have a paper code?" to unlock.</p>
+      <h2 class="sect">🛠️ Papers YOU set — these are assigned to students</h2>
+      <p class="desc">Papers you create here appear on the student's Dashboard as "📝 tests assigned by Admin" and in their assigned-papers list. Students see <b>only these papers</b> — never the official ones. Share a paper with students on other devices by sending its code — the student pastes it in Mock Test → "Have a paper code?" to unlock.</p>
+      ${custom.length?custom.map(p=>card(p,true)).join(""):`<p class="desc">No custom papers yet — click <b>➕ Set New Paper</b> to compose one for your students.</p>`}
+      <h2 class="sect" style="margin-top:20px">🏛️ Official papers (admin-only catalogue)</h2>
+      <p class="desc">Built-in papers for the admin's own use — students do <b>not</b> see these in their assigned list.</p>
       ${BUILTIN_PAPERS.map(p=>card(p,false)).join("")}
-      <h2 class="sect" style="margin-top:20px">🛠️ Papers you set</h2>
-      ${custom.length?custom.map(p=>card(p,true)).join(""):`<p class="desc">No custom papers yet — click <b>➕ Set New Paper</b> to compose one.</p>`}
       <h2 class="sect" style="margin-top:20px">🔑 Import a paper code</h2>
       <p class="desc">Paste a code from another admin device to add its paper here.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">

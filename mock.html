@@ -186,7 +186,7 @@ let BANK=null;
 const LS_PAPERS="asjbcm_papers_v1";
 const state={student:"",lang:"all",paper:[],answers:[],marked:[],visited:[],
   idx:0,timeLeft:0,totalTime:0,timer:null,violations:[],code:"",status:"",startedAt:0,testing:false,finished:false,
-  spec:null,customPapers:[]};
+  spec:null,customPapers:[],deeplink:""};
 /* Papers are set by the ADMIN only. Built-in official papers + custom papers created
    in the Admin Panel (same device) or unlocked by students via ASJP1- paper codes. */
 const BUILTIN_PAPERS=[
@@ -224,7 +224,7 @@ window.addEventListener("hashchange",route);
 function route(){if(!BANK){return}const h=location.hash||"#/";
   if(h==="#test"&&state.paper.length)renderTest();
   else if(h==="#result"&&state.finished)renderResult();
-  else renderPapers()}
+  else{renderPapers();if(state.deeplink){const el=document.getElementById("pc-"+state.deeplink);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.style.outline="3px solid var(--brand)";el.style.outlineOffset="2px"}}}}
 
 /* ---------- papers (set by admin only) ---------- */
 function isAdmin(){try{let sid=localStorage.getItem("asjbc_session");if(!sid)return false;try{sid=JSON.parse(sid)}catch(e){}
@@ -250,7 +250,7 @@ function paperTotal(p){return (p.fill&&p.fill.count?p.fill.count:0)+(p.fig||0)+(
 function renderPapers(){
   const hist=histFor(state.student||"__anon");
   const admin=isAdmin();
-  const papers=allPapers();
+  const papers=admin?allPapers():loadCustom(); /* students: ONLY papers the Admin set */
   const app=$("#app");
   app.innerHTML=`
   <section class="hero">
@@ -261,7 +261,7 @@ function renderPapers(){
   <div class="grid2">
     <div class="card">
       <h2 class="sect">📋 My Assigned Papers</h2>
-      <p class="desc">${BUILTIN_PAPERS.length} official paper(s) + ${loadCustom().length} unlocked / admin-shared paper(s).</p>
+      ${admin?`<p class="desc">${BUILTIN_PAPERS.length} official paper(s) + ${loadCustom().length} admin-set / unlocked paper(s). <b>Students see only the papers you set here</b> — this full list is admin-only.</p>`:`<p class="desc">${papers.length?papers.length+" paper(s) assigned by your Admin — read the rules, enter your name and start.":"No tests assigned yet. Papers published by your Admin / Teacher will appear here automatically. Have a paper code? Unlock it below."}</p>`}
       <div class="field"><label>STUDENT NAME</label>
         <input type="text" id="fStudent" placeholder="Enter your name" value="${esc(state.student)}"></div>
       ${admin?`<div class="desc" style="background:var(--greensoft);border:1px solid #bfe8d2;border-radius:10px;padding:10px 12px;margin-bottom:12px">
@@ -314,7 +314,7 @@ function paperCard(p,i){
   const total=paperTotal(p);
   const flags=[p.fig?`📊 ${p.fig} diagram/chart`:"",p.essay?`📝 ${p.essay} essay/passage`:""].filter(Boolean).join(" · ");
   const langB=p.lang==="en"?"🇬🇧 English":p.lang==="hi"?"हिंदी/मराठी":"🌐 All languages";
-  return `<div style="border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;background:#fbfdff">
+  return `<div id="pc-${esc(p.id)}" style="border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;background:#fbfdff">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
       <div style="flex:1;min-width:220px"><b style="font-size:15.5px">${esc(p.title)}</b>
         <div style="font-size:12.5px;color:var(--ink2);margin-top:3px">
@@ -595,6 +595,7 @@ function toast(big,small){
   try{
     const p=new URLSearchParams(location.search);
     state.student=(p.get("student")||"").trim();
+    state.deeplink=(p.get("paper")||"").trim();
     const res=await fetch(BANK_URL);
     if(!res.ok)throw new Error("HTTP "+res.status);
     BANK=await res.json();
