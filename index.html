@@ -35,6 +35,9 @@
 /* Embedded full-height frames (Book / MCQ Bank) */
 .embed-frame{display:block;width:100%;height:calc(100vh - 76px)!important;border:none;background:var(--card)}
 @supports (height:100dvh){.embed-frame{height:calc(100dvh - 76px)!important}}
+/* Same embed but inside the Admin Panel tab body — shorter so header+tabs+title all fit without double scrollbars */
+.embed-frame-tab{height:calc(100vh - 245px)!important;min-height:480px}
+@supports (height:100dvh){.embed-frame-tab{height:calc(100dvh - 245px)!important}}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
@@ -14437,13 +14440,16 @@ function verifyDialog(prefill){
 /* Admin-only Mock Paper Setter (iframe -> admin.html). Students cannot set papers. */
 function vAdminMockPapers(){
   if(!(state.user&&(state.user.role==="admin"||state.user.role==="teacher"))){toast(t("needAdmin"));go("dashboard");return}
-  $("#app").innerHTML=headerHTML("admin")+`
-    <div style="max-width:1180px;margin:14px auto 0;padding:0 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <h2 style="font-size:18px">📝 Mock Papers — Admin Paper Setter</h2>
+  /* Render INSIDE the admin shell (#adminBody) — tab bar stays visible; admin can switch tabs freely */
+  const ab=$("#adminBody");
+  if(!ab){state.adminTab="mockpapers";go("admin");return}
+  ab.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px">
+      <h2 style="font-size:18px;margin:0">📝 Mock Papers — Admin Paper Setter</h2>
       <button class="btn btn-g btn-s" onclick="state.adminTab='overview';go('admin')">← Admin Panel</button>
     </div>
-    <iframe class="embed-frame" src="admin.html" title="ASJBCM Mock Paper Setter (Admin Only)"></iframe>`;
-  bindHeader()}
+    <iframe class="embed-frame embed-frame-tab" src="admin.html" title="ASJBCM Mock Paper Setter (Admin Only)"></iframe>`;
+}
 
 /* ================= SCHEDULED EXAM FEATURE =================
    Admin creates scheduled tests with start/end time.
@@ -14539,8 +14545,11 @@ function vScheduledExamsAdmin(){
     html += '</div>';
   }
   
-  renderShell("admin", html);
-  bindHeader();
+  /* Render INSIDE the admin shell (#adminBody) so the admin tab bar stays visible
+     and the admin can return to Overview / any other tab. Never replace the shell here. */
+  const ab=$("#adminBody");
+  if(ab){ab.innerHTML=html}
+  else{state.adminTab="scheduled";go("admin")}
 }
 
 function vScheduleExamForm(){
@@ -14589,8 +14598,10 @@ function vScheduleExamForm(){
       <button class="btn btn-p btn-block" onclick="createScheduledExam()">📅 Schedule Exam</button>
     </div>`;
   
-  renderShell("admin", html);
-  bindHeader();
+  /* Render INSIDE the admin shell (#adminBody) — keeps the admin tab bar visible */
+  const ab=$("#adminBody");
+  if(!ab){state.adminTab="scheduled";go("admin");return}
+  ab.innerHTML=html;
   
   /* Set default start time to now + 1 hour, end to now + 3 hours */
   const now = new Date();
