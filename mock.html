@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASJBCM Mock Test — Papers Set by Admin · Strict Mode</title>
+<title>ASJBCM Practice Paper — Set by Your Teacher · Strict Mode</title>
 <style>
 :root{
   --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
@@ -178,7 +178,7 @@ table.brk td{padding:9px 10px;border-top:1px solid var(--line)}
 
 <div id="modalhost"></div>
 <script>
-/* ============ Unique Mock Test — strict CBT engine ============ */
+/* ============ Practice Paper — strict CBT engine (Exam Mode) ============ */
 const $=s=>document.querySelector(s);
 const BANK_URL="10000.json";
 const LS_KEY="asjbcm_mock_v1";
@@ -221,6 +221,12 @@ function saveHist(st,rec){const all=histAll();const arr=all[st]||[];arr.unshift(
 
 /* ---------- routing ---------- */
 window.addEventListener("hashchange",route);
+/* auto-start deep link: mock.html?paper=<id>&student=<name>&auto=1 */
+(function(){try{var p=new URLSearchParams(location.search);
+ if(p.get("auto")==="1"&&p.get("paper")){var iv=setInterval(function(){if(BANK){clearInterval(iv);
+  var spec=allPapers().find(function(x){return x.id===p.get("paper")});
+  if(spec){setTimeout(function(){startPaper(spec)},350)}}},200);
+  setTimeout(function(){clearInterval(iv)},15000)}}catch(e){}})();
 function route(){if(!BANK){return}const h=location.hash||"#/";
   if(h==="#test"&&state.paper.length)renderTest();
   else if(h==="#result"&&state.finished)renderResult();
@@ -351,7 +357,7 @@ function resolvePaper(spec){
   const figs=take(all.filter(e=>e.m.fig),spec.fig||0);
   const essays=take(all.filter(e=>e.m.passage),spec.essay||0);
   const subjOK=e=>!spec.fill.subject||spec.fill.subject==="*"||e.key===spec.fill.subject;
-  const plain=all.filter(e=>subjOK(e)&&!e.m.fig&&!e.m.passage);
+  const plain=all.filter(e=>subjOK(e)&&e.m.type!=="essay"&&!e.m.fig&&!e.m.passage);
   const restPool=plain.length>=spec.fill.count?plain:plain.concat(all.filter(e=>subjOK(e)&&(e.m.fig||e.m.passage)));
   const fill=take(restPool,spec.fill.count);
   const picked=figs.concat(essays,fill);
@@ -370,7 +376,7 @@ function resolvePaper(spec){
 
 /* ---------- start ---------- */
 async function startPaper(spec){
-  state.student=($("#fStudent")?.value||"").trim();
+  state.student=(($("#fStudent")?.value)||new URLSearchParams(location.search).get("student")||"").trim();
   if(!state.student){alert("Please enter the student name to personalise your attempt.");return}
   const n=resolvePaper(spec);
   if(!n||n<5){alert("This paper could not be composed — not enough questions in the bank for its language / subject scope. Please contact the Admin.");return}
@@ -523,6 +529,19 @@ function finish(status){
     violations:state.violations.length,dur:state.totalTime-state.timeLeft,
     student:state.student};
   saveHist(state.student||"__anon",rec);
+   /* Bridge result into the portal's results DB so Teachers can see attempts in Admin → Results */
+   try{
+     var _sid=localStorage.getItem("asjbc_session");
+     var _users=JSON.parse(localStorage.getItem("asjbc_users")||"[]");
+     var _u=_users.find(function(x){return x.id===_sid});
+     var _res={u:(_u?_u.id:""),name:(_u?_u.name:(state.student||"Guest")),s:"mockpaper",cid:"",
+       title:"📝 "+(state.spec?state.spec.title:"Practice Paper"),ts:Date.now(),
+       score:Math.round(score*100)/100,max:state.paper.length,correct:correct,wrong:wrong,skipped:unatt,
+       pct:state.paper.length?Math.round(correct/state.paper.length*1000)/10:0,
+       dur:state.totalTime-state.timeLeft,answers:[],qids:[],neg:(state.spec?state.spec.neg:0)};
+     var _arr=JSON.parse(localStorage.getItem("asjbc_results")||"[]");_arr.push(_res);
+     localStorage.setItem("asjbc_results",JSON.stringify(_arr.slice(-800)));
+   }catch(e){}
   state._result=rec;
   location.hash="#result";
   renderResult();

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASJBCM MCQ Bank — 19 Subjects · 174 Chapters · 11898 MCQs</title>
+<title>ASJBCM MCQ Bank — 19 Subjects · 174 Chapters · 21635 MCQs</title>
 <style>
 :root{
   --bg:#f2f6fc;--card:#ffffff;--ink:#2b3a55;--ink2:#5b6b85;--muted:#8a97ad;--line:#e3eaf4;
@@ -231,6 +231,16 @@ function quizHtml(si,ci){
     +'<button class="hbtn" style="background:#f1f5f9;color:#475569;border-color:#e2e8f0" onclick="resetQuiz('+si+','+ci+')">↺ Reset Quiz</button></div>';
   for(var qi=0;qi<end;qi++){
     var m=c.mcqs[qi],sel=st[qi];
+    if(m.type==="essay"){
+      h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:#7c3aed">Q'+(qi+1)+'</span>'
+        +'<span class="pyq" style="background:#ede9fe;color:#6d28d9">✍️ Descriptive</span>'
+        +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
+        +'<div class="qtext">'+esc(m.q)+'</div>'
+        +'<textarea id="essay_'+qi+'" style="width:100%;min-height:130px;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font:inherit;box-sizing:border-box" placeholder="Write your answer here… then compare with the model answer."></textarea>'
+        +'<div style="margin-top:8px"><button class="hbtn" onclick="toggleEssay('+qi+')">📖 Show / Hide Model Answer</button></div>'
+        +'<div id="essayma_'+qi+'" style="display:none;margin-top:10px" class="expl"><b>Model Answer:</b> '+esc(m.modelAnswer||"")+'</div></div>';
+      continue;
+    }
     h+='<div class="qcard"><div class="qhead"><span class="qnum" style="background:'+G(si)+'">Q'+(qi+1)+'</span>'
       +(m.pyqTag?'<span class="pyq">📌 '+esc(m.pyqTag)+'</span>':'')+'</div>'
       +(m.passage?'<div class="qpass">'+m.passage+'</div>':'')+'<div class="qtext">'+esc(m.q)+'</div>'+(m.fig?'<div class="qfig">'+m.fig+'</div>':'')+'<div class="opts">';
@@ -259,6 +269,7 @@ function pick(si,ci,qi,oi){
   if(panel)panel.innerHTML='<h2 class="sec">✍️ Practice MCQs ('+DATA.subjects[si].chapters[ci].mcqs.length+')</h2>'+quizHtml(si,ci);
 }
 function loadMore(){page++;rerenderChapter()}
+function toggleEssay(i){var el=document.getElementById("essayma_"+i);if(el)el.style.display=(el.style.display==="none")?"block":"none"}
 function resetQuiz(si,ci){answers[si+"_"+ci]={};page=0;saveProg();rerenderChapter()}
 function rerenderChapter(){if(cur&&cur.c!==null){var panel=$("#quizpanel");if(panel)panel.innerHTML='<h2 class="sec">✍️ Practice MCQs ('+DATA.subjects[cur.s].chapters[cur.c].mcqs.length+')</h2>'+quizHtml(cur.s,cur.c)}}
 
@@ -266,7 +277,7 @@ function rerenderChapter(){if(cur&&cur.c!==null){var panel=$("#quizpanel");if(pa
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function startQQ(si){
   var pool=[];
-  DATA.subjects[si].chapters.forEach(function(c,ci){c.mcqs.forEach(function(m,qi){pool.push({m:m,ct:c.title,ci:ci,qi:qi})})});
+  DATA.subjects[si].chapters.forEach(function(c,ci){c.mcqs.forEach(function(m,qi){if(m.type==='essay')return;pool.push({m:m,ct:c.title,ci:ci,qi:qi})})});
   shuffle(pool);
   qq={si:si,qs:pool.slice(0,Math.min(20,pool.length)),i:0,sels:{},done:false};
   go("#qq");
